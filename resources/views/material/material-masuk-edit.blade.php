@@ -1,0 +1,458 @@
+@extends('layouts.app')
+
+@section('title', 'Edit Material Masuk')
+
+@section('content')
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Edit Material Masuk</h3>
+                    <div class="card-tools">
+                        <a href="{{ route('material-masuk.index') }}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left"></i> Kembali
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if ($errors->any())
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form action="{{ route('material-masuk.update', $materialMasuk->id) }}" method="POST" id="materialMasukForm">
+                        @csrf
+                        @method('PUT')
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nomor_kr">Nomor KR</label>
+                                    <input type="text" class="form-control" id="nomor_kr" name="nomor_kr" 
+                                           value="{{ old('nomor_kr', $materialMasuk->nomor_kr) }}" placeholder="Masukkan Nomor KR">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="pabrikan">Pabrikan</label>
+                                    <input type="text" class="form-control" id="pabrikan" name="pabrikan" 
+                                           value="{{ old('pabrikan', $materialMasuk->pabrikan) }}" placeholder="Masukkan Pabrikan">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="tanggal_masuk">Tanggal Masuk <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="tanggal_masuk" name="tanggal_masuk" 
+                                           value="{{ old('tanggal_masuk', $materialMasuk->tanggal_masuk) }}" disabled>
+                                    <input type="hidden" name="tanggal_masuk" value="{{ $materialMasuk->tanggal_masuk }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+                        <h5>Detail Material</h5>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="materialTable">
+                                <thead>
+                                    <tr>
+                                        <th width="5%">No</th>
+                                        <th width="50%">Material</th>
+                                        <th width="15%">Normalisasi</th>
+                                        <th width="7.5%">Qty</th>
+                                        <th width="10%">Satuan</th>
+                                        <th width="12.5%">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="materialTableBody">
+                    @foreach($materialMasuk->details as $index => $detail)
+                    <tr data-existing="true">
+                        <td class="text-center">{{ $index + 1 }}</td>
+                        <td>
+                             <input type="text" class="form-control form-control-sm" 
+                                    value="{{ $detail->material->material_description }}" disabled>
+                             <input type="hidden" name="materials[{{ $index }}][material_id]" value="{{ $detail->material_id }}">
+                             <input type="hidden" name="materials[{{ $index }}][material_description]" value="{{ $detail->material->material_description }}">
+                             <input type="hidden" name="materials[{{ $index }}][detail_id]" value="{{ $detail->id }}">
+                         </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm" 
+                                   value="{{ $detail->material->normalisasi ?? '' }}" disabled>
+                            <input type="hidden" name="materials[{{ $index }}][normalisasi]" value="{{ $detail->material->normalisasi ?? '' }}">
+                        </td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm" 
+                                   name="materials[{{ $index }}][quantity]" 
+                                   value="{{ $detail->quantity }}"
+                                   placeholder="Qty" min="1" required>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm" 
+                                   value="{{ $detail->satuan }}" disabled>
+                            <input type="hidden" name="materials[{{ $index }}][satuan]" value="{{ $detail->satuan }}">
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm remove-row" 
+                                    onclick="removeRow(this)" disabled>
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-success btn-sm" onclick="addRow()">
+                                <i class="fas fa-plus"></i> Tambah Material
+                            </button>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="keterangan">Keterangan</label>
+                            <textarea class="form-control" id="keterangan" name="keterangan" rows="3" 
+                                      placeholder="Masukkan keterangan (opsional)">{{ old('keterangan', $materialMasuk->keterangan) }}</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Material Masuk
+                            </button>
+                            <a href="{{ route('material-masuk.index') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Batal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('styles')
+<style>
+.autocomplete-container {
+    position: relative;
+}
+
+.autocomplete-results {
+    position: absolute;
+    width: max-content;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 9999 !important;
+    display: none;
+}
+
+.autocomplete-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.autocomplete-item:hover {
+    background-color: #f8f9fa;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.table-responsive {
+    overflow: visible !important;
+}
+
+.table-responsive table {
+    overflow: visible !important;
+}
+</style>
+@endpush
+
+@push('scripts')
+<script>
+let rowIndex = {{ count($materialMasuk->details) }};
+
+function addRow() {
+    const tbody = document.getElementById('materialTableBody');
+    const newRow = document.createElement('tr');
+    
+    newRow.innerHTML = `
+        <td class="text-center">${rowIndex + 1}</td>
+        <td>
+            <div class="autocomplete-container">
+                <input type="text" class="form-control form-control-sm material-search" 
+                       name="materials[${rowIndex}][material_description]" 
+                       placeholder="Ketik untuk mencari material..." 
+                       autocomplete="off" required>
+                <input type="hidden" name="materials[${rowIndex}][material_id]" class="material-id">
+                <div class="autocomplete-results"></div>
+            </div>
+        </td>
+        <td>
+            <div class="autocomplete-container">
+                <input type="text" class="form-control form-control-sm normalisasi-search" 
+                       name="materials[${rowIndex}][normalisasi]" placeholder="Normalisasi">
+                <div class="autocomplete-results"></div>
+            </div>
+        </td>
+        <td>
+            <input type="number" class="form-control form-control-sm" 
+                   name="materials[${rowIndex}][quantity]" placeholder="Qty" min="1" required>
+        </td>
+        <td>
+            <input type="text" class="form-control form-control-sm" 
+                   name="materials[${rowIndex}][satuan]" placeholder="Satuan" required>
+        </td>
+        <td>
+            <button type="button" class="btn btn-danger btn-sm remove-row" 
+                    onclick="removeRow(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
+    `;
+    
+    tbody.appendChild(newRow);
+    rowIndex++;
+    
+    // Update row numbers and enable/disable remove buttons
+    updateRowNumbers();
+    initializeAutocomplete(newRow.querySelector('.material-search'));
+    initializeNormalisasiAutocomplete(newRow.querySelector('.normalisasi-search'));
+}
+
+function removeRow(button) {
+    const row = button.closest('tr');
+    // Don't allow removal of existing data rows
+    if (row.hasAttribute('data-existing')) {
+        return;
+    }
+    row.remove();
+    updateRowNumbers();
+}
+
+function updateRowNumbers() {
+    const rows = document.querySelectorAll('#materialTableBody tr');
+    rows.forEach((row, index) => {
+        row.querySelector('td:first-child').textContent = index + 1;
+        
+        // Update name attributes only for non-existing rows
+        if (!row.hasAttribute('data-existing')) {
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => {
+                if (input.name) {
+                    input.name = input.name.replace(/\[\d+\]/, `[${index}]`);
+                }
+            });
+        }
+        
+        // Enable/disable remove button - existing rows stay disabled
+        const removeBtn = row.querySelector('.remove-row');
+        if (row.hasAttribute('data-existing')) {
+            removeBtn.disabled = true;
+        } else {
+            removeBtn.disabled = false;
+        }
+    });
+}
+
+function initializeAutocomplete(input) {
+    let timeout;
+    
+    input.addEventListener('input', function() {
+        clearTimeout(timeout);
+        const query = this.value;
+        const resultsDiv = this.parentElement.querySelector('.autocomplete-results');
+        const hiddenInput = this.parentElement.querySelector('.material-id');
+        
+        if (query.length < 2) {
+            resultsDiv.style.display = 'none';
+            hiddenInput.value = '';
+            return;
+        }
+        
+        timeout = setTimeout(() => {
+            fetch(`{{ route('material-masuk.autocomplete.material') }}?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultsDiv.innerHTML = '';
+                    
+                    if (data.length > 0) {
+                        data.forEach(material => {
+                            const item = document.createElement('div');
+                            item.className = 'autocomplete-item';
+                            item.innerHTML = `
+                                <strong>${material.text}</strong><br>
+                                <small class="text-muted">
+                                    Normalisasi: ${material.normalisasi || 'N/A'} | 
+                                    Satuan: ${material.satuan || ''}
+                                </small>
+                            `;
+                            
+                            item.addEventListener('click', () => {
+                                input.value = material.text;
+                                hiddenInput.value = material.id;
+                                
+                                // Auto-fill normalisasi
+                                const normalisasiInput = input.closest('tr').querySelector('input[name*="[normalisasi]"]');
+                                if (normalisasiInput && material.normalisasi) {
+                                    normalisasiInput.value = material.normalisasi;
+                                }
+                                
+                                // Auto-fill satuan if available
+                                const satuanInput = input.closest('tr').querySelector('input[name*="[satuan]"]');
+                                if (satuanInput && material.satuan) {
+                                    satuanInput.value = material.satuan;
+                                }
+                                
+                                resultsDiv.style.display = 'none';
+                            });
+                            
+                            resultsDiv.appendChild(item);
+                        });
+                        resultsDiv.style.display = 'block';
+                    } else {
+                        resultsDiv.innerHTML = '<div class="autocomplete-item">Tidak ada material ditemukan</div>';
+                        resultsDiv.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    resultsDiv.style.display = 'none';
+                });
+        }, 300);
+    });
+    
+    // Hide results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!input.parentElement.contains(e.target)) {
+            input.parentElement.querySelector('.autocomplete-results').style.display = 'none';
+        }
+    });
+}
+
+function initializeNormalisasiAutocomplete(input) {
+    let timeout;
+    
+    input.addEventListener('input', function() {
+        clearTimeout(timeout);
+        const query = this.value;
+        const resultsDiv = this.parentElement.querySelector('.autocomplete-results');
+        
+        if (query.length < 2) {
+            resultsDiv.style.display = 'none';
+            return;
+        }
+        
+        timeout = setTimeout(() => {
+            fetch(`{{ route('material-masuk.autocomplete.normalisasi') }}?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultsDiv.innerHTML = '';
+                    
+                    if (data.length > 0) {
+                        data.forEach(material => {
+                            const item = document.createElement('div');
+                            item.className = 'autocomplete-item';
+                            item.innerHTML = `
+                                <strong>${material.text}</strong><br>
+                                <small class="text-muted">
+                                    Material: ${material.material_description || 'N/A'} | 
+                                    Satuan: ${material.satuan || ''}
+                                </small>
+                            `;
+                            
+                            item.addEventListener('click', () => {
+                                input.value = material.text;
+                                
+                                // Auto-fill material description
+                                const materialInput = input.closest('tr').querySelector('input[name*="[material_description]"]');
+                                const hiddenInput = input.closest('tr').querySelector('.material-id');
+                                if (materialInput && material.material_description) {
+                                    materialInput.value = material.material_description;
+                                    hiddenInput.value = material.id;
+                                }
+                                
+                                // Auto-fill satuan if available
+                                const satuanInput = input.closest('tr').querySelector('input[name*="[satuan]"]');
+                                if (satuanInput && material.satuan) {
+                                    satuanInput.value = material.satuan;
+                                }
+                                
+                                resultsDiv.style.display = 'none';
+                            });
+                            
+                            resultsDiv.appendChild(item);
+                        });
+                        resultsDiv.style.display = 'block';
+                    } else {
+                        resultsDiv.innerHTML = '<div class="autocomplete-item">Tidak ada normalisasi ditemukan</div>';
+                        resultsDiv.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    resultsDiv.style.display = 'none';
+                });
+        }, 300);
+    });
+    
+    // Hide results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!input.parentElement.contains(e.target)) {
+            input.parentElement.querySelector('.autocomplete-results').style.display = 'none';
+        }
+    });
+}
+
+// Initialize autocomplete for existing inputs
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.material-search').forEach(input => {
+        initializeAutocomplete(input);
+    });
+    
+    document.querySelectorAll('.normalisasi-search').forEach(input => {
+        initializeNormalisasiAutocomplete(input);
+    });
+    
+    updateRowNumbers();
+});
+
+// Form validation
+document.getElementById('materialMasukForm').addEventListener('submit', function(e) {
+    const materialInputs = document.querySelectorAll('.material-id');
+    let hasValidMaterial = false;
+    
+    materialInputs.forEach(input => {
+        if (input.value) {
+            hasValidMaterial = true;
+        }
+    });
+    
+    if (!hasValidMaterial) {
+        e.preventDefault();
+        alert('Minimal harus ada satu material yang dipilih!');
+        return false;
+    }
+});
+</script>
+@endpush

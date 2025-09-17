@@ -1,0 +1,102 @@
+@extends('layouts.app')
+
+@section('title', 'Surat Jalan')
+
+@section('content')
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Daftar Surat Jalan</h3>
+                    <div class="card-tools">
+                        <a href="{{ route('material.surat-jalan.create') }}" class="btn btn-primary">
+                            <i class="fa fa-plus"></i> Buat Surat Jalan
+                        </a>
+                        <a href="{{ route('material.surat-jalan.approval') }}" class="btn btn-success">
+                            <i class="fa fa-check"></i> Approval
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="suratJalanTable" class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Nomor Surat</th>
+                                    <th>Tanggal</th>
+                                    <th>Kepada</th>
+                                    <th>Status</th>
+                                    <th>Dibuat Oleh</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    $('#suratJalanTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: '{{ route("material.surat-jalan.data") }}',
+        columns: [
+            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+            { data: 'nomor_surat', name: 'nomor_surat' },
+            { data: 'tanggal', name: 'tanggal' },
+            { data: 'kepada', name: 'kepada' },
+            { data: 'status', name: 'status' },
+            { data: 'created_by', name: 'created_by' },
+            { data: 'action', name: 'action', orderable: false, searchable: false }
+        ],
+        responsive: true
+    });
+});
+
+function deleteSuratJalan(id) {
+    Swal.fire({
+        title: 'Apakah Anda yakin?',
+        text: "Data surat jalan akan dihapus permanen!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '/material/surat-jalan/' + id,
+                type: 'DELETE',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire('Berhasil!', response.message, 'success');
+                        $('#suratJalanTable').DataTable().ajax.reload();
+                    } else {
+                        Swal.fire('Error!', response.message, 'error');
+                    }
+                },
+                error: function() {
+                    Swal.fire('Error!', 'Terjadi kesalahan saat menghapus data.', 'error');
+                }
+            });
+        }
+    });
+}
+
+function printSuratJalan(id) {
+    window.open('/material/surat-jalan/' + id + '/export', '_blank');
+}
+</script>
+@endpush
