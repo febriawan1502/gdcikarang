@@ -11,7 +11,7 @@
                     <h3 class="card-title">Daftar Material Masuk</h3>
                     <div class="card-tools">
                         <a href="{{ route('material-masuk.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Tambah Material Masuk
+                        <i class="fa fa-plus"></i> Tambah Material Masuk
                     </a>
                     </div>
                 </div>

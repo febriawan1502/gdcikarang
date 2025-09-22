@@ -454,7 +454,7 @@ class MaterialController extends Controller
             ->addColumn('action', function($row) {
                 $actions = '';
                 if ($row->status == 'BUTUH_PERSETUJUAN') {
-                    $actions .= '<a href="' . route('material.surat-jalan.edit', $row->id) . '" class="btn btn-sm btn-primary mr-1"><i class="fa fa-edit"></i></a>';
+                    $actions .= '<a href="' . route('surat-jalan.edit', $row->id) . '" class="btn btn-sm btn-primary mr-1"><i class="fa fa-edit"></i></a>';
                     $actions .= '<button class="btn btn-sm btn-danger" onclick="deleteSuratJalan(' . $row->id . ')"><i class="fa fa-trash"></i></button>';
                 } else {
                     $actions .= '<button class="btn btn-sm btn-success" onclick="printSuratJalan(' . $row->id . ')"><i class="fa fa-print"></i></button>';
@@ -615,8 +615,8 @@ class MaterialController extends Controller
     public function editSuratJalan(SuratJalan $suratJalan)
     {
         if ($suratJalan->status != 'BUTUH_PERSETUJUAN') {
-            return redirect()->route('material.surat-jalan')
-                           ->with('error', 'Surat jalan yang sudah disetujui tidak dapat diedit.');
+            return redirect()->route('surat-jalan.index')
+                           ->with('swal_error', 'Surat jalan yang sudah disetujui tidak dapat diedit!');
         }
 
         $suratJalan->load('details.material');

@@ -16,7 +16,7 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('material.surat-jalan.store') }}" method="POST" id="suratJalanForm">
+                    <form action="{{ route('surat-jalan.store') }}" method="POST" id="suratJalanForm">
                         @csrf
                         
                         <!-- Informasi Surat Jalan -->
@@ -171,7 +171,7 @@
                                 
                                 <div class="mt-2" style="display: flex !important; justify-content: flex-end !important; width: 100%;">
                                     <button type="button" class="btn btn-success btn-sm" onclick="addRow()">
-                                        <i class="fas fa-plus me-1"></i>
+                                        <i class="fa fa-plus me-1"></i>
                                         Tambah Material
                                     </button>
                                 </div>
@@ -246,7 +246,7 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="d-flex justify-content-between">
-                                    <a href="{{ route('material.surat-jalan') }}" class="btn btn-secondary">
+                                    <a href="{{ route('surat-jalan.index') }}" class="btn btn-secondary">
                                         <i class="fas fa-arrow-left me-1"></i>
                                         Kembali
                                     </a>

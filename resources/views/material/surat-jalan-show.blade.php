@@ -10,11 +10,11 @@
                 <div class="card-header">
                     <h3 class="card-title">Detail Surat Jalan</h3>
                     <div class="card-tools">
-                        <a href="{{ route('material.surat-jalan') }}" class="btn btn-secondary">
+                        <a href="{{ route('surat-jalan.index') }}" class="btn btn-secondary">
                             <i class="fa fa-arrow-left"></i> Kembali
                         </a>
                         @if($suratJalan->status == 'APPROVED')
-                            <a href="{{ route('material.surat-jalan.export', $suratJalan->id) }}" class="btn btn-success">
+                            <a href="{{ route('surat-jalan.export', $suratJalan->id) }}" class="btn btn-success">
                                 <i class="fa fa-download"></i> Export Excel
                             </a>
                         @endif

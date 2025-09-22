@@ -10,10 +10,10 @@
                 <div class="card-header">
                     <h3 class="card-title">Daftar Surat Jalan</h3>
                     <div class="card-tools">
-                        <a href="{{ route('material.surat-jalan.create') }}" class="btn btn-primary">
+                        <a href="{{ route('surat-jalan.create') }}" class="btn btn-primary">
                             <i class="fa fa-plus"></i> Buat Surat Jalan
                         </a>
-                        <a href="{{ route('material.surat-jalan.approval') }}" class="btn btn-success">
+                        <a href="{{ route('surat-jalan.approval') }}" class="btn btn-success">
                             <i class="fa fa-check"></i> Approval
                         </a>
                     </div>
@@ -47,7 +47,7 @@ $(document).ready(function() {
     $('#suratJalanTable').DataTable({
         processing: true,
         serverSide: true,
-        ajax: '{{ route("material.surat-jalan.data") }}',
+        ajax: '{{ route("surat-jalan.data") }}',
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
             { data: 'nomor_surat', name: 'nomor_surat' },
@@ -96,7 +96,17 @@ function deleteSuratJalan(id) {
 }
 
 function printSuratJalan(id) {
-    window.open('/material/surat-jalan/' + id + '/export', '_blank');
+    window.open('{{ route("surat-jalan.export", ":id") }}'.replace(':id', id), '_blank');
 }
+
+// Handle SweetAlert for session messages
+@if(session('swal_error'))
+    Swal.fire({
+        icon: 'error',
+        title: 'Akses Ditolak!',
+        text: '{{ session("swal_error") }}',
+        confirmButtonText: 'OK'
+    });
+@endif
 </script>
 @endpush

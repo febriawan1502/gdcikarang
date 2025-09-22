@@ -16,7 +16,7 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('material.surat-jalan.update', $suratJalan->id) }}" method="POST" id="suratJalanForm">
+                    <form action="{{ route('surat-jalan.update', $suratJalan->id) }}" method="POST" id="suratJalanForm">
                         @csrf
                         @method('PUT')
                         
@@ -93,18 +93,6 @@
                             </div>
                             
                             <div class="col-md-6 mb-3">
-                                <label for="alamat" class="form-label fw-semibold">
-                                    Alamat Penerima <span class="text-danger">*</span>
-                                </label>
-                                <textarea class="form-control" 
-                                          id="alamat" 
-                                          name="alamat" 
-                                          rows="2"
-                                          placeholder="Alamat lengkap penerima"
-                                          required>{{ $suratJalan->alamat }}</textarea>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
                                 <label for="berdasarkan" class="form-label fw-semibold">
                                     Berdasarkan <span class="text-danger">*</span>
                                 </label>
@@ -155,16 +143,18 @@
                                             <tr>
                                                 <td>{{ $index + 1 }}</td>
                                                 <td>
-                                                    <select class="form-select form-select-sm" name="materials[{{ $index }}][material_id]" required>
-                                                        <option value="">Pilih Material...</option>
-                                                        @foreach($materials as $material)
-                                                            <option value="{{ $material->id }}" 
-                                                                    data-satuan="{{ $material->satuan }}"
-                                                                    {{ $detail->material_id == $material->id ? 'selected' : '' }}>
-                                                                {{ $material->nama_material }} (Stock: {{ $material->unrestricted_use_stock ?? 0 }} {{ $material->satuan }})
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
+                                                    <input type="text" 
+                                                           class="form-control form-control-sm material-autocomplete" 
+                                                           name="materials[{{ $index }}][material_display]" 
+                                                           value="{{ $detail->material->material_code ?? '' }} - {{ $detail->material->material_description ?? '' }}"
+                                                           placeholder="Ketik kode atau nama material..."
+                                                           autocomplete="off"
+                                                           required>
+                                                    <input type="hidden" 
+                                                           name="materials[{{ $index }}][material_id]" 
+                                                           value="{{ $detail->material_id }}"
+                                                           class="material-id-input">
+                                                    <div class="autocomplete-suggestions" style="display: none;"></div>
                                                 </td>
                                                 <td>
                                                     <input type="number" class="form-control form-control-sm" 
@@ -195,10 +185,12 @@
                                     </table>
                                 </div>
                                 
-                                <button type="button" class="btn btn-success btn-sm" onclick="addRow()">
-                                    <i class="fas fa-plus me-1"></i>
-                                    Tambah Material
-                                </button>
+                                <div class="mt-2" style="display: flex !important; justify-content: flex-end !important; width: 100%;">
+                                    <button type="button" class="btn btn-success btn-sm" onclick="addRow()">
+                                        <i class="fa fa-plus me-1"></i>
+                                        Tambah Material
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         
@@ -273,7 +265,7 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="d-flex justify-content-between">
-                                    <a href="{{ route('material.surat-jalan') }}" class="btn btn-secondary">
+                                    <a href="{{ route('surat-jalan.index') }}" class="btn btn-secondary">
                                         <i class="fas fa-arrow-left me-1"></i>
                                         Kembali
                                     </a>
@@ -300,9 +292,96 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+.table-responsive {
+    overflow-x: auto;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.form-control-sm {
+    height: calc(1.5em + 0.5rem + 2px);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+#materialTable tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.invalid-feedback {
+    display: block;
+}
+
+/* Autocomplete Styles */
+.autocomplete-container {
+    position: relative;
+}
+
+.autocomplete-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 9999;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: none;
+}
+
+/* Ensure parent td has relative positioning */
+td {
+    position: relative;
+}
+
+.autocomplete-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.autocomplete-item:hover {
+    background-color: #f8f9fa;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+</style>
+@endpush
+
 @push('scripts')
 <script>
 let rowCount = {{ count($suratJalan->details) }};
+
+// Materials data for JavaScript
+const materialsData = [
+    @foreach($materials as $material)
+    {
+        id: {{ $material->id }},
+        kode: '{{ addslashes($material->material_code ?? '') }}',
+        nama: '{{ addslashes($material->material_description ?? '') }}',
+        satuan: '{{ addslashes($material->base_unit_of_measure ?? '') }}',
+        stock: {{ $material->unrestricted_use_stock ?? 0 }}
+    },
+    @endforeach
+];
 
 // Function to add new row
 function addRow() {
@@ -311,15 +390,17 @@ function addRow() {
     
     newRow.innerHTML = `
         <td>${rowCount + 1}</td>
-        <td>
-            <select class="form-select form-select-sm" name="materials[${rowCount}][material_id]" required>
-                <option value="">Pilih Material...</option>
-                @foreach($materials as $material)
-                    <option value="{{ $material->id }}" data-satuan="{{ $material->satuan }}">
-                        {{ $material->nama_material }} (Stock: {{ $material->unrestricted_use_stock ?? 0 }} {{ $material->satuan }})
-                    </option>
-                @endforeach
-            </select>
+        <td style="position: relative;">
+            <input type="text" 
+                   class="form-control form-control-sm material-autocomplete" 
+                   name="materials[${rowCount}][material_display]" 
+                   placeholder="Ketik kode atau nama material..."
+                   autocomplete="off"
+                   required>
+            <input type="hidden" 
+                   name="materials[${rowCount}][material_id]" 
+                   class="material-id-input">
+            <div class="autocomplete-suggestions" style="display: none;"></div>
         </td>
         <td>
             <input type="number" class="form-control form-control-sm" name="materials[${rowCount}][quantity]" min="1" required>
@@ -338,15 +419,18 @@ function addRow() {
     `;
     
     tbody.appendChild(newRow);
+    
+    // Initialize autocomplete for the new row
+    const newInput = newRow.querySelector('.material-autocomplete');
+    
+    if (newInput) {
+        initializeAutocomplete(newInput);
+    }
+    
     rowCount++;
     
-    // Add event listener for material selection
-    const select = newRow.querySelector('select');
-    select.addEventListener('change', function() {
-        const satuanInput = newRow.querySelector('input[name*="[satuan]"]');
-        const selectedOption = this.options[this.selectedIndex];
-        satuanInput.value = selectedOption.getAttribute('data-satuan') || '';
-    });
+    // Update all row numbers and input names
+    updateRowNumbers();
 }
 
 // Function to remove row
@@ -356,38 +440,124 @@ function removeRow(button) {
     
     if (tbody.children.length > 1) {
         row.remove();
-        
-        // Update row numbers
-        const rows = tbody.querySelectorAll('tr');
-        rows.forEach((row, index) => {
-            row.querySelector('td:first-child').textContent = index + 1;
-        });
+        updateRowNumbers();
     } else {
         alert('Minimal harus ada satu material!');
     }
 }
 
-// Initialize material selection event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    const materialSelects = document.querySelectorAll('select[name*="[material_id]"]');
+// Initialize autocomplete functionality
+function initializeAutocomplete(input) {
+    const row = input.closest('tr');
+    const hiddenInput = row.querySelector('input[type="hidden"]');
+    const suggestionsDiv = row.querySelector('.autocomplete-suggestions');
+    const satuanInput = row.querySelector('input[name*="[satuan]"]');
     
-    materialSelects.forEach(select => {
-        select.addEventListener('change', function() {
-            const row = this.closest('tr');
-            const satuanInput = row.querySelector('input[name*="[satuan]"]');
-            const selectedOption = this.options[this.selectedIndex];
-            satuanInput.value = selectedOption.getAttribute('data-satuan') || '';
+    if (!hiddenInput || !suggestionsDiv || !satuanInput) {
+        return;
+    }
+    
+    input.addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        console.log('Input event triggered, query:', query);
+        if (query.length < 2) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+        
+        const filteredMaterials = materialsData.filter(material => {
+            const kode = material.kode || '';
+            const nama = material.nama || '';
+            return kode.toLowerCase().includes(query) || nama.toLowerCase().includes(query);
+        });
+        
+        console.log('Filtered materials:', filteredMaterials);
+        
+        if (filteredMaterials.length === 0) {
+            console.log('No materials found for query:', query);
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+        
+        if (filteredMaterials.length > 0) {
+            suggestionsDiv.innerHTML = filteredMaterials.slice(0, 10).map(material => {
+                const displayText = material.kode ? 
+                    `<strong>${material.kode}</strong> - ${material.nama}` : 
+                    `${material.nama}`;
+                return `<div class="autocomplete-item" data-id="${material.id}" data-satuan="${material.satuan}">
+                    ${displayText}
+                </div>`;
+            }).join('');
+            suggestionsDiv.style.display = 'block';
+            
+            // Add click listeners to suggestions
+            suggestionsDiv.querySelectorAll('.autocomplete-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const materialId = this.getAttribute('data-id');
+                    const materialSatuan = this.getAttribute('data-satuan');
+                    const materialText = this.textContent.trim();
+                    
+                    input.value = materialText;
+                    hiddenInput.value = materialId;
+                    satuanInput.value = materialSatuan;
+                    suggestionsDiv.style.display = 'none';
+                });
+            });
+        } else {
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+    
+    // Hide suggestions when clicking outside
+    input.addEventListener('blur', function() {
+        // Use setTimeout to allow click events on suggestions to fire first
+        setTimeout(() => {
+            suggestionsDiv.style.display = 'none';
+        }, 200);
+    });
+}
+
+// Initialize autocomplete for existing inputs
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded');
+    const materialInputs = document.querySelectorAll('.material-autocomplete');
+    console.log('Found material inputs:', materialInputs.length);
+    console.log('Materials data:', materialsData);
+    
+    materialInputs.forEach((input, index) => {
+        console.log(`Initializing autocomplete for input ${index}:`, input);
+        initializeAutocomplete(input);
+    });
+    
+    // Update row numbers for existing rows
+    updateRowNumbers();
+});
+
+// Function to update row numbers
+function updateRowNumbers() {
+    const rows = document.querySelectorAll('#materialTable tbody tr');
+    rows.forEach((row, index) => {
+        row.querySelector('td:first-child').textContent = index + 1;
+        
+        // Update input names to maintain proper indexing
+        const inputs = row.querySelectorAll('input');
+        inputs.forEach(input => {
+            const name = input.getAttribute('name');
+            if (name && name.includes('materials[')) {
+                const newName = name.replace(/materials\[\d+\]/, `materials[${index}]`);
+                input.setAttribute('name', newName);
+            }
         });
     });
-});
+}
 
 // Form validation
 document.getElementById('suratJalanForm').addEventListener('submit', function(e) {
-    const materials = document.querySelectorAll('select[name*="[material_id]"]');
+    const materialInputs = document.querySelectorAll('input[name*="[material_id]"]');
     let hasValidMaterial = false;
     
-    materials.forEach(select => {
-        if (select.value) {
+    materialInputs.forEach(input => {
+        if (input.value) {
             hasValidMaterial = true;
         }
     });

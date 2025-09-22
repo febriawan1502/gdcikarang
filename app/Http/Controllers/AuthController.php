@@ -44,12 +44,21 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
         $remember = $request->has('remember');
 
+        // Debug logging untuk melacak redirect issue
+        \Log::info('Login attempt', [
+            'email' => $credentials['email'],
+            'app_url' => config('app.url'),
+            'request_url' => $request->url(),
+            'intended_url' => session()->get('url.intended'),
+        ]);
+
         if (Auth::attempt($credentials, $remember)) {
             $user = Auth::user();
             
             // Cek apakah user aktif
             if (!$user->is_active) {
                 Auth::logout();
+                \Log::warning('Inactive user login attempt', ['email' => $credentials['email']]);
                 return back()->withErrors([
                     'email' => 'Akun Anda tidak aktif. Hubungi administrator.'
                 ])->withInput();
@@ -60,8 +69,13 @@ class AuthController extends Controller
             
             $request->session()->regenerate();
             
+            $redirectUrl = route('dashboard');
+            \Log::info('Login successful, redirecting to', ['url' => $redirectUrl, 'user_id' => $user->id]);
+            
             return redirect()->intended(route('dashboard'))->with('success', 'Selamat datang, ' . $user->display_name . '!');
         }
+
+        \Log::warning('Login failed for email: ' . $credentials['email']);
 
         return back()->withErrors([
             'email' => 'Email atau password salah.',

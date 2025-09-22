@@ -499,7 +499,7 @@ function initializeTables() {
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route("material.surat-jalan.approval-data") }}',
+                url: '{{ route("surat-jalan.approval-data") }}',
                 data: { status: 'BUTUH_PERSETUJUAN' },
                 error: function(xhr, error, thrown) {
                     console.error('AJAX Error for pending table:', error, thrown);
@@ -549,7 +549,7 @@ function initializeTables() {
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route("material.surat-jalan.approval-data") }}',
+                url: '{{ route("surat-jalan.approval-data") }}',
                 data: { status: 'APPROVED' },
                 error: function(xhr, error, thrown) {
                     console.error('AJAX Error for approved table:', error, thrown);
@@ -603,7 +603,7 @@ function updateBadgeCount(badgeId, count) {
 // View detail function
 function viewDetail(id) {
     $.ajax({
-        url: '{{ route("material.surat-jalan.show", ":id") }}'.replace(':id', id),
+        url: '{{ route("surat-jalan.show", ":id") }}'.replace(':id', id),
         type: 'GET',
         success: function(response) {
             $('#detailContent').html(response);
@@ -647,7 +647,7 @@ $('#confirmApproval').click(function() {
         const notes = $('#approval_notes').val();
         
         $.ajax({
-            url: '{{ route("material.surat-jalan.approve", ":id") }}'.replace(':id', currentApprovalId),
+            url: '{{ route("surat-jalan.approve", ":id") }}'.replace(':id', currentApprovalId),
             type: 'POST',
             data: {
                 _token: '{{ csrf_token() }}',
@@ -679,7 +679,7 @@ $('#confirmApproval').click(function() {
 
 // Print function
 function printSuratJalan(id) {
-    window.open('{{ route("material.surat-jalan.export", ":id") }}'.replace(':id', id), '_blank');
+    window.open('{{ route("surat-jalan.export", ":id") }}'.replace(':id', id), '_blank');
 }
 
 // Delete function
@@ -696,7 +696,7 @@ function deleteSuratJalan(id) {
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: '{{ route("material.surat-jalan.destroy", ":id") }}'.replace(':id', id),
+                url: '{{ route("surat-jalan.destroy", ":id") }}'.replace(':id', id),
                 type: 'DELETE',
                 data: {
                     _token: '{{ csrf_token() }}'

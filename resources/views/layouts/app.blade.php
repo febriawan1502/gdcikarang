@@ -202,8 +202,8 @@
                                                 <span>Material Masuk</span>
                                             </a>
                                         </li>
-                                        <li class="{{ request()->routeIs('material.surat-jalan') ? 'active' : '' }}">
-                                            <a href="{{ route('material.surat-jalan') }}">
+                                        <li class="{{ request()->routeIs('surat-jalan.index') ? 'active' : '' }}">
+                            <a href="{{ route('surat-jalan.index') }}">
                                                 <i class="fa fa-truck"></i>
                                                 <span>Surat Jalan</span>
                                             </a>
