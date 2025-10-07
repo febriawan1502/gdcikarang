@@ -51,6 +51,7 @@ class Material extends Model
         'keterangan',
         'status',
         'rak',
+        'created_by',
     ];
 
     /**
@@ -61,21 +62,20 @@ class Material extends Model
         'harga_satuan' => 'decimal:2',
         'total_harga' => 'decimal:2',
         'qty' => 'integer',
-        'unrestricted_use_stock' => 'decimal:3',
-        'quality_inspection_stock' => 'decimal:3',
-        'blocked_stock' => 'decimal:3',
-        'in_transit_stock' => 'decimal:3',
-        'project_stock' => 'decimal:3',
+        'unrestricted_use_stock' => 'decimal:0',
+        'quality_inspection_stock' => 'decimal:0',
+        'blocked_stock' => 'decimal:0',
+        'in_transit_stock' => 'decimal:0',
+        'project_stock' => 'decimal:0',
         'is_active' => 'boolean'
     ];
 
     /**
      * Status constants
      */
-    const STATUS_SELESAI = 'SELESAI';
-    const STATUS_PROSES = 'PROSES';
-    const STATUS_PENDING = 'PENDING';
+    const STATUS_BAIK = 'BAIK';
     const STATUS_RUSAK = 'RUSAK';
+    const STATUS_DALAM_PERBAIKAN = 'DALAM PERBAIKAN';
 
     /**
      * Mendapatkan semua status yang tersedia
@@ -83,10 +83,9 @@ class Material extends Model
     public static function getStatuses()
     {
         return [
-            self::STATUS_SELESAI => 'Selesai',
-            self::STATUS_PROSES => 'Proses',
-            self::STATUS_PENDING => 'Pending',
-            self::STATUS_RUSAK => 'Rusak'
+            self::STATUS_BAIK => 'Baik',
+            self::STATUS_RUSAK => 'Rusak',
+            self::STATUS_DALAM_PERBAIKAN => 'Dalam Perbaikan'
         ];
     }
 
@@ -174,14 +173,12 @@ class Material extends Model
     public function getStatusBadgeColorAttribute()
     {
         switch ($this->status) {
-            case self::STATUS_SELESAI:
+            case self::STATUS_BAIK:
                 return 'success';
-            case self::STATUS_PROSES:
-                return 'warning';
-            case self::STATUS_PENDING:
-                return 'info';
             case self::STATUS_RUSAK:
                 return 'danger';
+            case self::STATUS_DALAM_PERBAIKAN:
+                return 'warning';
             default:
                 return 'secondary';
         }
@@ -204,9 +201,14 @@ class Material extends Model
      */
     public static function generateNomor()
     {
-        $lastMaterial = self::orderBy('id', 'desc')->first();
-        $lastNumber = $lastMaterial ? (int) $lastMaterial->nomor : 0;
-        return $lastNumber + 1;
+        try {
+            $lastMaterial = self::orderBy('nomor', 'desc')->first();
+            $lastNumber = $lastMaterial ? (int) $lastMaterial->nomor : 0;
+            return $lastNumber + 1;
+        } catch (\Exception $e) {
+            // Fallback jika ada masalah dengan query
+            return time(); // Menggunakan timestamp sebagai fallback
+        }
     }
 
     /**
@@ -222,9 +224,14 @@ class Material extends Model
                 $model->updated_by = auth()->id();
             }
             
-            // Auto generate nomor jika tidak ada
-            if (empty($model->nomor)) {
-                $model->nomor = self::generateNomor();
+            // Skip auto generate nomor during import to avoid transaction issues
+            // if (empty($model->nomor) && !app()->runningInConsole()) {
+            //     $model->nomor = self::generateNomor();
+            // }
+            
+            // Set default status jika tidak ada
+            if (empty($model->status)) {
+                $model->status = self::STATUS_BAIK;
             }
         });
 

@@ -9,7 +9,7 @@
         <div class="card">
             <div class="card-header bg-success text-white">
                 <h5 class="mb-0">
-                    <i class="fas fa-box-open me-2"></i>
+                    <i class="fa fa-box-open me-2"></i>
                     Input Material Masuk
                 </h5>
             </div>
@@ -17,7 +17,7 @@
             <div class="card-body">
                 <!-- Alert Info -->
                 <div class="alert alert-info" role="alert">
-                    <i class="fas fa-info-circle me-2"></i>
+                    <i class="fa fa-info-circle me-2"></i>
                     <strong>Informasi:</strong> Fitur Input Material Masuk sedang dalam tahap pengembangan. 
                     Template ini akan digunakan untuk mencatat material yang masuk ke gudang.
                 </div>
@@ -30,7 +30,7 @@
                     <div class="row mb-4">
                         <div class="col-12">
                             <h6 class="text-success border-bottom pb-2">
-                                <i class="fas fa-clipboard-list me-1"></i>
+                                <i class="fa fa-clipboard-list me-1"></i>
                                 Informasi Penerimaan
                             </h6>
                         </div>
@@ -96,7 +96,7 @@
                     <div class="row mb-4">
                         <div class="col-12">
                             <h6 class="text-success border-bottom pb-2">
-                                <i class="fas fa-boxes me-1"></i>
+                                <i class="fa fa-boxes me-1"></i>
                                 Pilih Material
                             </h6>
                         </div>
@@ -165,7 +165,7 @@
                     <div class="row mb-4">
                         <div class="col-12">
                             <h6 class="text-success border-bottom pb-2">
-                                <i class="fas fa-sticky-note me-1"></i>
+                                <i class="fa fa-sticky-note me-1"></i>
                                 Informasi Tambahan
                             </h6>
                         </div>
@@ -189,7 +189,7 @@
                                    class="form-control" 
                                    id="petugas_penerima" 
                                    name="petugas_penerima" 
-                                   value="{{ auth()->user()->name }}"
+                                   value="{{ auth()->check() ? auth()->user()->name : '' }}"
                                    readonly>
                         </div>
                         
@@ -210,18 +210,18 @@
                         <div class="col-12">
                             <div class="d-flex justify-content-between">
                                 <a href="{{ route('dashboard') }}" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-left me-1"></i>
+                                    <i class="fa fa-arrow-left me-1"></i>
                                     Kembali
                                 </a>
                                 
                                 <div>
                                     <button type="reset" class="btn btn-warning me-2">
-                                        <i class="fas fa-undo me-1"></i>
+                                        <i class="fa fa-undo me-1"></i>
                                         Reset Form
                                     </button>
                                     
                                     <button type="button" class="btn btn-success" onclick="showComingSoon()">
-                                        <i class="fas fa-save me-1"></i>
+                                        <i class="fa fa-save me-1"></i>
                                         Simpan Material Masuk
                                     </button>
                                 </div>
@@ -240,13 +240,13 @@
         <div class="modal-content">
             <div class="modal-header bg-info text-white">
                 <h5 class="modal-title">
-                    <i class="fas fa-clock me-2"></i>
+                    <i class="fa fa-clock me-2"></i>
                     Fitur Segera Hadir
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center">
-                <i class="fas fa-tools fa-3x text-info mb-3"></i>
+                <i class="fa fa-tools fa-3x text-info mb-3"></i>
                 <h6>Fitur Input Material Masuk</h6>
                 <p class="text-muted">Fitur ini sedang dalam tahap pengembangan dan akan segera tersedia.</p>
             </div>

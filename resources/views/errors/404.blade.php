@@ -13,15 +13,15 @@
                         <h2 class="mb-3">Halaman Tidak Ditemukan</h2>
                         <p class="lead mb-4">Maaf, halaman yang Anda cari tidak dapat ditemukan.</p>
                         <div class="mb-4">
-                            <i class="fas fa-search fa-3x text-muted"></i>
+                            <i class="fa fa-search fa-3x text-muted"></i>
                         </div>
                         <div class="d-flex justify-content-center gap-3">
                             <a href="{{ route('dashboard') }}" class="btn btn-primary">
-                                <i class="fas fa-home me-2"></i>
+                                <i class="fa fa-home me-2"></i>
                                 Kembali ke Dashboard
                             </a>
                             <button onclick="history.back()" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>
+                                <i class="fa fa-arrow-left me-2"></i>
                                 Kembali
                             </button>
                         </div>

@@ -1,18 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard - ASI System')
+@section('title', 'Dashboard - Pojok IMS')
 
 @section('content')
 <div class="dashboard-container">
 
     <!-- Statistics Cards -->
 <div class="row mb-4">
-    <div class="card-container col-lg-3 col-md-6 col-sm-12">
-        <div class="card">
-            <div class="front bg-blue">
+    <div class="col-lg-3 col-md-6 col-sm-12">
+        <div class="card bg-blue" style="cursor: default;">
+            <div class="card-body">
                 <div class="row">
                     <div class="col-xs-4">
-                        <i class="fa fa-boxes fa-4x"></i>
+                        <i class="fa fa-plug fa-4x"></i>
                     </div>
                     <div class="col-xs-8">
                         <p class="text-elg text-strong mb-0">{{ number_format($stats['total_materials']) }}</p>
@@ -20,24 +20,11 @@
                     </div>
                 </div>
             </div>
-            <div class="back bg-blue">
-                <div class="row">
-                    <div class="col-xs-4">
-                        <a href="#"><i class="fa fa-cog fa-2x"></i> Settings</a>
-                    </div>
-                    <div class="col-xs-4">
-                        <a href="#"><i class="fa fa-eye fa-2x"></i> View</a>
-                    </div>
-                    <div class="col-xs-4">
-                        <a href="#"><i class="fa fa-ellipsis-h fa-2x"></i> More</a>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
-    <div class="card-container col-lg-3 col-md-6 col-sm-12">
-        <div class="card">
-            <div class="front bg-greensea">
+    <div class="col-lg-3 col-md-6 col-sm-12">
+        <div class="card bg-greensea" style="cursor: default;">
+            <div class="card-body">
                 <div class="row">
                     <div class="col-xs-4">
                         <i class="fa fa-cubes fa-4x"></i>
@@ -48,76 +35,41 @@
                     </div>
                 </div>
             </div>
-            <div class="back bg-greensea">
-                <div class="row">
-                    <div class="col-xs-4">
-                        <a href="#"><i class="fa fa-cog fa-2x"></i> Settings</a>
-                    </div>
-                    <div class="col-xs-4">
-                        <a href="#"><i class="fa fa-eye fa-2x"></i> View</a>
-                    </div>
-                    <div class="col-xs-4">
-                        <a href="#"><i class="fa fa-ellipsis-h fa-2x"></i> More</a>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
-    <div class="card-container col-lg-3 col-md-6 col-sm-12">
-        <div class="card">
-            <div class="front bg-orange">
-                <div class="row">
-                    <div class="col-xs-4">
-                        <i class="fa fa-users fa-4x"></i>
-                    </div>
-                    <div class="col-xs-8">
-                        <p class="text-elg text-strong mb-0">{{ number_format($stats['total_users']) }}</p>
-                        <span>Total User</span>
-                    </div>
-                </div>
-            </div>
-            <div class="back bg-orange">
-                <div class="row">
-                    <div class="col-xs-4">
-                        <a href="#"><i class="fa fa-cog fa-2x"></i> Settings</a>
-                    </div>
-                    <div class="col-xs-4">
-                        <a href="#"><i class="fa fa-eye fa-2x"></i> View</a>
-                    </div>
-                    <div class="col-xs-4">
-                        <a href="#"><i class="fa fa-ellipsis-h fa-2x"></i> More</a>
+    <div class="col-lg-3 col-md-6 col-sm-12">
+        <a href="{{ route('material-masuk.index') }}" class="text-decoration-none">
+            <div class="card bg-orange" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <i class="fa fa-arrow-down fa-4x"></i>
+                        </div>
+                        <div class="col-xs-8">
+                            <p class="text-elg text-strong mb-0">{{ number_format($stats['total_material_masuk']) }}</p>
+                            <span>Total Material Masuk</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
-    <div class="card-container col-lg-3 col-md-6 col-sm-12">
-        <div class="card">
-            <div class="front bg-lightred">
-                <div class="row">
-                    <div class="col-xs-4">
-                        <i class="fa fa-clock fa-4x"></i>
-                    </div>
-                    <div class="col-xs-8">
-                        <p class="text-elg text-strong mb-0">{{ number_format($stats['pending_materials']) }}</p>
-                        <span>Material Pending</span>
-                    </div>
-                </div>
-            </div>
-            <div class="back bg-lightred">
-                <div class="row">
-                    <div class="col-xs-4">
-                        <a href="#"><i class="fa fa-cog fa-2x"></i> Settings</a>
-                    </div>
-                    <div class="col-xs-4">
-                        <a href="#"><i class="fa fa-eye fa-2x"></i> View</a>
-                    </div>
-                    <div class="col-xs-4">
-                        <a href="#"><i class="fa fa-ellipsis-h fa-2x"></i> More</a>
+    <div class="col-lg-3 col-md-6 col-sm-12">
+        <a href="{{ route('surat-jalan.index') }}" class="text-decoration-none">
+            <div class="card bg-lightred" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <i class="fa fa-truck fa-4x"></i>
+                        </div>
+                        <div class="col-xs-8">
+                            <p class="text-elg text-strong mb-0">{{ number_format($stats['total_surat_jalan']) }}</p>
+                            <span>Total Surat Jalan</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
@@ -131,6 +83,9 @@
                     <a href="{{ route('material.create') }}" class="btn btn-primary mb-10 mr-10">
                         <i class="fa fa-plus"></i> Tambah Material
                     </a>
+                    <button type="button" class="btn btn-success mb-10 mr-10" onclick="importData()">
+                        <i class="fa fa-upload"></i> Import Excel
+                    </button>
                     <button type="button" class="btn btn-info mb-10 mr-10" onclick="refreshTable()">
                         <i class="fa fa-sync-alt"></i> Refresh Data
                     </button>
@@ -149,7 +104,7 @@
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <i class="fas fa-table me-2"></i>
+                    <i class="fa fa-table me-2"></i>
                     Master Material
                 </h5>
             </div>
@@ -163,7 +118,7 @@
                                 <th>Normalisasi</th>
                                 <th>Material</th>
                                 <th>Stock</th>
-                                <th>Status</th>
+                                <th>Rak</th>
                                 <th>Harga Satuan</th>
                                 <th>Total Harga</th>
                                 <th>Action</th>
@@ -182,7 +137,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-info-circle me-2"></i>
+                    <i class="fa fa-info-circle me-2"></i>
                     Detail Material
                 </h5>
                 <button type="button" class="btn-close" data-dismiss="modal"></button>
@@ -217,7 +172,7 @@ $(document).ready(function() {
             { data: 'material_code', name: 'normalisasi' },
             { data: 'material_description', name: 'material_description' },
             { data: 'unrestricted_use_stock', name: 'unrestricted_use_stock', className: 'text-center' },
-            { data: 'status', name: 'status', className: 'text-center' },
+            { data: 'rak', name: 'rak', className: 'text-center' },
             { data: 'harga_satuan', name: 'harga_satuan', className: 'text-end' },
             { data: 'total_harga', name: 'total_harga', className: 'text-end' },
             { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' }
@@ -383,8 +338,154 @@ function refreshTable() {
 function exportData() {
     Swal.fire({
         title: 'Export Data',
-        text: 'Fitur export akan segera tersedia',
-        icon: 'info'
+        text: 'Apakah Anda yakin ingin mengexport semua data material ke Excel?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, Export!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading
+            Swal.fire({
+                title: 'Mengexport Data...',
+                text: 'Mohon tunggu, sedang memproses data',
+                icon: 'info',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                willOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Redirect to export route
+            window.location.href = '{{ route("dashboard.export") }}';
+            
+            // Close loading after a short delay
+            setTimeout(() => {
+                Swal.close();
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: 'Data berhasil diexport ke Excel',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }, 2000);
+        }
+    });
+}
+
+// Import Data Function
+function importData() {
+    Swal.fire({
+        title: 'Import Excel',
+        html: `
+            <form id="importForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="importFile" class="form-label">Pilih File Excel (.xlsx)</label>
+                    <input type="file" class="form-control" id="importFile" name="file" accept=".xlsx,.xls" required>
+                </div>
+                <div class="alert alert-info mt-3">
+                    <small>
+                        <strong>Format File:</strong><br>
+                        - File harus berformat Excel (.xlsx atau .xls)<br>
+                        - Kolom yang diperlukan: Material Code, Material Description, Base Unit, dll<br>
+                        - Data lama akan di-archive setelah import berhasil
+                    </small>
+                </div>
+            </form>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Import',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#28a745',
+        preConfirm: () => {
+            const fileInput = document.getElementById('importFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                Swal.showValidationMessage('Silakan pilih file terlebih dahulu');
+                return false;
+            }
+            
+            if (!file.name.match(/\.(xlsx|xls|XLSX|XLS)$/)) {
+                Swal.showValidationMessage('File harus berformat Excel (.xlsx atau .xls)');
+                return false;
+            }
+            
+            return file;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const file = result.value;
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+            
+            // Show loading
+            Swal.fire({
+                title: 'Mengimport Data...',
+                text: 'Mohon tunggu, sedang memproses file Excel',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            $.ajax({
+                url: '{{ route('material.import') }}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        let message = response.message;
+                        let icon = 'success';
+                        
+                        // Jika ada error, tampilkan detail error
+                        if (response.details && response.details.error_count > 0) {
+                            icon = 'warning';
+                            message += '\n\nDetail Error:';
+                            
+                            // Tampilkan maksimal 5 error pertama
+                            const errorsToShow = response.details.errors.slice(0, 5);
+                            errorsToShow.forEach(function(error) {
+                                if (typeof error === 'object' && error.row) {
+                                    message += `\n• Baris ${error.row}: ${error.material_code} - ${error.material_description}`;
+                                } else {
+                                    message += `\n• ${error}`;
+                                }
+                            });
+                            
+                            if (response.details.errors.length > 5) {
+                                message += `\n... dan ${response.details.errors.length - 5} error lainnya`;
+                            }
+                        }
+                        
+                        Swal.fire({
+                            title: response.details && response.details.error_count > 0 ? 'Import Selesai dengan Error' : 'Import Berhasil!',
+                            text: message,
+                            icon: icon,
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            materialsTable.ajax.reload();
+                        });
+                    } else {
+                        Swal.fire('Error!', response.message, 'error');
+                    }
+                },
+                error: function(xhr) {
+                    let errorMessage = 'Gagal mengimport data';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    Swal.fire('Error!', errorMessage, 'error');
+                }
+            });
+        }
     });
 }
 </script>

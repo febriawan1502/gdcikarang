@@ -85,7 +85,7 @@ class MaterialMasukSeeder extends Seeder
                         'material_id' => $material->id,
                         'quantity' => $quantity,
                         'satuan' => $satuan,
-                        'keterangan' => 'Detail material masuk ' . ($index + 1)
+                        'normalisasi' => 'Detail material masuk ' . ($index + 1)
                     ]);
 
                     // Update stok material

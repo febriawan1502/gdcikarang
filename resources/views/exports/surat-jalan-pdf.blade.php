@@ -5,39 +5,71 @@
     <title>Surat Jalan - {{ $suratJalan->nomor_surat }}</title>
     <style>
         @page {
-            size: A4 portrait;
-            margin: 20mm;
+            margin: 20mm 15mm 20mm 15mm;
+            size: A4;
         }
-        
+
         body {
             font-family: Arial, sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
+            font-size: 10px;
+            line-height: 1.2;
             margin: 0;
             padding: 0;
         }
         
-        .header {
-            text-align: center;
-            font-size: 18px;
+        .page-header {
+            text-align: left;
+            font-size: 10px;
             font-weight: bold;
-            margin-bottom: 20px;
-            text-transform: uppercase;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
         }
         
-        .info-section {
+        .page-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            font-weight: bold;
+            border-top: 1px solid #333;
+            padding-top: 5px;
+            background: white;
+        }
+        
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+            font-size: 72px;
+            font-weight: bold;
+            color: rgba(255, 0, 0, 0.15);
+            z-index: -1;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        
+        .header {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
             margin-bottom: 15px;
+            text-transform: uppercase;
         }
         
         .info-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
         
         .info-table td {
             padding: 5px;
             border: 1px solid #333;
+            font-size: 10px;
         }
         
         .info-label {
@@ -49,14 +81,15 @@
         .material-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            margin: 10px 0;
         }
         
         .material-table th,
         .material-table td {
             border: 1px solid #333;
-            padding: 8px;
+            padding: 5px;
             text-align: left;
+            font-size: 9px;
         }
         
         .material-table th {
@@ -80,160 +113,211 @@
             text-align: center;
             font-weight: bold;
             background-color: #f0f0f0;
-            padding: 10px;
-            margin: 20px 0;
+            padding: 8px;
+            margin: 15px 0;
             border: 1px solid #333;
+            font-size: 10px;
+        }
+        
+        .signature-section {
+            margin-top: 30px;
+            margin-bottom: 20px;
+            page-break-inside: avoid;
         }
         
         .signature-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 40px;
         }
         
         .signature-table td {
             border: 1px solid #333;
-            padding: 10px;
+            padding: 5px;
             text-align: center;
             width: 33.33%;
             vertical-align: top;
+            font-size: 9px;
         }
         
         .signature-space {
-            height: 100px !important;
-            min-height: 100px !important;
+            height: 60px;
         }
         
         .signature-space td {
-            height: 100px !important;
-            min-height: 100px !important;
-            vertical-align: top !important;
+            height: 60px;
+            min-height: 60px;
+            vertical-align: top;
         }
         
-        .signature-title {
-            font-weight: bold;
-            margin-bottom: 60px;
+        .page-break {
+            page-break-after: always;
         }
         
-        .signature-name {
-            border-top: 1px solid #333;
-            padding-top: 5px;
+        .no-page-break {
+            page-break-after: avoid;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        SURAT JALAN
-    </div>
+    <div class="watermark">{{ strtoupper($suratJalan->status) }}</div>
     
-    <table class="info-table">
-        <tr>
-            <td class="info-label">Nomor Surat</td>
-            <td>{{ $suratJalan->nomor_surat }}</td>
-            <td class="info-label">Tanggal</td>
-            <td>{{ $suratJalan->tanggal->format('d/m/Y') }}</td>
-        </tr>
-        <tr>
-            <td class="info-label">Jenis Surat Jalan</td>
-            <td>{{ $suratJalan->jenis_surat_jalan ?? 'Normal' }}</td>
-            <td class="info-label">Kepada</td>
-            <td>{{ $suratJalan->kepada }}</td>
-        </tr>
-        <tr>
-            <td class="info-label">Status</td>
-            <td colspan="3">{{ $suratJalan->status }}</td>
-        </tr>
-        <tr>
-            <td class="info-label">Berdasarkan</td>
-            <td colspan="3">{{ $suratJalan->berdasarkan }}</td>
-        </tr>
-        <tr>
-            <td class="info-label">Security</td>
-            <td colspan="3">{{ $suratJalan->security ?? '-' }}</td>
-        </tr>
-    </table>
+    @php
+        $materialsPerPage = 18; // First page can fit 18 materials
+        $materialsPerAdditionalPage = 24; // Additional pages can fit 24 materials
+        $totalMaterials = $suratJalan->details->count();
+        $materialIndex = 0;
+    @endphp
     
-    <table class="material-table">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Nama Material</th>
-                <th>Quantity</th>
-                <th>Satuan</th>
-                <th>Keterangan</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($suratJalan->details as $index => $detail)
-            <tr>
-                <td>{{ $index + 1 }}</td>
-                <td>{{ $detail->material->material_description }}</td>
-                <td>{{ $detail->quantity }}</td>
-                <td>{{ $detail->satuan }}</td>
-                <td>{{ $detail->keterangan ?? '-' }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-    
-    <table class="info-table">
-        <tr>
-            <td class="info-label">Keterangan</td>
-            <td colspan="3">{{ $suratJalan->keterangan ?? '-' }}</td>
-        </tr>
-    </table>
-    
-    <table class="info-table">
-        <tr>
-            <td class="info-label">Dibuat oleh</td>
-            <td>{{ $suratJalan->creator->nama }}</td>
-            <td class="info-label">Disetujui oleh</td>
-            <td>{{ $suratJalan->approver->nama ?? '-' }}</td>
-        </tr>
-        <tr>
-            <td class="info-label">Tanggal Dibuat</td>
-            <td>{{ $suratJalan->created_at->format('d/m/Y H:i') }}</td>
-            <td class="info-label">Tanggal Disetujui</td>
-            <td>{{ $suratJalan->approved_at ? $suratJalan->approved_at->format('d/m/Y H:i') : '-' }}</td>
-        </tr>
-    </table>
-    
-    <table class="info-table">
-        <tr>
-            <td class="info-label">Kendaraan</td>
-            <td>{{ $suratJalan->kendaraan ?? '' }}</td>
-        </tr>
-        <tr>
-            <td class="info-label">No. Polisi</td>
-            <td>{{ $suratJalan->no_polisi ?? '' }}</td>
-        </tr>
-        <tr>
-            <td class="info-label">Pengemudi</td>
-            <td>{{ $suratJalan->pengemudi ?? '' }}</td>
-        </tr>
-    </table>
-    
-    <div class="disclaimer">
-        SEMUA RESIKO SETELAH BARANG KELUAR GUDANG<br>
-        MENJADI TANGGUNG JAWAB PENGAMBIL BARANG
-    </div>
-    
-    <table class="signature-table">
-        <tr>
-            <td><strong>Yang menerima</strong></td>
-            <td><strong>Security</strong></td>
-            <td><strong>Admin Gudang</strong></td>
-        </tr>
-        <tr class="signature-space">
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>( {{ $suratJalan->kepada ?? '' }} )</td>
-            <td>( {{ $suratJalan->security ?? '-' }} )</td>
-            <td>NINDYA APRIETA S.<br>NIP. 8609353Z</td>
-        </tr>
-    </table>
+    @for($pageNum = 1; $pageNum <= $totalPages; $pageNum++)
+        <!-- Page Header -->
+        <div class="page-header">
+            PT PLN (PERSERO))<br>
+            UID JAWA BARAT<br>
+            UP3 CIMAHI
+        </div>
+        
+        @if($pageNum == 1)
+            <!-- First Page: Header Information -->
+            <div class="header">
+                SURAT JALAN
+            </div>
+        
+            <table class="info-table">
+                <tr>
+                    <td class="info-label">Nomor Surat</td>
+                    <td colspan="3">{{ $suratJalan->nomor_surat }}</td>
+                </tr>
+                <tr>
+                    <td class="info-label">Tanggal</td>
+                    <td>{{ $suratJalan->tanggal->format('d/m/Y') }}</td>
+                    <td class="info-label">Jenis Surat Jalan</td>
+                    <td>{{ $suratJalan->jenis_surat_jalan ?? 'Normal' }}</td>
+                </tr>
+                <tr>
+                    <td class="info-label">Berdasarkan</td>
+                    <td>{{ $suratJalan->berdasarkan }}</td>
+                    <td class="info-label">Untuk Pekerjaan</td>
+                    <td>{{ $suratJalan->keterangan ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="info-label">Diberikan Kepada</td>
+                    <td colspan="3">{{ $suratJalan->kepada }}</td>
+                </tr>
+            </table>
+            
+            @php
+                $materialsToShow = min($materialsPerPage, $totalMaterials);
+            @endphp
+        @else
+            <!-- Additional Pages: Continue Material List -->
+            <div class="header">
+                SURAT JALAN (Lanjutan)
+            </div>
+            
+            @php
+                $remainingMaterials = $totalMaterials - $materialIndex;
+                $materialsToShow = min($materialsPerAdditionalPage, $remainingMaterials);
+            @endphp
+        @endif
+        
+        <!-- Material Table -->
+        <table class="material-table">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Nama Material</th>
+                    <th>Quantity</th>
+                    <th>Satuan</th>
+                    <th>No Rak</th>
+                    <th>Checklist</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for($i = 0; $i < $materialsToShow; $i++)
+                    @php
+                        $detail = $suratJalan->details[$materialIndex];
+                    @endphp
+                    <tr>
+                        <td>{{ $materialIndex + 1 }}</td>
+                        <td>{{ $detail->material->material_code }} - {{ $detail->material->material_description }}</td>
+                        <td>{{ $detail->quantity }}</td>
+                        <td>{{ $detail->satuan }}</td>
+                        <td>{{ $detail->material->rak ?? '-' }}</td>
+                        <td> </td>
+                    </tr>
+                    @php
+                        $materialIndex++;
+                    @endphp
+                @endfor
+            </tbody>
+        </table>
+        
+        @if($pageNum == $totalPages)
+            <!-- Last Page: Additional Information -->
+            <table class="info-table">
+                <tr>
+                    <td class="info-label">Dibuat oleh</td>
+                    <td>{{ $suratJalan->creator->nama }}</td>
+                    <td class="info-label">Disetujui oleh</td>
+                    <td>{{ $suratJalan->approver->nama ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="info-label">Tanggal Dibuat</td>
+                    <td>{{ $suratJalan->created_at->format('d/m/Y H:i') }}</td>
+                    <td class="info-label">Tanggal Disetujui</td>
+                    <td>{{ $suratJalan->approved_at ? $suratJalan->approved_at->format('d/m/Y H:i') : '-' }}</td>
+                </tr>
+            </table>
+            
+            <table class="info-table">
+                <tr>
+                    <td class="info-label">Kendaraan</td>
+                    <td class="info-label">No. Polisi</td>
+                    <td class="info-label">Pengemudi</td>
+                </tr>
+                <tr>
+                    <td>{{ $suratJalan->kendaraan ?? '' }}</td>
+                    <td>{{ $suratJalan->no_polisi ?? '' }}</td>
+                    <td>{{ $suratJalan->pengemudi ?? '' }}</td>
+                </tr>
+            </table>
+            
+            <div class="disclaimer">
+                SEMUA RESIKO SETELAH BARANG KELUAR GUDANG<br>
+                MENJADI TANGGUNG JAWAB PENGAMBIL BARANG
+            </div>
+        @endif
+        
+        <!-- Signature Section -->
+        <div class="signature-section">
+            <table class="signature-table">
+                <tr>
+                    <td><strong>Yang menerima</strong></td>
+                    <td><strong>Security</strong></td>
+                    <td><strong>Admin Gudang</strong></td>
+                </tr>
+                <tr class="signature-space">
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>{{ $suratJalan->kepada ?? '' }}</td>
+                    <td>{{ $suratJalan->security ?? '-' }}</td>
+                    <td>{{ Auth::user()->nama }}<br>NIP. {{ Auth::user()->nip ?? '-' }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Page Footer -->
+        <div class="page-footer">
+            Halaman {{ $pageNum }} dari {{ $totalPages }}
+        </div>
+        
+        @if($pageNum < $totalPages)
+            <div class="page-break"></div>
+        @endif
+    @endfor
+
 </body>
 </html>

@@ -16,7 +16,7 @@ class MaterialMasukDetail extends Model
         'material_id',
         'quantity',
         'satuan',
-        'keterangan'
+        'normalisasi'
     ];
 
     protected $casts = [

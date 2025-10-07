@@ -279,7 +279,7 @@
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-check-circle me-2"></i>
+                        <i class="fa fa-check-circle me-2"></i>
                         Approval Surat Jalan
                     </h5>
                 </div>
@@ -288,14 +288,14 @@
                     <ul class="nav nav-tabs" id="approvalTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <a class="nav-link active" id="butuh-persetujuan-tab" data-toggle="tab" href="#butuh-persetujuan" role="tab">
-                                <i class="fas fa-clock me-1"></i>
+                                <i class="fa fa-clock me-1"></i>
                                 Butuh Persetujuan
                                 <span class="badge bg-warning ms-2" id="pending-count">0</span>
                             </a>
                         </li>
                         <li class="nav-item" role="presentation">
                             <a class="nav-link" id="approved-tab" data-toggle="tab" href="#approved" role="tab">
-                                <i class="fas fa-check me-1"></i>
+                                <i class="fa fa-check me-1"></i>
                                 Approved
                                 <span class="badge bg-success ms-2" id="approved-count">0</span>
                             </a>
@@ -356,7 +356,7 @@
         <div class="modal-content">
             <div class="modal-header bg-info text-white">
                 <h5 class="modal-title">
-                    <i class="fas fa-eye me-2"></i>
+                    <i class="fa fa-eye me-2"></i>
                     Detail Surat Jalan
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -379,7 +379,7 @@
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title">
-                    <i class="fas fa-check me-2"></i>
+                    <i class="fa fa-check me-2"></i>
                     Konfirmasi Approval Surat Jalan
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -405,7 +405,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                 <button type="button" class="btn btn-success" id="confirmApproval">
-                    <i class="fas fa-check me-1"></i>
+                    <i class="fa fa-check me-1"></i>
                     Ya, Setujui
                 </button>
             </div>
@@ -625,7 +625,7 @@ function approveSuratJalan(id) {
     
     // Load surat jalan detail first
     $.ajax({
-        url: `/material/surat-jalan/${id}/modal-detail`,
+        url: `{{ url('surat-jalan') }}/${id}/modal-detail`,
         type: 'GET',
         success: function(response) {
             $('#approvalDetailContent').html(response);

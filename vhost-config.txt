@@ -1,0 +1,22 @@
+# Virtual Host Configuration for ASI Apps
+# Add this to C:\xampp\apache\conf\extra\httpd-vhosts.conf
+
+<VirtualHost *:80>
+    ServerName asi.local
+    DocumentRoot "C:/xampp/htdocs/asi-apps/public"
+    
+    <Directory "C:/xampp/htdocs/asi-apps/public">
+        AllowOverride All
+        Require all granted
+        DirectoryIndex index.php
+    </Directory>
+    
+    ErrorLog "logs/asi-error.log"
+    CustomLog "logs/asi-access.log" common
+</VirtualHost>
+
+# Instructions:
+# 1. Copy the VirtualHost block above to C:\xampp\apache\conf\extra\httpd-vhosts.conf
+# 2. Add '127.0.0.1 asi.local' to C:\Windows\System32\drivers\etc\hosts
+# 3. Restart Apache in XAMPP Control Panel
+# 4. Access via http://asi.local (not https)

@@ -11,7 +11,7 @@
                     <h3 class="card-title">Edit Material Masuk</h3>
                     <div class="card-tools">
                         <a href="{{ route('material-masuk.index') }}" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-arrow-left"></i> Kembali
+                            <i class="fa fa-arrow-left"></i> Kembali
                         </a>
                     </div>
                 </div>
@@ -55,8 +55,8 @@
                                 <div class="form-group">
                                     <label for="tanggal_masuk">Tanggal Masuk <span class="text-danger">*</span></label>
                                     <input type="date" class="form-control" id="tanggal_masuk" name="tanggal_masuk" 
-                                           value="{{ old('tanggal_masuk', $materialMasuk->tanggal_masuk) }}" disabled>
-                                    <input type="hidden" name="tanggal_masuk" value="{{ $materialMasuk->tanggal_masuk }}">
+                                           value="{{ old('tanggal_masuk', \Carbon\Carbon::parse($materialMasuk->tanggal_masuk)->format('Y-m-d')) }}" disabled>
+                                    <input type="hidden" name="tanggal_masuk" value="{{ \Carbon\Carbon::parse($materialMasuk->tanggal_masuk)->format('Y-m-d') }}">
                                 </div>
                             </div>
                         </div>
@@ -89,8 +89,8 @@
                          </td>
                         <td>
                             <input type="text" class="form-control form-control-sm" 
-                                   value="{{ $detail->material->normalisasi ?? '' }}" disabled>
-                            <input type="hidden" name="materials[{{ $index }}][normalisasi]" value="{{ $detail->material->normalisasi ?? '' }}">
+                                   value="{{ $detail->normalisasi ?? $detail->material->normalisasi ?? '' }}" disabled>
+                            <input type="hidden" name="materials[{{ $index }}][normalisasi]" value="{{ $detail->normalisasi ?? $detail->material->normalisasi ?? '' }}">
                         </td>
                         <td>
                             <input type="number" class="form-control form-control-sm" 
@@ -106,7 +106,7 @@
                         <td>
                             <button type="button" class="btn btn-danger btn-sm remove-row" 
                                     onclick="removeRow(this)" disabled>
-                                <i class="fas fa-trash"></i>
+                                <i class="fa fa-trash"></i>
                             </button>
                         </td>
                     </tr>
@@ -117,7 +117,7 @@
                         
                         <div class="mb-3">
                             <button type="button" class="btn btn-success btn-sm" onclick="addRow()">
-                                <i class="fas fa-plus"></i> Tambah Material
+                                <i class="fa fa-plus"></i> Tambah Material
                             </button>
                         </div>
 
@@ -129,10 +129,10 @@
 
                         <div class="form-group">
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Update Material Masuk
+                                <i class="fa fa-save"></i> Update Material Masuk
                             </button>
                             <a href="{{ route('material-masuk.index') }}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Batal
+                                <i class="fa fa-times"></i> Batal
                             </a>
                         </div>
                     </form>
@@ -226,7 +226,7 @@ function addRow() {
         <td>
             <button type="button" class="btn btn-danger btn-sm remove-row" 
                     onclick="removeRow(this)">
-                <i class="fas fa-trash"></i>
+                <i class="fa fa-trash"></i>
             </button>
         </td>
     `;

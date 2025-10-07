@@ -29,9 +29,25 @@ class MaterialMasukController extends Controller
     public function getData(Request $request)
     {
         $materialMasuk = MaterialMasuk::with(['details.material', 'creator'])
-                                    ->select('material_masuk.*');
+                                    ->select('material_masuk.*')
+                                    ->orderBy('tanggal_masuk', 'desc');
 
         return DataTables::of($materialMasuk)
+            ->filter(function ($query) use ($request) {
+                if ($request->has('search') && $request->search['value'] && strlen($request->search['value']) >= 1) {
+                    $searchValue = $request->search['value'];
+                    $query->where(function($q) use ($searchValue) {
+                        $q->whereRaw('LOWER(nomor_kr) LIKE ?', ['%' . strtolower($searchValue) . '%'])
+                          ->orWhereRaw('LOWER(pabrikan) LIKE ?', ['%' . strtolower($searchValue) . '%'])
+                          ->orWhereHas('details', function($detailQuery) use ($searchValue) {
+                              $detailQuery->whereRaw('LOWER(normalisasi) LIKE ?', ['%' . strtolower($searchValue) . '%'])
+                                         ->orWhereHas('material', function($materialQuery) use ($searchValue) {
+                                             $materialQuery->whereRaw('LOWER(material_description) LIKE ?', ['%' . strtolower($searchValue) . '%']);
+                                         });
+                          });
+                    });
+                }
+            })
             ->addIndexColumn()
             ->addColumn('material_info', function ($row) {
                 $materials = $row->details->map(function($detail) {
@@ -55,16 +71,21 @@ class MaterialMasukController extends Controller
                 return Carbon::parse($row->tanggal_masuk)->format('d/m/Y');
             })
             ->addColumn('action', function ($row) {
+                $showUrl = route('material-masuk.show', $row->id);
                 $editUrl = route('material-masuk.edit', $row->id);
-                $deleteUrl = route('material-masuk.destroy', $row->id);
                 
                 return '
                     <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-info" 
+                                onclick="showDetail(' . $row->id . ')" 
+                                title="Detail">
+                            <i class="fa fa-eye"></i>
+                        </button>
                         <a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Edit">
                             <i class="fa fa-edit"></i>
                         </a>
                         <button type="button" class="btn btn-sm btn-danger" 
-                                onclick="deleteItem(' . $row->id . ', \'' . $deleteUrl . '\')" 
+                                onclick="deleteMaterialMasuk(' . $row->id . ')" 
                                 title="Hapus">
                             <i class="fa fa-trash"></i>
                         </button>
@@ -122,7 +143,7 @@ class MaterialMasukController extends Controller
                     'material_id' => $materialData['material_id'],
                     'quantity' => $materialData['quantity'],
                     'satuan' => $materialData['satuan'],
-                    'keterangan' => $materialData['normalisasi'] ?? null
+                    'normalisasi' => $materialData['normalisasi'] ?? null
                 ]);
 
                 // Update stok material
@@ -141,6 +162,35 @@ class MaterialMasukController extends Controller
                            ->with('error', 'Gagal menambahkan material masuk: ' . $e->getMessage())
                            ->withInput();
         }
+    }
+
+    /**
+     * Tampilkan detail material masuk
+     */
+    public function show($id)
+    {
+        $materialMasuk = MaterialMasuk::with(['details.material', 'creator'])->findOrFail($id);
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $materialMasuk->id,
+                'nomor_kr' => $materialMasuk->nomor_kr,
+                'pabrikan' => $materialMasuk->pabrikan,
+                'tanggal_masuk' => $materialMasuk->tanggal_masuk->format('d/m/Y'),
+                'keterangan' => $materialMasuk->keterangan,
+                'created_by' => $materialMasuk->creator->nama ?? '-',
+                'created_at' => $materialMasuk->created_at->format('d/m/Y H:i'),
+                'details' => $materialMasuk->details->map(function($detail) {
+                    return [
+                        'material_code' => $detail->material->material_code ?? '-',
+                        'material_description' => $detail->material->material_description ?? '-',
+                        'quantity' => $detail->quantity,
+                        'satuan' => $detail->satuan,
+                        'normalisasi' => $detail->normalisasi
+                    ];
+                })
+            ]
+        ]);
     }
 
     /**
@@ -200,7 +250,7 @@ class MaterialMasukController extends Controller
                         $detail->update([
                             'quantity' => $newQuantity,
                             'satuan' => $materialData['satuan'],
-                            'keterangan' => $materialData['keterangan'] ?? null
+                            'normalisasi' => $materialData['normalisasi'] ?? null
                         ]);
                         
                         // Adjust stock if quantity changed
@@ -224,7 +274,7 @@ class MaterialMasukController extends Controller
                         'material_id' => $materialData['material_id'],
                         'quantity' => $materialData['quantity'],
                         'satuan' => $materialData['satuan'],
-                        'keterangan' => $materialData['keterangan'] ?? null
+                        'normalisasi' => $materialData['normalisasi'] ?? null
                     ]);
 
                     // Update stock
@@ -247,7 +297,7 @@ class MaterialMasukController extends Controller
 
             DB::commit();
 
-            return redirect()->route('material.material-masuk.index')
+            return redirect()->route('material-masuk.index')
                            ->with('success', 'Material masuk berhasil diupdate.');
         } catch (\Exception $e) {
             DB::rollback();
@@ -265,12 +315,20 @@ class MaterialMasukController extends Controller
         try {
             DB::beginTransaction();
 
-            $materialMasuk = MaterialMasuk::findOrFail($id);
+            $materialMasuk = MaterialMasuk::with('details')->findOrFail($id);
             
-            // Kurangi stock material
-            $material = Material::find($materialMasuk->material_id);
-            $material->decrement('qty', $materialMasuk->quantity);
+            // Kurangi stock untuk setiap material dalam detail
+            foreach ($materialMasuk->details as $detail) {
+                $material = Material::find($detail->material_id);
+                if ($material) {
+                    $material->decrement('qty', $detail->quantity);
+                    $material->decrement('unrestricted_use_stock', $detail->quantity);
+                }
+            }
 
+            // Hapus detail terlebih dahulu
+            $materialMasuk->details()->delete();
+            
             // Hapus record material masuk
             $materialMasuk->delete();
 
@@ -296,8 +354,10 @@ class MaterialMasukController extends Controller
     {
         $query = $request->get('q');
         
-        $materials = Material::where('material_description', 'LIKE', "%{$query}%")
-                            ->orWhere('material_code', 'LIKE', "%{$query}%")
+        $materials = Material::where(function($q) use ($query) {
+                                $q->whereRaw('LOWER(material_description) LIKE ?', ['%' . strtolower($query) . '%'])
+                                  ->orWhereRaw('LOWER(material_code) LIKE ?', ['%' . strtolower($query) . '%']);
+                            })
                             ->whereNotNull('material_description')
                             ->select('id', 'material_description', 'material_code', 'base_unit_of_measure')
                             ->limit(10)
@@ -321,7 +381,9 @@ class MaterialMasukController extends Controller
     {
         $query = $request->get('q');
         
-        $materials = Material::where('material_code', 'LIKE', "%{$query}%")
+        $materials = Material::where(function($q) use ($query) {
+                                $q->whereRaw('LOWER(material_code) LIKE ?', ['%' . strtolower($query) . '%']);
+                            })
                             ->whereNotNull('material_description')
                             ->select('id', 'material_description', 'material_code', 'base_unit_of_measure')
                             ->limit(10)

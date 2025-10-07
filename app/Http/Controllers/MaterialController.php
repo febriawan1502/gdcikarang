@@ -7,14 +7,11 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use App\Models\Material;
 use App\Models\StockOpname;
-use App\Models\SuratJalan;
-use App\Models\SuratJalanDetail;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\SuratJalanExport;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Imports\MaterialImport;
 
 class MaterialController extends Controller
 {
@@ -70,9 +67,9 @@ class MaterialController extends Controller
             'keterangan' => 'nullable|string|max:255',
             'rak' => 'nullable|string|max:50',
             'status' => 'required|in:' . implode(',', [
-                Material::STATUS_SELESAI,
-                Material::STATUS_PENDING,
-                Material::STATUS_PROSES
+                Material::STATUS_BAIK,
+                Material::STATUS_RUSAK,
+                Material::STATUS_DALAM_PERBAIKAN
             ]),
         ], [
             'company_code.required' => 'Company Code wajib diisi',
@@ -124,6 +121,74 @@ class MaterialController extends Controller
     }
 
     /**
+     * Import material dari file Excel
+     */
+    public function import(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'file' => 'required|file|mimes:xlsx,xls|max:10240', // Max 10MB
+        ], [
+            'file.required' => 'File Excel wajib dipilih',
+            'file.mimes' => 'File harus berformat Excel (.xlsx atau .xls)',
+            'file.max' => 'Ukuran file maksimal 10MB',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        try {
+            $file = $request->file('file');
+            
+            DB::beginTransaction();
+            
+            // Import using Laravel Excel
+            $import = new MaterialImport();
+            Excel::import($import, $file);
+            
+            $results = $import->getResults();
+            $successCount = $results['success_count'];
+            $errorCount = $results['error_count'];
+            $errors = $results['errors'];
+            
+            // Note: Tidak melakukan soft delete karena:
+            // 1. Material duplicate yang di-update tidak boleh di-delete
+            // 2. Material lama yang tidak ada di Excel tetap dipertahankan
+            // 3. Hanya material baru yang ditambahkan atau material existing yang di-update
+            
+            DB::commit();
+            
+            $message = "Import berhasil! {$successCount} data berhasil diimport";
+            if ($errorCount > 0) {
+                $message .= ", {$errorCount} data gagal diimport";
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'details' => [
+                    'success_count' => $successCount,
+                    'error_count' => $errorCount,
+                    'errors' => array_slice($errors, 0, 10) // Limit error messages
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Material import failed: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengimport data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Tampilkan form edit material
      */
     public function edit($id)
@@ -169,9 +234,9 @@ class MaterialController extends Controller
             'keterangan' => 'nullable|string|max:255',
             'rak' => 'nullable|string|max:50',
             'status' => 'required|in:' . implode(',', [
-                Material::STATUS_SELESAI,
-                Material::STATUS_PENDING,
-                Material::STATUS_PROSES
+                Material::STATUS_BAIK,
+                Material::STATUS_RUSAK,
+                Material::STATUS_DALAM_PERBAIKAN
             ]),
         ]);
 
@@ -274,8 +339,10 @@ class MaterialController extends Controller
     {
         $query = $request->get('q');
         
-        $materials = Material::where('material_code', 'LIKE', "%{$query}%")
-                            ->orWhere('material_description', 'LIKE', "%{$query}%")
+        $materials = Material::where(function($q) use ($query) {
+                                $q->whereRaw('LOWER(material_code) LIKE ?', ['%' . strtolower($query) . '%'])
+                                  ->orWhereRaw('LOWER(material_description) LIKE ?', ['%' . strtolower($query) . '%']);
+                            })
                             ->select('id', 'nomor_kr', 'material_description', 'qty', 'base_unit_of_measure')
                             ->limit(10)
                             ->get();
@@ -294,8 +361,10 @@ class MaterialController extends Controller
             return response()->json([]);
         }
         
-        $materials = Material::where('material_code', 'LIKE', "%{$query}%")
-                            ->orWhere('material_description', 'LIKE', "%{$query}%")
+        $materials = Material::where(function($q) use ($query) {
+                                $q->whereRaw('LOWER(material_code) LIKE ?', ['%' . strtolower($query) . '%'])
+                                  ->orWhereRaw('LOWER(material_description) LIKE ?', ['%' . strtolower($query) . '%']);
+                            })
                             ->select('id', 'material_code', 'material_description', 'base_unit_of_measure', 'unrestricted_use_stock')
                             ->limit(10)
                             ->get()
@@ -311,6 +380,56 @@ class MaterialController extends Controller
                             });
         
         return response()->json($materials);
+    }
+
+    /**
+     * Get data untuk DataTables AJAX endpoint
+     */
+    public function getDataForDataTables(Request $request)
+    {
+        $materials = Material::select([
+            'id',
+            'material_code',
+            'material_description',
+            'qty',
+            'base_unit_of_measure',
+            'unrestricted_use_stock',
+            'harga_satuan',
+            'total_harga',
+            'currency',
+            'pabrikan',
+            'rak',
+            'status',
+            'created_at'
+        ]);
+
+        return datatables($materials)
+            ->addIndexColumn()
+            ->editColumn('harga_satuan', function($row) {
+                return number_format($row->harga_satuan, 0, ',', '.');
+            })
+            ->editColumn('total_harga', function($row) {
+                return number_format($row->total_harga, 0, ',', '.');
+            })
+            ->editColumn('status', function($row) {
+                $badgeClass = [
+                    Material::STATUS_BAIK => 'success',
+                    Material::STATUS_RUSAK => 'danger',
+                    Material::STATUS_DALAM_PERBAIKAN => 'warning'
+                ];
+                $class = $badgeClass[$row->status] ?? 'secondary';
+                return '<span class="badge badge-' . $class . '">' . $row->status . '</span>';
+            })
+            ->addColumn('action', function($row) {
+                $actions = '<div class="btn-group" role="group">';
+                $actions .= '<a href="' . route('material.show', $row->id) . '" class="btn btn-sm btn-info" title="Detail"><i class="fa fa-eye"></i></a>';
+                $actions .= '<a href="' . route('material.edit', $row->id) . '" class="btn btn-sm btn-primary" title="Edit"><i class="fa fa-edit"></i></a>';
+                $actions .= '<button class="btn btn-sm btn-danger" onclick="deleteMaterial(' . $row->id . ')" title="Hapus"><i class="fa fa-trash"></i></button>';
+                $actions .= '</div>';
+                return $actions;
+            })
+            ->rawColumns(['status', 'action'])
+            ->make(true);
     }
 
     /**
@@ -421,426 +540,64 @@ class MaterialController extends Controller
         }
     }
 
-    // ==================== SURAT JALAN METHODS ====================
+
+
+    // ==================== API METHODS ====================
 
     /**
-     * Tampilkan halaman surat jalan
+     * API List materials
      */
-    public function indexSuratJalan()
+    public function apiList(Request $request)
     {
-        return view('material.surat-jalan');
-    }
-
-    /**
-     * Data untuk DataTables surat jalan
-     */
-    public function getSuratJalanData(Request $request)
-    {
-        $suratJalans = SuratJalan::with(['creator', 'approver'])
-                                 ->select('surat_jalan.*');
-
-        return datatables($suratJalans)
-            ->addIndexColumn()
-            ->editColumn('tanggal', function($row) {
-                return $row->tanggal->format('d/m/Y');
-            })
-            ->editColumn('status', function($row) {
-                $badge = $row->status == 'APPROVED' ? 'success' : 'warning';
-                return '<span class="badge badge-' . $badge . '">' . $row->status . '</span>';
-            })
-            ->editColumn('created_by', function($row) {
-                return $row->creator->nama ?? '-';
-            })
-            ->addColumn('action', function($row) {
-                $actions = '';
-                if ($row->status == 'BUTUH_PERSETUJUAN') {
-                    $actions .= '<a href="' . route('surat-jalan.edit', $row->id) . '" class="btn btn-sm btn-primary mr-1"><i class="fa fa-edit"></i></a>';
-                    $actions .= '<button class="btn btn-sm btn-danger" onclick="deleteSuratJalan(' . $row->id . ')"><i class="fa fa-trash"></i></button>';
-                } else {
-                    $actions .= '<button class="btn btn-sm btn-success" onclick="printSuratJalan(' . $row->id . ')"><i class="fa fa-print"></i></button>';
-                }
-                return $actions;
-            })
-            ->rawColumns(['status', 'action'])
-            ->make(true);
-    }
-
-    /**
-     * Tampilkan form create surat jalan
-     */
-    public function createSuratJalan()
-    {
-        $nomorSurat = (new SuratJalan())->generateNomorSurat('Normal');
-        $materials = Material::all();
-        return view('material.surat-jalan-create', compact('nomorSurat', 'materials'));
-    }
-
-    /**
-     * Simpan surat jalan baru
-     */
-    public function storeSuratJalan(Request $request)
-    {
-        // Log data yang diterima dari frontend
-        Log::info('=== SURAT JALAN FORM SUBMISSION ===');
-        Log::info('Request data:', $request->all());
-        Log::info('User ID: ' . auth()->id());
-        $validator = Validator::make($request->all(), [
-            'nomor_surat' => 'required|string',
-            'jenis_surat_jalan' => 'required|in:Normal,Gangguan,Garansi,Peminjaman',
-            'tanggal' => 'required|date',
-            'kepada' => 'required|string|max:255',
-            'berdasarkan' => 'required|string',
-            'security' => 'nullable|string|max:255',
-            'keterangan' => 'nullable|string',
-            'kendaraan' => 'nullable|string|max:255',
-            'no_polisi' => 'nullable|string|max:20',
-            'pengemudi' => 'nullable|string|max:255',
-            'materials' => 'required|array|min:1',
-            'materials.*.material_id' => 'required|exists:materials,id',
-            'materials.*.quantity' => 'required|integer|min:1',
-            'materials.*.satuan' => 'required|string',
-            'materials.*.keterangan' => 'nullable|string'
+        $query = Material::query();
+        
+        // Filter berdasarkan parameter
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('material_code', 'LIKE', "%{$search}%")
+                  ->orWhere('material_description', 'LIKE', "%{$search}%");
+            });
+        }
+        
+        if ($request->has('status')) {
+            $query->where('status', $request->get('status'));
+        }
+        
+        // Pagination
+        $perPage = $request->get('per_page', 15);
+        $materials = $query->orderBy('material_code')
+                          ->paginate($perPage);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $materials->items(),
+            'pagination' => [
+                'current_page' => $materials->currentPage(),
+                'last_page' => $materials->lastPage(),
+                'per_page' => $materials->perPage(),
+                'total' => $materials->total()
+            ]
         ]);
-
-        if ($validator->fails()) {
-            Log::error('Validation failed:', $validator->errors()->toArray());
-            return redirect()->back()
-                           ->withErrors($validator)
-                           ->withInput();
-        }
-
-        Log::info('Validation passed, starting database transaction');
-
-        try {
-            DB::beginTransaction();
-
-            Log::info('Creating SuratJalan record with data:', [
-                'nomor_surat' => $request->nomor_surat,
-                'jenis_surat_jalan' => $request->jenis_surat_jalan,
-                'tanggal' => $request->tanggal,
-                'kepada' => $request->kepada,
-                'berdasarkan' => $request->berdasarkan,
-                'security' => $request->security,
-                'keterangan' => $request->keterangan,
-                'kendaraan' => $request->kendaraan,
-                'no_polisi' => $request->no_polisi,
-                'pengemudi' => $request->pengemudi,
-                'status' => 'BUTUH_PERSETUJUAN',
-                'created_by' => auth()->id()
-            ]);
-
-            $suratJalan = SuratJalan::create([
-                'nomor_surat' => $request->nomor_surat,
-                'jenis_surat_jalan' => $request->jenis_surat_jalan,
-                'tanggal' => $request->tanggal,
-                'kepada' => $request->kepada,
-                'berdasarkan' => $request->berdasarkan,
-                'security' => $request->security,
-                'keterangan' => $request->keterangan,
-                'kendaraan' => $request->kendaraan,
-                'no_polisi' => $request->no_polisi,
-                'pengemudi' => $request->pengemudi,
-                'status' => 'BUTUH_PERSETUJUAN',
-                'created_by' => auth()->id()
-            ]);
-
-            Log::info('SuratJalan created successfully with ID:', ['id' => $suratJalan->id]);
-            Log::info('Creating SuratJalanDetail records for materials:', $request->materials);
-
-            foreach ($request->materials as $index => $material) {
-                Log::info("Creating detail #{$index}", ['material' => $material]);
-                $detail = SuratJalanDetail::create([
-                    'surat_jalan_id' => $suratJalan->id,
-                    'material_id' => $material['material_id'],
-                    'quantity' => $material['quantity'],
-                    'satuan' => $material['satuan'],
-                    'keterangan' => $material['keterangan'] ?? null
-                ]);
-                Log::info("Detail created with ID: {$detail->id}");
-                
-                // Update material stock - mengurangi qty dan unrestricted_use_stock
-                $materialModel = Material::find($material['material_id']);
-                if ($materialModel) {
-                    $materialModel->qty = $materialModel->qty - $material['quantity'];
-                    $materialModel->unrestricted_use_stock = $materialModel->unrestricted_use_stock - $material['quantity'];
-                    $materialModel->save();
-                    Log::info("Material stock updated for ID: {$material['material_id']}", [
-                        'new_qty' => $materialModel->qty,
-                        'new_unrestricted_stock' => $materialModel->unrestricted_use_stock
-                    ]);
-                }
-            }
-
-            DB::commit();
-            Log::info('Transaction committed successfully');
-
-            Log::info('Redirecting to surat jalan index with success message');
-            return redirect()->route('material.surat-jalan')
-                           ->with('success', 'Surat jalan berhasil dibuat dan menunggu persetujuan.');
-        } catch (\Exception $e) {
-            DB::rollback();
-            Log::error('Error creating surat jalan:', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return redirect()->back()
-                           ->with('error', 'Gagal membuat surat jalan: ' . $e->getMessage())
-                           ->withInput();
-        }
     }
 
     /**
-     * Tampilkan detail surat jalan
+     * Get material by kode
      */
-    public function showSuratJalan(SuratJalan $suratJalan)
+    public function getByKode($kode)
     {
-        $suratJalan->load('details.material', 'creator', 'approver');
-        return view('material.surat-jalan-show', compact('suratJalan'));
-    }
-
-    /**
-     * Tampilkan detail surat jalan untuk modal (tanpa layout)
-     */
-    public function getModalDetail(SuratJalan $suratJalan)
-    {
-        $suratJalan->load('details.material', 'creator', 'approver');
-        return view('material.surat-jalan-modal-detail', compact('suratJalan'));
-    }
-
-    /**
-     * Tampilkan form edit surat jalan
-     */
-    public function editSuratJalan(SuratJalan $suratJalan)
-    {
-        if ($suratJalan->status != 'BUTUH_PERSETUJUAN') {
-            return redirect()->route('surat-jalan.index')
-                           ->with('swal_error', 'Surat jalan yang sudah disetujui tidak dapat diedit!');
+        $material = Material::where('material_code', $kode)->first();
+        
+        if (!$material) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Material tidak ditemukan'
+            ], 404);
         }
-
-        $suratJalan->load('details.material');
-        $materials = Material::all();
-        return view('material.surat-jalan-edit', compact('suratJalan', 'materials'));
-    }
-
-    /**
-     * Update surat jalan
-     */
-    public function updateSuratJalan(Request $request, SuratJalan $suratJalan)
-    {
-        if ($suratJalan->status != 'BUTUH_PERSETUJUAN') {
-            return redirect()->route('material.surat-jalan')
-                           ->with('error', 'Surat jalan yang sudah disetujui tidak dapat diedit.');
-        }
-
-        $validator = Validator::make($request->all(), [
-            'nomor_surat' => 'required|string|unique:surat_jalan,nomor_surat,' . $suratJalan->id,
-            'jenis_surat_jalan' => 'required|in:Normal,Gangguan,Garansi,Peminjaman',
-            'tanggal' => 'required|date',
-            'kepada' => 'required|string|max:255',
-            'berdasarkan' => 'required|string',
-            'security' => 'nullable|string|max:255',
-            'keterangan' => 'nullable|string',
-            'kendaraan' => 'nullable|string|max:255',
-            'no_polisi' => 'nullable|string|max:20',
-            'pengemudi' => 'nullable|string|max:255',
-            'materials' => 'required|array|min:1',
-            'materials.*.material_id' => 'required|exists:materials,id',
-            'materials.*.quantity' => 'required|integer|min:1',
-            'materials.*.satuan' => 'required|string',
-            'materials.*.keterangan' => 'nullable|string'
+        
+        return response()->json([
+            'success' => true,
+            'data' => $material
         ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                           ->withErrors($validator)
-                           ->withInput();
-        }
-
-        try {
-            DB::beginTransaction();
-
-            $suratJalan->update([
-                'nomor_surat' => $request->nomor_surat,
-                'jenis_surat_jalan' => $request->jenis_surat_jalan,
-                'tanggal' => $request->tanggal,
-                'kepada' => $request->kepada,
-                'berdasarkan' => $request->berdasarkan,
-                'security' => $request->security,
-                'keterangan' => $request->keterangan,
-                'kendaraan' => $request->kendaraan,
-                'no_polisi' => $request->no_polisi,
-                'pengemudi' => $request->pengemudi
-            ]);
-
-            // Hapus detail lama
-            $suratJalan->details()->delete();
-
-            // Tambah detail baru
-            foreach ($request->materials as $material) {
-                SuratJalanDetail::create([
-                    'surat_jalan_id' => $suratJalan->id,
-                    'material_id' => $material['material_id'],
-                    'quantity' => $material['quantity'],
-                    'satuan' => $material['satuan'],
-                    'keterangan' => $material['keterangan'] ?? null
-                ]);
-            }
-
-            DB::commit();
-
-            return redirect()->route('material.surat-jalan')
-                           ->with('success', 'Surat jalan berhasil diupdate.');
-        } catch (\Exception $e) {
-            DB::rollback();
-            return redirect()->back()
-                           ->with('error', 'Gagal mengupdate surat jalan: ' . $e->getMessage())
-                           ->withInput();
-        }
-    }
-
-    /**
-     * Hapus surat jalan
-     */
-    public function destroySuratJalan(SuratJalan $suratJalan)
-    {
-        if ($suratJalan->status != 'BUTUH_PERSETUJUAN') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Surat jalan yang sudah disetujui tidak dapat dihapus.'
-            ]);
-        }
-
-        try {
-            $suratJalan->delete();
-            return response()->json([
-                'success' => true,
-                'message' => 'Surat jalan berhasil dihapus.'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus surat jalan: ' . $e->getMessage()
-            ]);
-        }
-    }
-
-    /**
-     * Tampilkan halaman approval surat jalan
-     */
-    public function approvalSuratJalan()
-    {
-        return view('material.surat-jalan-approval');
-    }
-
-    /**
-     * Data untuk DataTables approval surat jalan
-     */
-    public function getApprovalData(Request $request)
-    {
-        $status = $request->get('status', 'BUTUH_PERSETUJUAN');
-        
-        $suratJalans = SuratJalan::with(['creator', 'approver'])
-                                 ->byStatus($status)
-                                 ->select('surat_jalan.*');
-
-        return datatables($suratJalans)
-            ->addIndexColumn()
-            ->editColumn('tanggal', function($row) {
-                return $row->tanggal->format('d/m/Y');
-            })
-            ->editColumn('status', function($row) {
-                $badge = $row->status == 'APPROVED' ? 'success' : 'warning';
-                return '<span class="badge badge-' . $badge . '">' . $row->status . '</span>';
-            })
-            ->editColumn('created_by', function($row) {
-                return $row->creator->nama ?? '-';
-            })
-            ->editColumn('approved_by', function($row) {
-                return $row->approver->nama ?? '-';
-            })
-            ->editColumn('approved_at', function($row) {
-                return $row->approved_at ? $row->approved_at->format('d/m/Y H:i') : '-';
-            })
-            ->addColumn('action', function($row) {
-                if ($row->status == 'BUTUH_PERSETUJUAN') {
-                    return '<button class="btn btn-sm btn-success" onclick="approveSuratJalan(' . $row->id . ')"><i class="fa fa-check"></i> Approve</button>';
-                } else {
-                    return '<button class="btn btn-sm btn-primary" onclick="printSuratJalan(' . $row->id . ')"><i class="fa fa-print"></i> Print</button>';
-                }
-            })
-            ->rawColumns(['status', 'action'])
-            ->make(true);
-    }
-
-    /**
-     * Approve surat jalan
-     */
-    public function approveSuratJalan(SuratJalan $suratJalan)
-    {
-        if ($suratJalan->status != 'BUTUH_PERSETUJUAN') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Surat jalan sudah disetujui sebelumnya.'
-            ]);
-        }
-
-        try {
-            $suratJalan->update([
-                'status' => 'APPROVED',
-                'approved_by' => auth()->id(),
-                'approved_at' => now()
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Surat jalan berhasil disetujui.'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menyetujui surat jalan: ' . $e->getMessage()
-            ]);
-        }
-    }
-
-    /**
-     * Export surat jalan ke PDF
-     */
-    public function exportSuratJalan(SuratJalan $suratJalan)
-    {
-        if ($suratJalan->status != 'APPROVED') {
-            return redirect()->back()
-                           ->with('error', 'Hanya surat jalan yang sudah disetujui yang dapat dicetak.');
-        }
-
-        $suratJalan->load('details.material', 'creator', 'approver');
-        
-        // Replace invalid filename characters
-        $filename = 'surat-jalan-' . str_replace(['/', '\\'], '-', $suratJalan->nomor_surat) . '.pdf';
-        
-        $pdf = Pdf::loadView('exports.surat-jalan-pdf', compact('suratJalan'))
-                  ->setPaper('a4', 'portrait');
-        
-        return $pdf->download($filename);
-    }
-    
-    /**
-     * Export surat jalan ke Excel (method lama untuk backup)
-     */
-    public function exportSuratJalanExcel(SuratJalan $suratJalan)
-    {
-        if ($suratJalan->status != 'APPROVED') {
-            return redirect()->back()
-                           ->with('error', 'Hanya surat jalan yang sudah disetujui yang dapat dicetak.');
-        }
-
-        $suratJalan->load('details.material', 'creator', 'approver');
-        
-        // Replace invalid filename characters
-        $filename = 'surat-jalan-' . str_replace(['/', '\\'], '-', $suratJalan->nomor_surat) . '.xlsx';
-        
-        return Excel::download(new SuratJalanExport($suratJalan), $filename);
     }
 }

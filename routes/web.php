@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\MaterialMasukController;
+use App\Http\Controllers\SuratJalanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,6 +69,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/stock-opname', [DashboardController::class, 'stockOpname'])->name('dashboard.stock-opname');
     Route::get('/dashboard/data', [DashboardController::class, 'getData'])->name('dashboard.data');
+    Route::get('/dashboard/export', [DashboardController::class, 'export'])->name('dashboard.export');
     Route::get('/dashboard/{id}', [DashboardController::class, 'show'])->name('dashboard.show');
     Route::delete('/dashboard/{id}', [DashboardController::class, 'destroy'])->name('dashboard.destroy');
     
@@ -94,6 +96,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [MaterialController::class, 'index'])->name('index');
         Route::get('/create', [MaterialController::class, 'create'])->name('create');
         Route::post('/', [MaterialController::class, 'store'])->name('store');
+        Route::post('/import', [MaterialController::class, 'import'])->name('import');
         
         // DataTables AJAX endpoint
         Route::get('/data/ajax', [MaterialController::class, 'getDataForDataTables'])->name('data.ajax');
@@ -126,6 +129,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/data', [MaterialMasukController::class, 'getData'])->name('data');
         Route::get('/create', [MaterialMasukController::class, 'create'])->name('create');
         Route::post('/', [MaterialMasukController::class, 'store'])->name('store');
+        Route::get('/{materialMasuk}', [MaterialMasukController::class, 'show'])->name('show');
         Route::get('/{materialMasuk}/edit', [MaterialMasukController::class, 'edit'])->name('edit');
         Route::put('/{materialMasuk}', [MaterialMasukController::class, 'update'])->name('update');
         Route::delete('/{materialMasuk}', [MaterialMasukController::class, 'destroy'])->name('destroy');
@@ -145,23 +149,24 @@ Route::middleware(['auth'])->group(function () {
     
     // Surat Jalan Routes
     Route::prefix('surat-jalan')->name('surat-jalan.')->group(function () {
-        Route::get('/', [MaterialController::class, 'suratJalan'])->name('index');
-        Route::get('/data', [MaterialController::class, 'getSuratJalanData'])->name('data');
-        Route::get('/create', [MaterialController::class, 'createSuratJalan'])->name('create');
+        Route::get('/', [SuratJalanController::class, 'index'])->name('index');
+        Route::get('/data', [SuratJalanController::class, 'getData'])->name('data');
+        Route::get('/create', [SuratJalanController::class, 'create'])->name('create');
+        Route::get('/generate-nomor', [SuratJalanController::class, 'generateNomor'])->name('generate-nomor');
         
         // Approval Surat Jalan - HARUS SEBELUM ROUTE DENGAN PARAMETER
-        Route::get('/approval', [MaterialController::class, 'approvalSuratJalan'])->name('approval');
-        Route::get('/approval-data', [MaterialController::class, 'getApprovalData'])->name('approval-data');
+        Route::get('/approval', [SuratJalanController::class, 'approval'])->name('approval');
+        Route::get('/approval-data', [SuratJalanController::class, 'getApprovalData'])->name('approval-data');
         
-        Route::post('/', [MaterialController::class, 'storeSuratJalan'])->name('store');
-        Route::get('/{suratJalan}', [MaterialController::class, 'showSuratJalan'])->name('show');
-        Route::get('/{suratJalan}/modal-detail', [MaterialController::class, 'getModalDetail'])->name('modal-detail');
-        Route::get('/{suratJalan}/edit', [MaterialController::class, 'editSuratJalan'])->name('edit');
-        Route::put('/{suratJalan}', [MaterialController::class, 'updateSuratJalan'])->name('update');
-        Route::delete('/{suratJalan}', [MaterialController::class, 'destroySuratJalan'])->name('destroy');
-        Route::post('/{suratJalan}/approve', [MaterialController::class, 'approveSuratJalan'])->name('approve');
-        Route::get('/{suratJalan}/export', [MaterialController::class, 'exportSuratJalan'])->name('export');
-        Route::get('/{suratJalan}/export-excel', [MaterialController::class, 'exportSuratJalanExcel'])->name('export-excel');
+        Route::post('/', [SuratJalanController::class, 'store'])->name('store');
+        Route::get('/{suratJalan}', [SuratJalanController::class, 'show'])->name('show');
+        Route::get('/{suratJalan}/modal-detail', [SuratJalanController::class, 'getModalDetail'])->name('modal-detail');
+        Route::get('/{suratJalan}/edit', [SuratJalanController::class, 'edit'])->name('edit');
+        Route::put('/{suratJalan}', [SuratJalanController::class, 'update'])->name('update');
+        Route::delete('/{suratJalan}', [SuratJalanController::class, 'destroy'])->name('destroy');
+        Route::post('/{suratJalan}/approve', [SuratJalanController::class, 'approve'])->name('approve');
+        Route::get('/{suratJalan}/export', [SuratJalanController::class, 'export'])->name('export');
+        Route::get('/{suratJalan}/export-excel', [SuratJalanController::class, 'exportExcel'])->name('export-excel');
     });
     
     // Admin Only Routes

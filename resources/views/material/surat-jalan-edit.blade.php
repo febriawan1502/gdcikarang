@@ -11,7 +11,7 @@
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-edit me-2"></i>
+                        <i class="fa fa-edit me-2"></i>
                         Edit Surat Jalan: {{ $suratJalan->nomor_surat }}
                     </h5>
                 </div>
@@ -24,7 +24,7 @@
                         <div class="row mb-4">
                             <div class="col-12">
                                 <h6 class="text-info border-bottom pb-2">
-                                    <i class="fas fa-file-alt me-1"></i>
+                                    <i class="fa fa-file-alt me-1"></i>
                                     Informasi Surat Jalan
                                 </h6>
                             </div>
@@ -61,12 +61,15 @@
                                 <label for="tanggal" class="form-label fw-semibold">
                                     Tanggal Surat Jalan <span class="text-danger">*</span>
                                 </label>
-                                <input type="date" 
+                                
+                                    <input type="date" class="form-control" id="tanggal" name="tanggal" 
+                                           value="{{ old('tanggal', \Carbon\Carbon::parse($suratJalan->tanggal)->format('Y-m-d')) }}">
+                                <!-- <input type="date" 
                                        class="form-control" 
                                        id="tanggal" 
                                        name="tanggal" 
                                        value="{{ $suratJalan->tanggal }}"
-                                       required>
+                                       required> -->
                             </div>
                         </div>
                         
@@ -74,7 +77,7 @@
                         <div class="row mb-4">
                             <div class="col-12">
                                 <h6 class="text-info border-bottom pb-2">
-                                    <i class="fas fa-user-check me-1"></i>
+                                    <i class="fa fa-user-check me-1"></i>
                                     Informasi Penerima
                                 </h6>
                             </div>
@@ -120,7 +123,7 @@
                         <div class="row mb-4">
                             <div class="col-12">
                                 <h6 class="text-info border-bottom pb-2">
-                                    <i class="fas fa-boxes me-1"></i>
+                                    <i class="fa fa-boxes me-1"></i>
                                     Daftar Material
                                 </h6>
                             </div>
@@ -132,6 +135,7 @@
                                             <tr>
                                                 <th width="5%">No</th>
                                                 <th width="35%">Material</th>
+                                                <th width="10%">Stock</th>
                                                 <th width="15%">Qty</th>
                                                 <th width="15%">Satuan</th>
                                                 <th width="20%">Keterangan</th>
@@ -145,7 +149,7 @@
                                                 <td>
                                                     <input type="text" 
                                                            class="form-control form-control-sm material-autocomplete" 
-                                                           name="materials[{{ $index }}][material_display]" 
+                                                           name="materials[{{ $index }}][material_search]" 
                                                            value="{{ $detail->material->material_code ?? '' }} - {{ $detail->material->material_description ?? '' }}"
                                                            placeholder="Ketik kode atau nama material..."
                                                            autocomplete="off"
@@ -154,7 +158,10 @@
                                                            name="materials[{{ $index }}][material_id]" 
                                                            value="{{ $detail->material_id }}"
                                                            class="material-id-input">
-                                                    <div class="autocomplete-suggestions" style="display: none;"></div>
+                                                    <div class="autocomplete-results" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ddd; max-height: 400px; overflow-y: auto; width: 200%;"></div>
+                                                </td>
+                                                <td>
+                                                    <input type="number" class="form-control form-control-sm" name="materials[{{ $index }}][stock]" readonly disabled value="{{ $detail->material->unrestricted_use_stock ?? 0 }}">
                                                 </td>
                                                 <td>
                                                     <input type="number" class="form-control form-control-sm" 
@@ -176,7 +183,7 @@
                                                 </td>
                                                 <td>
                                                     <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
-                                                        <i class="fas fa-trash"></i>
+                                                        <i class="fa fa-trash"></i>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -198,7 +205,7 @@
                         <div class="row mb-4">
                             <div class="col-12">
                                 <h6 class="text-info border-bottom pb-2">
-                                    <i class="fas fa-sticky-note me-1"></i>
+                                    <i class="fa fa-sticky-note me-1"></i>
                                     Keterangan
                                 </h6>
                             </div>
@@ -219,7 +226,7 @@
                         <div class="row mb-4">
                             <div class="col-12">
                                 <h6 class="text-info border-bottom pb-2">
-                                    <i class="fas fa-truck me-1"></i>
+                                    <i class="fa fa-truck me-1"></i>
                                     Informasi Kendaraan
                                 </h6>
                             </div>
@@ -266,18 +273,18 @@
                             <div class="col-12">
                                 <div class="d-flex justify-content-between">
                                     <a href="{{ route('surat-jalan.index') }}" class="btn btn-secondary">
-                                        <i class="fas fa-arrow-left me-1"></i>
+                                        <i class="fa fa-arrow-left me-1"></i>
                                         Kembali
                                     </a>
                                     
                                     <div>
                                         <button type="reset" class="btn btn-warning me-2">
-                                            <i class="fas fa-undo me-1"></i>
+                                            <i class="fa fa-undo me-1"></i>
                                             Reset Form
                                         </button>
                                         
                                         <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-save me-1"></i>
+                                            <i class="fa fa-save me-1"></i>
                                             Update Surat Jalan
                                         </button>
                                     </div>
@@ -391,16 +398,15 @@ function addRow() {
     newRow.innerHTML = `
         <td>${rowCount + 1}</td>
         <td style="position: relative;">
-            <input type="text" 
-                   class="form-control form-control-sm material-autocomplete" 
-                   name="materials[${rowCount}][material_display]" 
-                   placeholder="Ketik kode atau nama material..."
-                   autocomplete="off"
-                   required>
-            <input type="hidden" 
-                   name="materials[${rowCount}][material_id]" 
-                   class="material-id-input">
-            <div class="autocomplete-suggestions" style="display: none;"></div>
+            <input type="text" class="form-control form-control-sm material-autocomplete" 
+                   name="materials[${rowCount}][material_search]" 
+                   placeholder="Ketik untuk mencari material..." 
+                   autocomplete="off" required>
+            <input type="hidden" name="materials[${rowCount}][material_id]" class="material-id">
+            <div class="autocomplete-results" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ddd; max-height: 400px; overflow-y: auto; width: 200%;"></div>
+        </td>
+        <td>
+            <input type="number" class="form-control form-control-sm" name="materials[${rowCount}][stock]" readonly disabled>
         </td>
         <td>
             <input type="number" class="form-control form-control-sm" name="materials[${rowCount}][quantity]" min="1" required>
@@ -413,23 +419,22 @@ function addRow() {
         </td>
         <td>
             <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
-                <i class="fas fa-trash"></i>
+                <i class="fa fa-trash"></i>
             </button>
         </td>
     `;
     
     tbody.appendChild(newRow);
-    
-    // Initialize autocomplete for the new row
-    const newInput = newRow.querySelector('.material-autocomplete');
-    
-    if (newInput) {
-        initializeAutocomplete(newInput);
-    }
-    
     rowCount++;
     
-    // Update all row numbers and input names
+    // Add autocomplete functionality for new row
+    initializeAutocomplete(newRow.querySelector('.material-autocomplete'));
+    
+    // Add quantity validation for new row
+    const quantityInput = newRow.querySelector('input[name*="[quantity]"]');
+    addQuantityValidation(quantityInput);
+    
+    // Update row numbers
     updateRowNumbers();
 }
 
@@ -448,72 +453,128 @@ function removeRow(button) {
 
 // Initialize autocomplete functionality
 function initializeAutocomplete(input) {
-    const row = input.closest('tr');
-    const hiddenInput = row.querySelector('input[type="hidden"]');
-    const suggestionsDiv = row.querySelector('.autocomplete-suggestions');
-    const satuanInput = row.querySelector('input[name*="[satuan]"]');
-    
-    if (!hiddenInput || !suggestionsDiv || !satuanInput) {
-        return;
-    }
+    let timeout;
+    const resultsDiv = input.parentElement.querySelector('.autocomplete-results'); // autocomplete-results div
     
     input.addEventListener('input', function() {
-        const query = this.value.toLowerCase();
-        console.log('Input event triggered, query:', query);
-        if (query.length < 2) {
-            suggestionsDiv.style.display = 'none';
+        clearTimeout(timeout);
+        const query = this.value;
+        
+        if (query.length < 3) {
+            resultsDiv.style.display = 'none';
             return;
         }
         
-        const filteredMaterials = materialsData.filter(material => {
-            const kode = material.kode || '';
-            const nama = material.nama || '';
-            return kode.toLowerCase().includes(query) || nama.toLowerCase().includes(query);
-        });
-        
-        console.log('Filtered materials:', filteredMaterials);
-        
-        if (filteredMaterials.length === 0) {
-            console.log('No materials found for query:', query);
-            suggestionsDiv.style.display = 'none';
-            return;
-        }
-        
-        if (filteredMaterials.length > 0) {
-            suggestionsDiv.innerHTML = filteredMaterials.slice(0, 10).map(material => {
-                const displayText = material.kode ? 
-                    `<strong>${material.kode}</strong> - ${material.nama}` : 
-                    `${material.nama}`;
-                return `<div class="autocomplete-item" data-id="${material.id}" data-satuan="${material.satuan}">
-                    ${displayText}
-                </div>`;
-            }).join('');
-            suggestionsDiv.style.display = 'block';
-            
-            // Add click listeners to suggestions
-            suggestionsDiv.querySelectorAll('.autocomplete-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const materialId = this.getAttribute('data-id');
-                    const materialSatuan = this.getAttribute('data-satuan');
-                    const materialText = this.textContent.trim();
+        timeout = setTimeout(() => {
+            fetch(`/material/autocomplete?query=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultsDiv.innerHTML = '';
                     
-                    input.value = materialText;
-                    hiddenInput.value = materialId;
-                    satuanInput.value = materialSatuan;
-                    suggestionsDiv.style.display = 'none';
+                    if (data.length > 0) {
+                        data.forEach(material => {
+                            const item = document.createElement('div');
+                            item.className = 'autocomplete-item p-2 cursor-pointer hover:bg-gray-100';
+                            item.style.cursor = 'pointer';
+                            item.style.padding = '8px';
+                            item.style.borderBottom = '1px solid #eee';
+                            
+                            const stockInfo = material.unrestricted_use_stock ? 
+                                `<small class="text-info d-block">Stock: ${material.unrestricted_use_stock} ${material.base_unit_of_measure || ''}</small>` : 
+                                '<small class="text-muted d-block">Stock: 0</small>';
+                            
+                            item.innerHTML = `
+                                <div>[${material.material_code} - ${material.material_description}]</div>
+                                ${stockInfo}
+                            `;
+                            
+                            item.addEventListener('click', function() {
+                                const row = input.closest('tr');
+                                const hiddenInput = row.querySelector('.material-id');
+                                const satuanInput = row.querySelector('input[name*="[satuan]"]');
+                                const stockInput = row.querySelector('input[name*="[stock]"]');
+                                
+                                input.value = `[${material.material_code} - ${material.material_description}]`;
+                                hiddenInput.value = material.id;
+                                satuanInput.value = material.base_unit_of_measure || '';
+                                stockInput.value = material.unrestricted_use_stock || 0;
+                                resultsDiv.style.display = 'none';
+                            });
+                            
+                            resultsDiv.appendChild(item);
+                        });
+                        resultsDiv.style.display = 'block';
+                    } else {
+                        resultsDiv.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching materials:', error);
+                    resultsDiv.style.display = 'none';
                 });
-            });
-        } else {
-            suggestionsDiv.style.display = 'none';
+        }, 300);
+    });
+    
+    // Hide results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !resultsDiv.contains(e.target)) {
+            resultsDiv.style.display = 'none';
+        }
+    });
+
+}
+
+// Function to validate stock quantity
+function validateStockQuantity(quantityInput, showAlert = true) {
+    const row = quantityInput.closest('tr');
+    const stockInput = row.querySelector('input[name*="[stock]"]');
+    const materialSearch = row.querySelector('.material-autocomplete');
+    
+    const quantity = parseInt(quantityInput.value) || 0;
+    const stock = parseInt(stockInput.value) || 0;
+    
+    if (quantity > stock && materialSearch.value.trim() !== '') {
+        if (showAlert) {
+            alert(`Quantity (${quantity}) melebihi stock yang tersedia (${stock}). Silakan kurangi quantity.`);
+        }
+        return false;
+    }
+    return true;
+}
+
+// Function to add quantity validation to input
+function addQuantityValidation(quantityInput) {
+    let lastValidatedValue = '';
+    
+    quantityInput.addEventListener('blur', function() {
+        // Only show alert if value has changed since last validation
+        if (this.value !== lastValidatedValue) {
+            if (!validateStockQuantity(this, true)) {
+                lastValidatedValue = this.value;
+                this.focus();
+                this.select();
+            } else {
+                lastValidatedValue = this.value;
+            }
         }
     });
     
-    // Hide suggestions when clicking outside
-    input.addEventListener('blur', function() {
-        // Use setTimeout to allow click events on suggestions to fire first
-        setTimeout(() => {
-            suggestionsDiv.style.display = 'none';
-        }, 200);
+    quantityInput.addEventListener('input', function() {
+        const row = this.closest('tr');
+        const stockInput = row.querySelector('input[name*="[stock]"]');
+        const materialSearch = row.querySelector('.material-autocomplete');
+        
+        const quantity = parseInt(this.value) || 0;
+        const stock = parseInt(stockInput.value) || 0;
+        
+        // Real-time visual feedback
+        if (quantity > stock && materialSearch.value.trim() !== '') {
+            this.style.borderColor = '#dc3545';
+            this.style.backgroundColor = '#f8d7da';
+        } else {
+            this.style.borderColor = '';
+            this.style.backgroundColor = '';
+        }
     });
 }
 
@@ -527,6 +588,12 @@ document.addEventListener('DOMContentLoaded', function() {
     materialInputs.forEach((input, index) => {
         console.log(`Initializing autocomplete for input ${index}:`, input);
         initializeAutocomplete(input);
+    });
+    
+    // Add validation to existing quantity inputs
+    const quantityInputs = document.querySelectorAll('input[name*="[quantity]"]');
+    quantityInputs.forEach(input => {
+        addQuantityValidation(input);
     });
     
     // Update row numbers for existing rows
@@ -551,10 +618,49 @@ function updateRowNumbers() {
     });
 }
 
+// Function to check for duplicate materials
+function checkDuplicateMaterials() {
+    const materialIds = document.querySelectorAll('input[name*="[material_id]"]');
+    const materialSearchInputs = document.querySelectorAll('.material-autocomplete');
+    const duplicates = [];
+    const seenMaterials = new Map();
+    
+    materialIds.forEach((input, index) => {
+        const materialId = input.value;
+        const materialSearch = materialSearchInputs[index] ? materialSearchInputs[index].value.trim() : '';
+        
+        if (materialId && materialSearch) {
+            // Extract material code from the search input format: [CODE - DESCRIPTION]
+            const codeMatch = materialSearch.match(/\[([^\]]+)\s*-/);
+            const materialCode = codeMatch ? codeMatch[1].trim() : '';
+            
+            // Check for duplicate by material_id
+            if (seenMaterials.has(materialId)) {
+                const firstOccurrence = seenMaterials.get(materialId);
+                duplicates.push({
+                    materialId: materialId,
+                    materialCode: materialCode,
+                    materialName: materialSearch,
+                    rows: [firstOccurrence.row, index + 1]
+                });
+            } else {
+                seenMaterials.set(materialId, {
+                    row: index + 1,
+                    code: materialCode,
+                    name: materialSearch
+                });
+            }
+        }
+    });
+    
+    return duplicates;
+}
+
 // Form validation
 document.getElementById('suratJalanForm').addEventListener('submit', function(e) {
     const materialInputs = document.querySelectorAll('input[name*="[material_id]"]');
     let hasValidMaterial = false;
+    let hasStockError = false;
     
     materialInputs.forEach(input => {
         if (input.value) {
@@ -567,6 +673,50 @@ document.getElementById('suratJalanForm').addEventListener('submit', function(e)
         alert('Minimal harus ada satu material yang dipilih!');
         return false;
     }
+    
+    // Check for duplicate materials
+    const duplicates = checkDuplicateMaterials();
+    if (duplicates.length > 0) {
+        e.preventDefault();
+        let alertMessage = 'Terdapat material yang sama dalam list:\n\n';
+        
+        duplicates.forEach(duplicate => {
+            alertMessage += `• Material: ${duplicate.materialName}\n`;
+            alertMessage += `  Ditemukan di baris: ${duplicate.rows.join(', ')}\n\n`;
+        });
+        
+        alertMessage += 'Silakan hapus atau ganti salah satu material yang sama.';
+        alert(alertMessage);
+        return false;
+    }
+    
+    // Validate all quantity inputs before submission
+    const quantityInputs = document.querySelectorAll('input[name*="[quantity]"]');
+    quantityInputs.forEach(input => {
+        if (!validateStockQuantity(input, false)) {
+            hasStockError = true;
+        }
+    });
+    
+    if (hasStockError) {
+        e.preventDefault();
+        alert('Terdapat quantity yang melebihi stock. Silakan periksa kembali.');
+        return false;
+    }
 });
 </script>
+@endpush
+
+@push('styles')
+<style>
+.table-responsive {
+    overflow: visible !important;
+}
+.table-responsive table {
+    overflow: visible !important;
+}
+.autocomplete-results {
+    z-index: 9999 !important;
+}
+</style>
 @endpush

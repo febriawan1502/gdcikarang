@@ -9,7 +9,7 @@
         <div class="card">
             <div class="card-header bg-success text-white">
                 <h5 class="mb-0">
-                    <i class="fas fa-clipboard-list me-2"></i>
+                    <i class="fa fa-clipboard-list me-2"></i>
                     Stock Opname Material
                 </h5>
             </div>
@@ -47,7 +47,7 @@
                         <label class="form-label">&nbsp;</label>
                         <div class="d-grid">
                             <button type="button" class="btn btn-primary" onclick="applyFilter()">
-                                <i class="fas fa-filter me-1"></i>
+                                <i class="fa fa-filter me-1"></i>
                                 Terapkan Filter
                             </button>
                         </div>
@@ -59,17 +59,17 @@
                     <div class="col-12">
                         <div class="d-flex flex-wrap gap-2">
                             <button type="button" class="btn btn-success" onclick="startStockOpname()">
-                                <i class="fas fa-play me-1"></i>
+                                <i class="fa fa-play me-1"></i>
                                 Mulai Stock Opname
                             </button>
                             
                             <button type="button" class="btn btn-info" onclick="exportStockOpname()">
-                                <i class="fas fa-download me-1"></i>
+                                <i class="fa fa-download me-1"></i>
                                 Export Excel
                             </button>
                             
                             <a href="{{ route('dashboard') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-1"></i>
+                                <i class="fa fa-arrow-left me-1"></i>
                                 Kembali ke Dashboard
                             </a>
                         </div>
@@ -92,7 +92,7 @@
                         <tbody>
                             <tr>
                                 <td colspan="9" class="text-center text-muted py-4">
-                                    <i class="fas fa-info-circle fa-2x mb-2"></i><br>
+                                    <i class="fa fa-info-circle fa-2x mb-2"></i><br>
                                     Belum ada data stock opname.<br>
                                     Klik "Mulai Stock Opname" untuk memulai proses.
                                 </td>
@@ -111,7 +111,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-clipboard-check me-2"></i>
+                    <i class="fa fa-clipboard-check me-2"></i>
                     Input Stock Opname
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -142,7 +142,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                 <button type="button" class="btn btn-primary" onclick="saveStockOpname()">
-                    <i class="fas fa-save me-1"></i>
+                    <i class="fa fa-save me-1"></i>
                     Simpan
                 </button>
             </div>

@@ -231,7 +231,7 @@
                     <div class="row mb-4">
                         <div class="col-12">
                             <h6 class="text-primary border-bottom pb-2">
-                                <i class="fas fa-tags me-1"></i>
+                                <i class="fa fa-tags me-1"></i>
                                 Informasi Material Type
                             </h6>
                         </div>
@@ -314,7 +314,7 @@
                     <div class="row mb-4">
                         <div class="col-12">
                             <h6 class="text-primary border-bottom pb-2">
-                                <i class="fas fa-cubes me-1"></i>
+                                <i class="fa fa-cubes me-1"></i>
                                 Informasi Stock & Harga
                             </h6>
                         </div>
@@ -414,7 +414,7 @@
                     <div class="row mb-4">
                         <div class="col-12">
                             <h6 class="text-primary border-bottom pb-2">
-                                <i class="fas fa-plus-circle me-1"></i>
+                                <i class="fa fa-plus-circle me-1"></i>
                                 Informasi Tambahan
                             </h6>
                         </div>
@@ -429,9 +429,9 @@
                                         name="status" 
                                         required>
                                     <option value="">Pilih Status</option>
-                                    <option value="SELESAI" {{ old('status') == 'SELESAI' ? 'selected' : '' }}>Selesai</option>
-                                    <option value="PENDING" {{ old('status') == 'PENDING' ? 'selected' : '' }}>Pending</option>
-                                    <option value="PROSES" {{ old('status') == 'PROSES' ? 'selected' : '' }}>Proses</option>
+                                    <option value="BAIK" {{ old('status', 'BAIK') == 'BAIK' ? 'selected' : '' }}>Baik</option>
+                                    <option value="RUSAK" {{ old('status') == 'RUSAK' ? 'selected' : '' }}>Rusak</option>
+                                    <option value="DALAM PERBAIKAN" {{ old('status') == 'DALAM PERBAIKAN' ? 'selected' : '' }}>Dalam Perbaikan</option>
                                 </select>
                                 @error('status')
                                     <div class="invalid-feedback">{{ $message }}</div>

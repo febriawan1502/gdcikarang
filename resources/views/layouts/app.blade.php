@@ -118,7 +118,7 @@
                 <!-- Branding -->
                 <div class="branding">
                     <a class="brand" href="{{ route('dashboard') }}">
-                        <span><strong>ASI</strong> SYSTEM</span>
+                        <span><strong>POJOK</strong> IMS</span>
                     </a>
                     <a role="button" tabindex="0" class="offcanvas-toggle visible-xs-inline"><i class="fa fa-bars"></i></a>
                 </div>
@@ -136,6 +136,7 @@
 
                 <!-- Right-side navigation -->
                 <ul class="nav-right pull-right list-inline">
+                    @auth
                     <li class="dropdown users">
                         <a href class="dropdown-toggle" data-toggle="dropdown">
                             <i class="fa fa-user"></i>
@@ -163,6 +164,7 @@
                             </ul>
                         </div>
                     </li>
+                    @endauth
                 </ul>
                 <!-- Right-side navigation end -->
             </header>
@@ -196,12 +198,14 @@
                                                 <span>Dashboard</span>
                                             </a>
                                         </li>
+                                        @if(auth()->user()->isAdmin())
                                         <li class="{{ request()->routeIs('material-masuk.*') ? 'active' : '' }}">
                                             <a href="{{ route('material-masuk.index') }}">
                                                 <i class="fa fa-arrow-down"></i>
                                                 <span>Material Masuk</span>
                                             </a>
                                         </li>
+                                        @endif
                                         <li class="{{ request()->routeIs('surat-jalan.index') ? 'active' : '' }}">
                             <a href="{{ route('surat-jalan.index') }}">
                                                 <i class="fa fa-truck"></i>
@@ -231,7 +235,7 @@
                     <!-- Alert Messages -->
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="fas fa-check-circle me-2"></i>
+                            <i class="fa fa-check-circle me-2"></i>
                             {{ session('success') }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
@@ -239,7 +243,7 @@
                     
                     @if(session('error'))
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <i class="fa fa-exclamation-circle me-2"></i>
                             {{ session('error') }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
@@ -247,7 +251,7 @@
                     
                     @if($errors->any())
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <i class="fa fa-exclamation-triangle me-2"></i>
                             <strong>Terjadi kesalahan:</strong>
                             <ul class="mb-0 mt-2">
                                 @foreach($errors->all() as $error)

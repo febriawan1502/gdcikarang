@@ -11,7 +11,7 @@
                     <h3 class="card-title">Tambah Material Masuk</h3>
                     <div class="card-tools">
                         <a href="{{ route('material-masuk.index') }}" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-arrow-left"></i> Kembali
+                            <i class="fa fa-arrow-left"></i> Kembali
                         </a>
                     </div>
                 </div>
@@ -112,7 +112,7 @@
                                         <td>
                                             <button type="button" class="btn btn-danger btn-sm remove-row" 
                                                     onclick="removeRow(this)" disabled>
-                                                <i class="fas fa-trash"></i>
+                                                <i class="fa fa-trash"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -122,16 +122,16 @@
                         
                         <div class="mb-3">
                             <button type="button" class="btn btn-success btn-sm" onclick="addRow()">
-                                <i class="fas fa-plus"></i> Tambah Material
+                                <i class="fa fa-plus"></i> Tambah Material
                             </button>
                         </div>
 
                         <div class="form-group">
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Simpan Material Masuk
+                                <i class="fa fa-save"></i> Simpan Material Masuk
                             </button>
                             <a href="{{ route('material-masuk.index') }}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Batal
+                                <i class="fa fa-times"></i> Batal
                             </a>
                         </div>
                     </form>
@@ -225,7 +225,7 @@ function addRow() {
         <td>
             <button type="button" class="btn btn-danger btn-sm remove-row" 
                     onclick="removeRow(this)">
-                <i class="fas fa-trash"></i>
+                <i class="fa fa-trash"></i>
             </button>
         </td>
     `;

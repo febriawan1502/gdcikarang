@@ -11,7 +11,7 @@
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-plus-circle me-2"></i>
+                        <i class="fa fa-plus-circle me-2"></i>
                         Buat Surat Jalan Baru
                     </h5>
                 </div>
@@ -23,7 +23,7 @@
                         <div class="row mb-4">
                             <div class="col-12">
                                 <h6 class="text-info border-bottom pb-2">
-                                    <i class="fas fa-file-alt me-1"></i>
+                                    <i class="fa fa-file-alt me-1"></i>
                                     Informasi Surat Jalan
                                 </h6>
                             </div>
@@ -73,14 +73,14 @@
                         <div class="row mb-4">
                             <div class="col-12">
                                 <h6 class="text-info border-bottom pb-2">
-                                    <i class="fas fa-user-check me-1"></i>
+                                    <i class="fa fa-user-check me-1"></i>
                                     Informasi Penerima
                                 </h6>
                             </div>
                             
                             <div class="col-md-6 mb-3">
                                 <label for="kepada" class="form-label fw-semibold">
-                                    Nama Penerima <span class="text-danger">*</span>
+                                    Diberikan Kepada <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
                                        class="form-control" 
@@ -94,11 +94,22 @@
                                 <label for="berdasarkan" class="form-label fw-semibold">
                                     Berdasarkan <span class="text-danger">*</span>
                                 </label>
-                                <textarea class="form-control" 
-                                          id="berdasarkan" 
-                                          name="berdasarkan" 
-                                          rows="2"
-                                          required></textarea>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="berdasarkan" 
+                                       name="berdasarkan" 
+                                       placeholder="contoh: SLIP 49310928890" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="keterangan" class="form-label fw-semibold">
+                                    Untuk Pekerjaan
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="keterangan" 
+                                       name="keterangan" 
+                                       placeholder="contoh: PD G.SSJ">
                             </div>
                             
                             <div class="col-md-6 mb-3">
@@ -117,7 +128,7 @@
                         <div class="row mb-4">
                             <div class="col-12">
                                 <h6 class="text-info border-bottom pb-2">
-                                    <i class="fas fa-boxes me-1"></i>
+                                    <i class="fa fa-boxes me-1"></i>
                                     Daftar Material
                                 </h6>
                             </div>
@@ -145,7 +156,7 @@
                                                            placeholder="Ketik untuk mencari material..." 
                                                            autocomplete="off" required>
                                                     <input type="hidden" name="materials[0][material_id]" class="material-id">
-                                                    <div class="autocomplete-results" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ddd; max-height: 400px; overflow-y: auto; width: 100%;"></div>
+                                                    <div class="autocomplete-results" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ddd; max-height: 400px; overflow-y: auto; width: 200%;"></div>
                                                 </td>
                                                 <td>
                                                     <input type="number" class="form-control form-control-sm" name="materials[0][stock]" readonly disabled>
@@ -161,7 +172,7 @@
                                                 </td>
                                                 <td>
                                                     <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
-                                                        <i class="fas fa-trash"></i>
+                                                        <i class="fa fa-trash"></i>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -178,32 +189,11 @@
                             </div>
                         </div>
                         
-                        <!-- Keterangan -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h6 class="text-info border-bottom pb-2">
-                                    <i class="fas fa-sticky-note me-1"></i>
-                                    Keterangan
-                                </h6>
-                            </div>
-                            
-                            <div class="col-12 mb-3">
-                                <label for="keterangan" class="form-label fw-semibold">
-                                    Keterangan Tambahan
-                                </label>
-                                <textarea class="form-control" 
-                                          id="keterangan" 
-                                          name="keterangan" 
-                                          rows="3"
-                                          placeholder="Keterangan tambahan untuk surat jalan (opsional)"></textarea>
-                            </div>
-                        </div>
-                        
                         <!-- Informasi Kendaraan -->
                         <div class="row mb-4">
                             <div class="col-12">
                                 <h6 class="text-info border-bottom pb-2">
-                                    <i class="fas fa-truck me-1"></i>
+                                    <i class="fa fa-truck me-1"></i>
                                     Informasi Kendaraan
                                 </h6>
                             </div>
@@ -247,18 +237,18 @@
                             <div class="col-12">
                                 <div class="d-flex justify-content-between">
                                     <a href="{{ route('surat-jalan.index') }}" class="btn btn-secondary">
-                                        <i class="fas fa-arrow-left me-1"></i>
+                                        <i class="fa fa-arrow-left me-1"></i>
                                         Kembali
                                     </a>
                                     
                                     <div>
                                         <button type="reset" class="btn btn-warning me-2">
-                                            <i class="fas fa-undo me-1"></i>
+                                            <i class="fa fa-undo me-1"></i>
                                             Reset Form
                                         </button>
                                         
                                         <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-save me-1"></i>
+                                            <i class="fa fa-save me-1"></i>
                                             Simpan Surat Jalan
                                         </button>
                                     </div>
@@ -294,17 +284,26 @@ let rowCount = 1;
 // Function to update nomor surat based on jenis surat jalan
 function updateNomorSurat() {
     const jenisSuratJalan = document.getElementById('jenis_surat_jalan').value;
-    const year = new Date().getFullYear();
     
-    const formats = {
-        'Normal': `114.SJ/LOG.00.02/F02050000/${year}`,
-        'Gangguan': `114.GGN/LOG.00.02/F02050000/${year}`,
-        'Garansi': `114.GRN/LOG.00.02/F02050000/${year}`,
-        'Peminjaman': `114.PMJ/LOG.00.02/F02050000/${year}`
-    };
-    
-    const nomorSurat = formats[jenisSuratJalan] || formats['Normal'];
-    document.getElementById('nomor_surat').value = nomorSurat;
+    // Make AJAX call to get proper nomor surat with sequence
+    fetch(`{{ route('surat-jalan.generate-nomor') }}?jenis=${jenisSuratJalan}`, {
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.nomor_surat) {
+            document.getElementById('nomor_surat').value = data.nomor_surat;
+        }
+    })
+    .catch(error => {
+        console.error('Error generating nomor surat:', error);
+        // Fallback to default if error occurs
+        document.getElementById('nomor_surat').value = '001.SJ/LOG.00.02/F02050000/I/2025';
+    });
 }
 
 // Event listener for jenis surat jalan change
@@ -330,7 +329,7 @@ function addRow() {
                    placeholder="Ketik untuk mencari material..." 
                    autocomplete="off" required>
             <input type="hidden" name="materials[${rowCount}][material_id]" class="material-id">
-            <div class="autocomplete-results" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ddd; max-height: 400px; overflow-y: auto; width: 100%;"></div>
+            <div class="autocomplete-results" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ddd; max-height: 400px; overflow-y: auto; width: 200%;"></div>
         </td>
         <td>
             <input type="number" class="form-control form-control-sm" name="materials[${rowCount}][stock]" readonly disabled>
@@ -346,7 +345,7 @@ function addRow() {
         </td>
         <td>
             <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
-                <i class="fas fa-trash"></i>
+                <i class="fa fa-trash"></i>
             </button>
         </td>
     `;
@@ -356,6 +355,10 @@ function addRow() {
     
     // Add autocomplete functionality for new row
     initializeAutocomplete(newRow.querySelector('.material-autocomplete'));
+    
+    // Add quantity validation for new row
+    const quantityInput = newRow.querySelector('input[name*="[quantity]"]');
+    addQuantityValidation(quantityInput);
 }
 
 // Function to remove row
@@ -448,18 +451,117 @@ function initializeAutocomplete(input) {
     });
 }
 
+// Function to validate stock quantity
+function validateStockQuantity(quantityInput, showAlert = true) {
+    const row = quantityInput.closest('tr');
+    const stockInput = row.querySelector('input[name*="[stock]"]');
+    const materialSearch = row.querySelector('.material-autocomplete');
+    
+    const quantity = parseInt(quantityInput.value) || 0;
+    const stock = parseInt(stockInput.value) || 0;
+    
+    if (quantity > stock && materialSearch.value.trim() !== '') {
+        if (showAlert) {
+            alert(`Quantity (${quantity}) melebihi stock yang tersedia (${stock}). Silakan kurangi quantity.`);
+        }
+        return false;
+    }
+    return true;
+}
+
+// Function to add quantity validation to input
+function addQuantityValidation(quantityInput) {
+    let lastValidatedValue = '';
+    
+    quantityInput.addEventListener('blur', function() {
+        // Only show alert if value has changed since last validation
+        if (this.value !== lastValidatedValue) {
+            if (!validateStockQuantity(this, true)) {
+                lastValidatedValue = this.value;
+                this.focus();
+                this.select();
+            } else {
+                lastValidatedValue = this.value;
+            }
+        }
+    });
+    
+    quantityInput.addEventListener('input', function() {
+        const row = this.closest('tr');
+        const stockInput = row.querySelector('input[name*="[stock]"]');
+        const materialSearch = row.querySelector('.material-autocomplete');
+        
+        const quantity = parseInt(this.value) || 0;
+        const stock = parseInt(stockInput.value) || 0;
+        
+        // Real-time visual feedback
+        if (quantity > stock && materialSearch.value.trim() !== '') {
+            this.style.borderColor = '#dc3545';
+            this.style.backgroundColor = '#f8d7da';
+        } else {
+            this.style.borderColor = '';
+            this.style.backgroundColor = '';
+        }
+    });
+}
+
 // Initialize autocomplete on page load
 document.addEventListener('DOMContentLoaded', function() {
     const autocompleteInputs = document.querySelectorAll('.material-autocomplete');
     autocompleteInputs.forEach(input => {
         initializeAutocomplete(input);
     });
+    
+    // Add validation to existing quantity inputs
+    const quantityInputs = document.querySelectorAll('input[name*="[quantity]"]');
+    quantityInputs.forEach(input => {
+        addQuantityValidation(input);
+    });
 });
+
+// Function to check for duplicate materials
+function checkDuplicateMaterials() {
+    const materialIds = document.querySelectorAll('.material-id');
+    const materialSearchInputs = document.querySelectorAll('.material-autocomplete');
+    const duplicates = [];
+    const seenMaterials = new Map();
+    
+    materialIds.forEach((input, index) => {
+        const materialId = input.value;
+        const materialSearch = materialSearchInputs[index].value.trim();
+        
+        if (materialId && materialSearch) {
+            // Extract material code from the search input format: [CODE - DESCRIPTION]
+            const codeMatch = materialSearch.match(/\[([^\]]+)\s*-/);
+            const materialCode = codeMatch ? codeMatch[1].trim() : '';
+            
+            // Check for duplicate by material_id
+            if (seenMaterials.has(materialId)) {
+                const firstOccurrence = seenMaterials.get(materialId);
+                duplicates.push({
+                    materialId: materialId,
+                    materialCode: materialCode,
+                    materialName: materialSearch,
+                    rows: [firstOccurrence.row, index + 1]
+                });
+            } else {
+                seenMaterials.set(materialId, {
+                    row: index + 1,
+                    code: materialCode,
+                    name: materialSearch
+                });
+            }
+        }
+    });
+    
+    return duplicates;
+}
 
 // Form validation
 document.getElementById('suratJalanForm').addEventListener('submit', function(e) {
     const materialIds = document.querySelectorAll('.material-id');
     let hasValidMaterial = false;
+    let hasStockError = false;
     
     materialIds.forEach(input => {
         if (input.value) {
@@ -470,6 +572,36 @@ document.getElementById('suratJalanForm').addEventListener('submit', function(e)
     if (!hasValidMaterial) {
         e.preventDefault();
         alert('Minimal harus ada satu material yang dipilih!');
+        return false;
+    }
+    
+    // Check for duplicate materials
+    const duplicates = checkDuplicateMaterials();
+    if (duplicates.length > 0) {
+        e.preventDefault();
+        let alertMessage = 'Terdapat material yang sama dalam list:\n\n';
+        
+        duplicates.forEach(duplicate => {
+            alertMessage += `• Material: ${duplicate.materialName}\n`;
+            alertMessage += `  Ditemukan di baris: ${duplicate.rows.join(', ')}\n\n`;
+        });
+        
+        alertMessage += 'Silakan hapus atau ganti salah satu material yang sama.';
+        alert(alertMessage);
+        return false;
+    }
+    
+    // Validate all quantity inputs before submission
+    const quantityInputs = document.querySelectorAll('input[name*="[quantity]"]');
+    quantityInputs.forEach(input => {
+        if (!validateStockQuantity(input, false)) {
+            hasStockError = true;
+        }
+    });
+    
+    if (hasStockError) {
+        e.preventDefault();
+        alert('Terdapat quantity yang melebihi stock. Silakan periksa kembali.');
         return false;
     }
 });

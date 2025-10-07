@@ -13,9 +13,11 @@
                         <a href="{{ route('surat-jalan.create') }}" class="btn btn-primary">
                             <i class="fa fa-plus"></i> Buat Surat Jalan
                         </a>
+                        @if(auth()->user()->isAdmin())
                         <a href="{{ route('surat-jalan.approval') }}" class="btn btn-success">
                             <i class="fa fa-check"></i> Approval
                         </a>
+                        @endif
                     </div>
                 </div>
                 <div class="card-body">
@@ -26,9 +28,10 @@
                                     <th>No</th>
                                     <th>Nomor Surat</th>
                                     <th>Tanggal</th>
-                                    <th>Kepada</th>
+                                    <th>Diberikan Kepada</th>
+                                    <th>Berdasarkan</th>
+                                    <th>Untuk Pekerjaan</th>
                                     <th>Status</th>
-                                    <th>Dibuat Oleh</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -53,8 +56,9 @@ $(document).ready(function() {
             { data: 'nomor_surat', name: 'nomor_surat' },
             { data: 'tanggal', name: 'tanggal' },
             { data: 'kepada', name: 'kepada' },
+            { data: 'berdasarkan', name: 'berdasarkan' },
+            { data: 'keterangan', name: 'keterangan' },
             { data: 'status', name: 'status' },
-            { data: 'created_by', name: 'created_by' },
             { data: 'action', name: 'action', orderable: false, searchable: false }
         ],
         responsive: true
@@ -74,7 +78,7 @@ function deleteSuratJalan(id) {
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: '/material/surat-jalan/' + id,
+                url: '/surat-jalan/' + id,
                 type: 'DELETE',
                 data: {
                     _token: '{{ csrf_token() }}'

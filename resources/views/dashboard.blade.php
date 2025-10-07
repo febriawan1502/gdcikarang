@@ -11,7 +11,7 @@
                 <div class="card-body">
                     <div class="stat-content">
                         <div class="stat-icon">
-                            <i class="fas fa-boxes"></i>
+                            <i class="fa fa-boxes"></i>
                         </div>
                         <div class="stat-info">
                             <h3 class="stat-number" id="totalMaterials">{{ $stats['total_materials'] ?? 0 }}</h3>
@@ -20,7 +20,7 @@
                     </div>
                     <div class="stat-footer">
                         <small class="text-muted">
-                            <i class="fas fa-info-circle"></i>
+                            <i class="fa fa-info-circle"></i>
                             Semua material terdaftar
                         </small>
                     </div>
@@ -33,7 +33,7 @@
                 <div class="card-body">
                     <div class="stat-content">
                         <div class="stat-icon">
-                            <i class="fas fa-check-circle"></i>
+                            <i class="fa fa-check-circle"></i>
                         </div>
                         <div class="stat-info">
                             <h3 class="stat-number" id="activeMaterials">{{ $stats['active_materials'] ?? 0 }}</h3>
@@ -42,7 +42,7 @@
                     </div>
                     <div class="stat-footer">
                         <small class="text-muted">
-                            <i class="fas fa-arrow-up text-success"></i>
+                            <i class="fa fa-arrow-up text-success"></i>
                             Status aktif
                         </small>
                     </div>
@@ -55,7 +55,7 @@
                 <div class="card-body">
                     <div class="stat-content">
                         <div class="stat-icon">
-                            <i class="fas fa-exclamation-triangle"></i>
+                            <i class="fa fa-exclamation-triangle"></i>
                         </div>
                         <div class="stat-info">
                             <h3 class="stat-number" id="lowStockMaterials">{{ $stats['low_stock_materials'] ?? 0 }}</h3>
@@ -64,7 +64,7 @@
                     </div>
                     <div class="stat-footer">
                         <small class="text-muted">
-                            <i class="fas fa-arrow-down text-warning"></i>
+                            <i class="fa fa-arrow-down text-warning"></i>
                             Perlu perhatian
                         </small>
                     </div>
@@ -77,7 +77,7 @@
                 <div class="card-body">
                     <div class="stat-content">
                         <div class="stat-icon">
-                            <i class="fas fa-dollar-sign"></i>
+                            <i class="fa fa-dollar-sign"></i>
                         </div>
                         <div class="stat-info">
                             <h3 class="stat-number" id="totalValue">Rp {{ number_format($stats['total_value'] ?? 0, 0, ',', '.') }}</h3>
@@ -86,7 +86,7 @@
                     </div>
                     <div class="stat-footer">
                         <small class="text-muted">
-                            <i class="fas fa-calculator"></i>
+                            <i class="fa fa-calculator"></i>
                             Nilai inventori
                         </small>
                     </div>
@@ -241,7 +241,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-info-circle"></i>
+                    <i class="fa fa-info-circle"></i>
                     Detail Material
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>

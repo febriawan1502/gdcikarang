@@ -9,7 +9,7 @@
         <div class="card">
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0">
-                    <i class="fas fa-key me-2"></i>
+                    <i class="fa fa-key me-2"></i>
                     Ganti Password
                 </h5>
             </div>
@@ -20,7 +20,7 @@
                     
                     <div class="mb-3">
                         <label for="current_password" class="form-label fw-semibold">
-                            <i class="fas fa-lock me-1"></i>
+                            <i class="fa fa-lock me-1"></i>
                             Password Saat Ini
                         </label>
                         <input type="password" 
@@ -38,7 +38,7 @@
                     
                     <div class="mb-3">
                         <label for="new_password" class="form-label fw-semibold">
-                            <i class="fas fa-key me-1"></i>
+                            <i class="fa fa-key me-1"></i>
                             Password Baru
                         </label>
                         <input type="password" 
@@ -53,14 +53,14 @@
                             </div>
                         @enderror
                         <div class="form-text">
-                            <i class="fas fa-info-circle me-1"></i>
+                            <i class="fa fa-info-circle me-1"></i>
                             Password minimal 6 karakter
                         </div>
                     </div>
                     
                     <div class="mb-4">
                         <label for="new_password_confirmation" class="form-label fw-semibold">
-                            <i class="fas fa-check-double me-1"></i>
+                            <i class="fa fa-check-double me-1"></i>
                             Konfirmasi Password Baru
                         </label>
                         <input type="password" 
@@ -73,12 +73,12 @@
                     
                     <div class="d-flex justify-content-between">
                         <a href="{{ route('dashboard') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left me-1"></i>
+                            <i class="fa fa-arrow-left me-1"></i>
                             Kembali
                         </a>
                         
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-1"></i>
+                            <i class="fa fa-save me-1"></i>
                             Simpan Password
                         </button>
                     </div>
@@ -90,26 +90,26 @@
         <div class="card mt-4">
             <div class="card-header bg-info text-white">
                 <h6 class="mb-0">
-                    <i class="fas fa-shield-alt me-2"></i>
+                    <i class="fa fa-shield-alt me-2"></i>
                     Tips Keamanan Password
                 </h6>
             </div>
             <div class="card-body">
                 <ul class="list-unstyled mb-0">
                     <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i>
+                        <i class="fa fa-check text-success me-2"></i>
                         Gunakan kombinasi huruf besar, huruf kecil, angka, dan simbol
                     </li>
                     <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i>
+                        <i class="fa fa-check text-success me-2"></i>
                         Minimal 8 karakter untuk keamanan yang lebih baik
                     </li>
                     <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i>
+                        <i class="fa fa-check text-success me-2"></i>
                         Jangan gunakan informasi pribadi yang mudah ditebak
                     </li>
                     <li class="mb-0">
-                        <i class="fas fa-check text-success me-2"></i>
+                        <i class="fa fa-check text-success me-2"></i>
                         Ganti password secara berkala
                     </li>
                 </ul>

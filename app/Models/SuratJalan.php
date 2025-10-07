@@ -60,21 +60,65 @@ class SuratJalan extends Model
     }
 
     /**
-     * Generate nomor surat static berdasarkan jenis
+     * Generate nomor surat dengan sequence berdasarkan jenis, bulan, dan tahun
      */
     public static function generateNomorSurat($jenisSuratJalan = 'Normal')
     {
         $year = date('Y');
+        $month = date('n'); // 1-12
+        $monthRoman = self::getMonthRoman($month);
         
-        // Format static berdasarkan jenis surat jalan
-        $formats = [
-            'Normal' => "114.SJ/LOG.00.02/F02050000/{$year}",
-            'Gangguan' => "114.GGN/LOG.00.02/F02050000/{$year}",
-            'Garansi' => "114.GRN/LOG.00.02/F02050000/{$year}",
-            'Peminjaman' => "114.PMJ/LOG.00.02/F02050000/{$year}"
+        // Kode jenis surat jalan
+        $jenisKode = [
+            'Normal' => 'SJ',
+            'Gangguan' => 'GGN',
+            'Garansi' => 'GRN',
+            'Peminjaman' => 'PMJ'
         ];
         
-        return $formats[$jenisSuratJalan] ?? $formats['Normal'];
+        $kode = $jenisKode[$jenisSuratJalan] ?? $jenisKode['Normal'];
+        
+        // Hitung sequence berdasarkan jenis, bulan, dan tahun
+        $sequence = self::getNextSequence($jenisSuratJalan, $month, $year);
+        
+        // Format: 001.SJ/LOG.00.02/F02050000/XI/2025
+        return sprintf("%03d.%s/LOG.00.02/F02050000/%s/%s", $sequence, $kode, $monthRoman, $year);
+    }
+    
+    /**
+     * Mendapatkan sequence berikutnya untuk jenis surat jalan, bulan, dan tahun tertentu
+     */
+    private static function getNextSequence($jenisSuratJalan, $month, $year)
+    {
+        $lastSurat = self::where('jenis_surat_jalan', $jenisSuratJalan)
+            ->whereYear('tanggal', $year)
+            ->whereMonth('tanggal', $month)
+            ->orderBy('id', 'desc')
+            ->first();
+            
+        if (!$lastSurat) {
+            return 1;
+        }
+        
+        // Extract sequence dari nomor surat terakhir
+        // Format: 001.SJ/LOG.00.02/F02050000/XI/2025
+        $nomorParts = explode('.', $lastSurat->nomor_surat);
+        $lastSequence = intval($nomorParts[0]);
+        
+        return $lastSequence + 1;
+    }
+    
+    /**
+     * Konversi angka bulan ke romawi
+     */
+    private static function getMonthRoman($month)
+    {
+        $romans = [
+            1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
+            7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+        ];
+        
+        return $romans[$month] ?? 'I';
     }
 
     /**

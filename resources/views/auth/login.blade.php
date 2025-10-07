@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>ASI System - Login</title>
+    <title>Pojok IMS - Login</title>
     <link rel="icon" type="image/ico" href="{{ asset('assets/images/favicon.ico') }}" />
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -42,7 +42,7 @@
     ===================================================== -->
     <div id="wrap" class="animsition">
         <div class="page page-core page-login">
-            <div class="text-center"><h3 class="text-light text-white"><span class="text-lightred">A</span>SI SYSTEM</h3></div>
+            <div class="text-center"><h3 class="text-light text-white"><span class="text-lightred">POJOK</span> Inventory Management System</h3></div>
 
             <div class="container w-420 p-15 bg-white mt-40 text-center">
                 <h2 class="text-light text-greensea">Log In</h2>
@@ -104,8 +104,8 @@
                 <div class="bg-slategray lt wrap-reset mt-40">
                     <p class="m-0">
                         <strong>Demo Accounts:</strong><br>
-                        Admin: admin@asi.com / admin123<br>
-                        Petugas: petugas@asi.com / petugas123
+                        Admin: admin@pojokims.com / admin123<br>
+                        Petugas: petugas@pojokims.com / petugas123
                     </p>
                 </div>
             </div>
