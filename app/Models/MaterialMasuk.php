@@ -4,28 +4,36 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\MaterialHistory; 
 use Carbon\Carbon;
 
 class MaterialMasuk extends Model
 {
     use HasFactory;
-
+    protected static function booted()
+    {
+        static::deleting(function ($materialMasuk) {
+            MaterialHistory::where('source_type', 'material_masuk')
+                ->where('source_id', $materialMasuk->id)
+                ->delete();
+        });
+    }
     protected $table = 'material_masuk';
 
-protected $fillable = [
-    'nomor_kr',
-    'pabrikan',
-    'tanggal_masuk',
-    'tanggal_keluar',
-    'jenis',
-    'nomor_po',
-    'nomor_doc',
-    'tugas_4',
-    'keterangan',
-    'status_sap',
-    // 'tanggal_sap',
-    'created_by',
-];
+    protected $fillable = [
+        'nomor_kr',
+        'pabrikan',
+        'tanggal_masuk',
+        'tanggal_keluar',
+        'jenis',
+        'nomor_po',
+        'nomor_doc',
+        'tugas_4',
+        'keterangan',
+        'status_sap',
+        // 'tanggal_sap',
+        'created_by',
+    ];
 
     protected $casts = [
         'tanggal_masuk' => 'date',

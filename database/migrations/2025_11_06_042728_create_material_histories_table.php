@@ -10,21 +10,37 @@ return new class extends Migration
     {
         Schema::create('material_histories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('material_id')->constrained()->onDelete('cascade');
 
-            // Pakai lowercase untuk enum consistency
-            $table->enum('tipe', ['Masuk', 'Keluar']); 
+            $table->foreignId('material_id')
+                ->constrained()
+                ->cascadeOnDelete();
 
-            $table->integer('jumlah');
-            $table->string('satuan')->nullable();
-            $table->text('keterangan')->nullable();
+            // tanggal transaksi
+            $table->date('tanggal');
 
-            // Perbaikan nama tabel surat jalan
-            $table->foreignId('surat_jalan_id')->nullable()
-                ->constrained('surat_jalans') // Ubah dari 'surat_jalan' ke 'surat_jalans'
-                ->onDelete('set null');
+            // tipe histori
+            $table->enum('tipe', ['masuk', 'keluar']);
 
-            $table->date('tanggal'); // Ubah ke 'date' jika hanya butuh tanggal
+            // nomor dokumen / slip
+            $table->string('no_slip')->nullable();
+
+            // qty masuk & keluar
+            $table->integer('masuk')->default(0);
+            $table->integer('keluar')->default(0);
+
+            // stok setelah transaksi
+            $table->integer('sisa_persediaan')->default(0);
+
+            // catatan histori
+            $table->text('catatan')->nullable();
+
+            // relasi surat jalan (optional)
+            $table->unsignedBigInteger('surat_jalan_id')->nullable();
+            $table->foreign('surat_jalan_id')
+                ->references('id')
+                ->on('surat_jalan')
+                ->nullOnDelete();
+
             $table->timestamps();
         });
     }

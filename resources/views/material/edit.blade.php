@@ -398,7 +398,7 @@
                     </div>
                     
                     <!-- Informasi Status & Keterangan -->
-                    <!-- <div class="row mb-4">
+                    <div class="row mb-4">
                         <div class="col-12">
                             <h6 class="text-primary border-bottom pb-2 mb-3">
                                 <i class="fa fa-info-circle me-1"></i>
@@ -406,7 +406,7 @@
                             </h6>
                         </div>
                         
-                        <div class="col-md-6 mb-3">
+                        <!-- <div class="col-md-6 mb-3">
                             <label for="status" class="form-label fw-semibold">
                                 Status <span class="text-danger">*</span>
                             </label>
@@ -440,7 +440,7 @@
                             @error('currency')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                        </div>
+                        </div> -->
                         
                         <div class="col-12 mb-3">
                             <label for="keterangan" class="form-label fw-semibold">
@@ -456,7 +456,7 @@
                             @enderror
                         </div>
                     </div>
-                     -->
+
                     <!-- Hidden Fields -->
                     <!-- <input type="hidden" name="valuation_type" value="{{ $material->valuation_type }}">
                     <input type="hidden" name="quality_inspection_stock" value="{{ $material->quality_inspection_stock }}">

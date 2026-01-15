@@ -14,6 +14,10 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\MaterialImport;
 use Illuminate\Validation\Rule;
 use App\Models\MaterialHistory;
+use App\Models\PemeriksaanFisik;
+use App\Imports\PemeriksaanFisikImport;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 
 
@@ -655,5 +659,180 @@ public function getMaterialById($id)
             'data' => $material
         ]);
     }
+    public function pemeriksaanFisik(Request $request)
+{
+    $bulan = $request->bulan;
+    $materials = null;
 
+    if ($bulan) {
+        $materials = Material::leftJoin('pemeriksaan_fisik', function ($join) use ($bulan) {
+                $join->on('materials.id', '=', 'pemeriksaan_fisik.material_id')
+                     ->where('pemeriksaan_fisik.bulan', $bulan);
+            })
+            ->select(
+                'materials.*',
+                'pemeriksaan_fisik.sap',
+                'pemeriksaan_fisik.fisik',
+                'pemeriksaan_fisik.sn_mims',
+                'pemeriksaan_fisik.selisih_sf',
+                'pemeriksaan_fisik.selisih_ss',
+                'pemeriksaan_fisik.selisih_fs',
+                'pemeriksaan_fisik.justifikasi_sf',
+                'pemeriksaan_fisik.justifikasi_ss',
+                'pemeriksaan_fisik.justifikasi_fs'
+            )
+            ->orderBy('materials.material_code')
+            ->get();
+    }
+
+    return view('material.pemeriksaan_fisik', compact('materials', 'bulan'));
+}
+
+    public function storePemeriksaanFisik(Request $request)
+{
+    DB::beginTransaction();
+
+    try {
+        foreach ($request->data as $row) {
+
+            PemeriksaanFisik::updateOrCreate(
+                [
+                    'material_id' => $row['material_id'],
+                    'bulan'       => $request->bulan,
+                ],
+                [
+                    'sap'             => $row['sap'] ?? null,
+                    'fisik'           => $row['fisik'] ?? null,
+                    'sn_mims'         => $row['sn'] ?? null,
+                    'selisih_sf'      => $row['selisih_sf'] ?? null,
+                    'selisih_ss'      => $row['selisih_ss'] ?? null,
+                    'selisih_fs'      => $row['selisih_fs'] ?? null,
+                    'justifikasi_sf'  => $row['justifikasi_sf'] ?? null,
+                    'justifikasi_ss'  => $row['justifikasi_ss'] ?? null,
+                    'justifikasi_fs'  => $row['justifikasi_fs'] ?? null,
+                ]
+            );
+        }
+
+        DB::commit();
+
+        // 🔑 PENTING: redirect balik + bulan
+        return redirect()
+            ->route('material.pemeriksaanFisik', ['bulan' => $request->bulan])
+            ->with('success', 'Data pemeriksaan fisik berhasil disimpan');
+
+    } catch (\Exception $e) {
+        DB::rollback();
+
+        return back()->withErrors([
+            'error' => 'Gagal menyimpan: ' . $e->getMessage()
+        ]);
+    }
+}
+public function importSap(Request $request)
+{
+    $bulan = $request->bulan;
+
+    $rows = Excel::toCollection(
+        new PemeriksaanFisikImport($bulan),
+        $request->file('file')
+    )[0];
+
+    foreach ($rows as $row) {
+
+        if (empty($row['no_part'])) continue;
+
+        $code = ltrim($row['no_part'], '0');
+
+        $material = Material::where('material_code', $code)->first();
+        if (!$material) continue;
+
+        $pf = PemeriksaanFisik::firstOrCreate(
+            [
+                'material_id' => $material->id,
+                'bulan' => $bulan
+            ],
+            [
+                'fisik' => $material->unrestricted_use_stock
+            ]
+        );
+
+        $pf->sap = (int) $row['sap'];
+        $pf->selisih_sf = $pf->sap - $pf->fisik;
+        $pf->save();
+    }
+
+    return back()->with('success', 'Import SAP berhasil');
+}
+
+public function importMims(Request $request)
+{
+    $bulan = $request->bulan;
+
+    $rows = Excel::toCollection(
+        new PemeriksaanFisikImport($bulan),
+        $request->file('file')
+    )[0];
+
+    foreach ($rows as $row) {
+
+        if (empty($row['no_part'])) continue;
+
+        $code = ltrim($row['no_part'], '0');
+
+        $material = Material::where('material_code', $code)->first();
+        if (!$material) continue;
+
+        $pf = PemeriksaanFisik::where([
+            'material_id' => $material->id,
+            'bulan' => $bulan
+        ])->first();
+
+        if (!$pf) continue;
+
+        $pf->sn_mims = (int) $row['sn_mims'];
+        $pf->selisih_ss = $pf->sap - $pf->sn_mims;
+        $pf->selisih_fs = $pf->fisik - $pf->sn_mims;
+        $pf->save();
+    }
+
+    return back()->with('success', 'Import SN MIMS berhasil');
+}
+
+
+public function pemeriksaanFisikPdf(Request $request)
+{
+    $bulan = $request->bulan;
+
+    $materials = Material::leftJoin('pemeriksaan_fisik', function ($join) use ($bulan) {
+            $join->on('materials.id', '=', 'pemeriksaan_fisik.material_id')
+                 ->where('pemeriksaan_fisik.bulan', $bulan);
+        })
+        ->select(
+            'materials.*',
+            'pemeriksaan_fisik.sap',
+            'pemeriksaan_fisik.fisik',
+            'pemeriksaan_fisik.sn_mims',
+            'pemeriksaan_fisik.selisih_sf',
+            'pemeriksaan_fisik.selisih_ss',
+            'pemeriksaan_fisik.selisih_fs',
+            'pemeriksaan_fisik.justifikasi_sf',
+            'pemeriksaan_fisik.justifikasi_ss',
+            'pemeriksaan_fisik.justifikasi_fs'
+        )
+        ->orderBy('materials.material_code')
+        ->get();
+
+    $tanggalCetak = Carbon::now()->translatedFormat('d F Y');
+
+    // ✅ TAMBAHKAN INI
+    $gudang = 'GUDANG UP3 CIMAHI';
+
+    $pdf = Pdf::loadView(
+        'exports.pemeriksaan_fisik_pdf',
+        compact('materials', 'bulan', 'tanggalCetak', 'gudang')
+    )->setPaper('A4', 'landscape');
+
+    return $pdf->stream("pemeriksaan_fisik_$bulan.pdf");
+}
 }

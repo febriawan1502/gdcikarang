@@ -46,10 +46,10 @@
                                 <input type="date" class="form-control" id="tanggal_masuk" name="tanggal_masuk" value="{{ old('tanggal_masuk', date('Y-m-d')) }}" required>
                             </div>
 
-                            <div class="col-md-4 mb-3">
-                                <label for="tanggal_keluar">Tanggal Keluar</label>
-                                <input type="date" class="form-control" id="tanggal_keluar" name="tanggal_keluar" value="{{ old('tanggal_keluar') }}">
-                            </div>
+                            <!--<div class="col-md-4 mb-3">-->
+                            <!--    <label for="tanggal_keluar">Tanggal Keluar</label>-->
+                            <!--    <input type="date" class="form-control" id="tanggal_keluar" name="tanggal_keluar" value="{{ old('tanggal_keluar') }}">-->
+                            <!--</div>-->
 
                             <div class="col-md-4 mb-3">
                                 <label for="jenis">Jenis</label>
@@ -57,7 +57,7 @@
                                     <option value="">-- Pilih Jenis --</option>
                                     <option value="B1" {{ old('jenis')=='B1' ? 'selected' : '' }}>B1</option>
                                     <option value="B2" {{ old('jenis')=='B2' ? 'selected' : '' }}>B2</option>
-                                    <option value="A0" {{ old('jenis')=='A0' ? 'selected' : '' }}>A0</option>
+                                    <option value="AO" {{ old('jenis')=='AO' ? 'selected' : '' }}>AO</option>
                                 </select>
                             </div>
                         </div>

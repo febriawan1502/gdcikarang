@@ -18,6 +18,9 @@ class SuratJalanDetail extends Model
         'quantity',
         'satuan',
         'keterangan',
+        'is_checked',
+        'checked_by',
+        'checked_at',
         'is_manual',
         'nama_barang_manual',
         'satuan_manual',
@@ -34,6 +37,7 @@ class SuratJalanDetail extends Model
     {
         return $this->belongsTo(Material::class, 'material_id', 'id');
     }
+    
     public function pengembalianHistories()
 {
     return $this->hasMany(\App\Models\PengembalianHistory::class, 'surat_jalan_detail_id');

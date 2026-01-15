@@ -138,7 +138,7 @@
                             <div class="col-12 mb-3">
                                 <div id="manualNotice" class="alert alert-info d-none">
                                     <i class="fa fa-info-circle me-1"></i>
-                                    Mode <strong>Manual</strong> aktif. Isi nama barang secara bebas tanpa memilih dari daftar material.
+                                    Mode <strong>Manual / Peminjaman</strong> aktif. Isi nama barang secara bebas tanpa memilih dari daftar material.
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-bordered" id="materialTable">
@@ -146,43 +146,15 @@
                                             <tr>
                                                 <th width="5%">No</th>
                                                 <th width="30%">Material</th>
-                                                <th width="10%">Stock</th>
+                                                <!-- <th width="10%">Stock</th> -->
+                                                <th width="10%" class="col-stock">Stock</th>
                                                 <th width="10%">Qty</th>
                                                 <th width="10%">Satuan</th>
                                                 <th width="25%">Keterangan</th>
                                                 <th width="10%">Aksi</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>1</td>
-                                                <td style="position: relative;">
-                                                    <input type="text" class="form-control form-control-sm material-autocomplete" 
-                                                           name="materials[0][material_search]" 
-                                                           placeholder="Ketik untuk mencari material..." 
-                                                           autocomplete="off" required>
-                                                    <input type="hidden" name="materials[0][material_id]" class="material-id">
-                                                    <div class="autocomplete-results" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ddd; max-height: 400px; overflow-y: auto; width: 200%;"></div>
-                                                </td>
-                                                <td>
-                                                    <input type="number" class="form-control form-control-sm" name="materials[0][stock]" readonly disabled>
-                                                </td>
-                                                <td>
-                                                    <input type="number" class="form-control form-control-sm" name="materials[0][quantity]" min="1" required>
-                                                </td>
-                                                <td>
-                                                    <input type="text" class="form-control form-control-sm" name="materials[0][satuan]" readonly>
-                                                </td>
-                                                <td>
-                                                    <input type="text" class="form-control form-control-sm" name="materials[0][keterangan]" placeholder="Keterangan">
-                                                </td>
-                                                <td>
-                                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
-                                                        <i class="fa fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
+                                        <tbody></tbody>
                                     </table>
                                 </div>
                                 
@@ -285,7 +257,9 @@
 
 @push('scripts')
 <script>
-let rowCount = 1;
+let jenisSelect;
+let table;
+let notice;
 
 // Function to update nomor surat based on jenis surat jalan
 function updateNomorSurat() {
@@ -316,55 +290,109 @@ function updateNomorSurat() {
 document.addEventListener('DOMContentLoaded', function() {
     const jenisSuratJalanSelect = document.getElementById('jenis_surat_jalan');
     if (jenisSuratJalanSelect) {
-        jenisSuratJalanSelect.addEventListener('change', updateNomorSurat);
-        // Update on page load
-        updateNomorSurat();
+        jenisSuratJalanSelect.addEventListener('change', function () {
+    updateNomorSurat();
+    resetTable();
+});
     }
 });
 
 // Function to add new row
 function addRow() {
     const tbody = document.querySelector('#materialTable tbody');
+    const index = tbody.querySelectorAll('tr').length;
+    const jenis = jenisSelect.value;
+    const isManual = ['Manual', 'Peminjaman'].includes(jenis);
+    const isNonStock = ['Garansi', 'Perbaikan'].includes(jenis);
+
+
     const newRow = document.createElement('tr');
-    
+
+if (isManual) {
     newRow.innerHTML = `
-        <td>${rowCount + 1}</td>
-        <td style="position: relative;">
-            <input type="text" class="form-control form-control-sm material-autocomplete" 
-                   name="materials[${rowCount}][material_search]" 
-                   placeholder="Ketik untuk mencari material..." 
-                   autocomplete="off" required>
-            <input type="hidden" name="materials[${rowCount}][material_id]" class="material-id">
-            <div class="autocomplete-results" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ddd; max-height: 400px; overflow-y: auto; width: 200%;"></div>
-        </td>
+        <td>${index + 1}</td>
+
         <td>
-            <input type="number" class="form-control form-control-sm" name="materials[${rowCount}][stock]" readonly disabled>
+            <input type="text" class="form-control form-control-sm"
+                   name="materials[${index}][nama_barang]" required>
         </td>
+
+        <!-- ⛔ WAJIB ADA: TD STOCK (DISEMBUNYIKAN) -->
+        <td class="col-stock" style="display:none;"></td>
+
         <td>
-            <input type="number" class="form-control form-control-sm" name="materials[${rowCount}][quantity]" min="1" required>
+            <input type="number" class="form-control form-control-sm"
+                   name="materials[${index}][quantity]" min="1" required>
         </td>
+
         <td>
-            <input type="text" class="form-control form-control-sm" name="materials[${rowCount}][satuan]" readonly>
+            <input type="text" class="form-control form-control-sm"
+                   name="materials[${index}][satuan]" required>
         </td>
+
         <td>
-            <input type="text" class="form-control form-control-sm" name="materials[${rowCount}][keterangan]" placeholder="Keterangan">
+            <input type="text" class="form-control form-control-sm"
+                   name="materials[${index}][keterangan]">
         </td>
+
         <td>
-            <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
+            <button type="button" class="btn btn-danger btn-sm"
+                    onclick="removeRow(this)">
                 <i class="fa fa-trash"></i>
             </button>
         </td>
     `;
-    
+    } else {
+        newRow.innerHTML = `
+            <td>${index + 1}</td>
+            <td style="position:relative;">
+                <input type="text" class="form-control form-control-sm material-autocomplete"
+                       name="materials[${index}][material_search]" autocomplete="off" required>
+                <input type="hidden" name="materials[${index}][material_id]" class="material-id">
+                <div class="autocomplete-results"></div>
+            </td>
+            <td class="col-stock" style="${isNonStock ? 'display:none;' : ''}">
+    <input type="number" class="form-control form-control-sm"
+           name="materials[${index}][stock]" readonly disabled>
+</td>
+
+            <td>
+                <input type="number" class="form-control form-control-sm"
+                       name="materials[${index}][quantity]" min="1" required>
+            </td>
+            <td>
+    <input type="text" class="form-control form-control-sm"
+           name="materials[${index}][satuan]"
+           ${jenis === 'Normal' ? 'readonly' : ''}>
+</td>
+
+            <td>
+                <input type="text" class="form-control form-control-sm"
+                       name="materials[${index}][keterangan]">
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm"
+                        onclick="removeRow(this)">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </td>
+        `;
+    }
+
     tbody.appendChild(newRow);
-    rowCount++;
-    
-    // Add autocomplete functionality for new row
-    initializeAutocomplete(newRow.querySelector('.material-autocomplete'));
-    
-    // Add quantity validation for new row
-    const quantityInput = newRow.querySelector('input[name*="[quantity]"]');
-    addQuantityValidation(quantityInput);
+
+    if (!isManual) {
+        initializeAutocomplete(newRow.querySelector('.material-autocomplete'));
+    }
+
+    addQuantityValidation(newRow.querySelector('input[name*="[quantity]"]'));
+
+}
+function resetTable() {
+    const tbody = table.querySelector('tbody');
+    tbody.innerHTML = ''; // hapus semua row
+    addRow();             // buat row baru sesuai jenis
+    toggleManualMode();   // rapikan tampilan
 }
 
 // Function to remove row
@@ -412,10 +440,16 @@ function initializeAutocomplete(input) {
                             item.style.cursor = 'pointer';
                             item.style.padding = '8px';
                             item.style.borderBottom = '1px solid #eee';
-                            
-                            const stockInfo = material.unrestricted_use_stock ? 
-                                `<small class="text-info d-block">Stock: ${material.unrestricted_use_stock} ${material.base_unit_of_measure || ''}</small>` : 
-                                '<small class="text-muted d-block">Stock: 0</small>';
+            
+                            const jenis = document.getElementById('jenis_surat_jalan').value;
+                            const showStockInfo = (jenis === 'Normal');
+
+                            const stockInfo = showStockInfo
+                                ? `<small class="text-info d-block">
+                                    Stock: ${material.unrestricted_use_stock || 0} ${material.base_unit_of_measure || ''}
+                                </small>`
+                                : '';
+
                             
                             item.innerHTML = `
                                 <div>[${material.material_code} - ${material.material_description}]</div>
@@ -423,17 +457,28 @@ function initializeAutocomplete(input) {
                             `;
                             
                             item.addEventListener('click', function() {
-                                const row = input.closest('tr');
-                                const hiddenInput = row.querySelector('.material-id');
-                                const satuanInput = row.querySelector('input[name*="[satuan]"]');
-                                const stockInput = row.querySelector('input[name*="[stock]"]');
-                                
-                                input.value = `[${material.material_code} - ${material.material_description}]`;
-                                hiddenInput.value = material.id;
-                                satuanInput.value = material.base_unit_of_measure || '';
-                                stockInput.value = material.unrestricted_use_stock || 0;
-                                resultsDiv.style.display = 'none';
-                            });
+    const row = input.closest('tr');
+    const hiddenInput = row.querySelector('.material-id');
+    const satuanInput = row.querySelector('input[name*="[satuan]"]');
+    const stockInput = row.querySelector('input[name*="[stock]"]');
+
+    input.value = `[${material.material_code} - ${material.material_description}]`;
+    hiddenInput.value = material.id;
+    satuanInput.value = material.base_unit_of_measure || '';
+
+    // ✅ HANYA NORMAL yang boleh isi stock
+    const jenis = document.getElementById('jenis_surat_jalan').value;
+    if (jenis === 'Normal') {
+        stockInput.value = material.unrestricted_use_stock || 0;
+        stockInput.disabled = false;
+    } else {
+        stockInput.value = '';
+        stockInput.disabled = true;
+    }
+
+    resultsDiv.style.display = 'none';
+});
+
                             
                             resultsDiv.appendChild(item);
                         });
@@ -459,6 +504,13 @@ function initializeAutocomplete(input) {
 
 // Function to validate stock quantity
 function validateStockQuantity(quantityInput, showAlert = true) {
+    const jenis = document.getElementById('jenis_surat_jalan').value;
+
+    // 🔕 SKIP VALIDASI STOK
+    if (['Garansi', 'Perbaikan', 'Manual', 'Peminjaman'].includes(jenis)) {
+        return true;
+    }
+
     const row = quantityInput.closest('tr');
     const stockInput = row.querySelector('input[name*="[stock]"]');
     const materialSearch = row.querySelector('.material-autocomplete');
@@ -468,7 +520,7 @@ function validateStockQuantity(quantityInput, showAlert = true) {
     
     if (quantity > stock && materialSearch.value.trim() !== '') {
         if (showAlert) {
-            alert(`Quantity (${quantity}) melebihi stock yang tersedia (${stock}). Silakan kurangi quantity.`);
+            alert(`Quantity (${quantity}) melebihi stock yang tersedia (${stock}).`);
         }
         return false;
     }
@@ -501,29 +553,22 @@ function addQuantityValidation(quantityInput) {
         const stock = parseInt(stockInput.value) || 0;
         
         // Real-time visual feedback
-        if (quantity > stock && materialSearch.value.trim() !== '') {
-            this.style.borderColor = '#dc3545';
-            this.style.backgroundColor = '#f8d7da';
-        } else {
-            this.style.borderColor = '';
-            this.style.backgroundColor = '';
-        }
-    });
+        const jenis = document.getElementById('jenis_surat_jalan').value;
+
+if (
+    quantity > stock &&
+    materialSearch.value.trim() !== '' &&
+    !['Garansi','Perbaikan','Manual','Peminjaman'].includes(jenis)
+) {
+    this.style.borderColor = '#dc3545';
+    this.style.backgroundColor = '#f8d7da';
+} else {
+    this.style.borderColor = '';
+    this.style.backgroundColor = '';
 }
 
-// Initialize autocomplete on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const autocompleteInputs = document.querySelectorAll('.material-autocomplete');
-    autocompleteInputs.forEach(input => {
-        initializeAutocomplete(input);
     });
-    
-    // Add validation to existing quantity inputs
-    const quantityInputs = document.querySelectorAll('input[name*="[quantity]"]');
-    quantityInputs.forEach(input => {
-        addQuantityValidation(input);
-    });
-});
+}
 
 // Function to check for duplicate materials
 function checkDuplicateMaterials() {
@@ -565,9 +610,19 @@ function checkDuplicateMaterials() {
 
 // Form validation
 document.getElementById('suratJalanForm').addEventListener('submit', function(e) {
-// Skip validasi stok kalau jenis Manual
-const jenis = document.getElementById('jenis_surat_jalan').value;
-if (jenis === 'Manual') return true;
+    const jenis = document.getElementById('jenis_surat_jalan').value;
+
+    if (['Manual', 'Peminjaman'].includes(jenis)) {
+        const names = document.querySelectorAll('input[name*="[nama_barang]"]');
+        const hasValue = [...names].some(i => i.value.trim() !== '');
+
+        if (!hasValue) {
+            e.preventDefault();
+            alert('Minimal harus ada satu nama barang');
+        }
+        return;
+    }
+
 
     const materialIds = document.querySelectorAll('.material-id');
     let hasValidMaterial = false;
@@ -615,58 +670,36 @@ if (jenis === 'Manual') return true;
         return false;
     }
 });
+function toggleManualMode() {
+    const jenis = jenisSelect.value;
+
+    const isManual = ['Manual', 'Peminjaman'].includes(jenis);
+    const isNonStock = ['Garansi', 'Perbaikan', 'Manual', 'Peminjaman'].includes(jenis);
+
+    // Header kolom nama
+    table.querySelector('th:nth-child(2)').textContent =
+        isManual ? 'Nama Barang (Manual)' : 'Material';
+
+    // Stock column (hidden hanya kalau non-stock)
+    table.querySelectorAll('.col-stock').forEach(th => {
+        th.style.display = isNonStock ? 'none' : '';
+    });
+
+    // ⚠️ NOTICE MANUAL → HANYA MANUAL
+    notice.classList.toggle('d-none', !isManual);
+}
+
+
 // === Toggle mode Manual ===
-document.addEventListener('DOMContentLoaded', function() {
-    const jenisSelect = document.getElementById('jenis_surat_jalan');
-    const table = document.getElementById('materialTable');
-    const notice = document.getElementById('manualNotice');
+document.addEventListener('DOMContentLoaded', function () {
+    jenisSelect = document.getElementById('jenis_surat_jalan');
+    table = document.getElementById('materialTable');
+    notice = document.getElementById('manualNotice');
 
-    function toggleManualMode() {
-        const isManual = jenisSelect.value === 'Manual';
-        notice.classList.toggle('d-none', !isManual);
+    jenisSelect.addEventListener('change', resetTable);
 
-        // Ganti label tabel
-        table.querySelector('th:nth-child(2)').textContent = isManual ? 'Nama Barang (Manual)' : 'Material';
-        table.querySelector('th:nth-child(3)').textContent = isManual ? '-' : 'Stock';
-
-        // Ubah setiap baris sesuai mode
-        table.querySelectorAll('tbody tr').forEach((row, index) => {
-            const materialTd = row.querySelector('td:nth-child(2)');
-            const stockInput = row.querySelector('input[name*="[stock]"]');
-            const satuanInput = row.querySelector('input[name*="[satuan]"]');
-
-            if (isManual) {
-                materialTd.innerHTML = `
-                    <input type="text" class="form-control form-control-sm"
-                           name="materials[${index}][nama_barang]"
-                           placeholder="Nama barang manual..." required>
-                `;
-
-                // aktifkan kolom satuan agar bisa diketik
-                satuanInput.readOnly = false;
-                satuanInput.required = true;
-                satuanInput.placeholder = "Isi satuan (misal: pcs, kg)";
-                stockInput.value = '';
-                stockInput.disabled = true;
-            } else {
-                materialTd.innerHTML = `
-                    <input type="text" class="form-control form-control-sm material-autocomplete"
-                           name="materials[${index}][material_search]"
-                           placeholder="Ketik untuk mencari material..." autocomplete="off" required>
-                    <input type="hidden" name="materials[${index}][material_id]" class="material-id">
-                    <div class="autocomplete-results" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ddd;max-height:400px;overflow-y:auto;width:200%;"></div>
-                `;
-                stockInput.disabled = false;
-                satuanInput.readOnly = true;
-                satuanInput.placeholder = '';
-                initializeAutocomplete(row.querySelector('.material-autocomplete'));
-            }
-        });
-    }
-
-    jenisSelect.addEventListener('change', toggleManualMode);
+    resetTable(); // ⬅️ PENTING: bikin row pertama
 });
-
 
 </script>
 @endpush

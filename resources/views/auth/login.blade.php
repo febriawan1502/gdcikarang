@@ -81,11 +81,11 @@
 
         <hr class="border-t-4 border-green-600 my-8">
 
-        <div class="bg-gray-100 rounded-md p-4 text-gray-700 text-sm leading-relaxed">
-            <strong>Demo Accounts:</strong><br>
-            Admin: admin@pojokims.com / admin123<br>
-            Petugas: petugas@pojokims.com / petugas123
-        </div>
+        <!--<div class="bg-gray-100 rounded-md p-4 text-gray-700 text-sm leading-relaxed">-->
+        <!--    <strong>Demo Accounts:</strong><br>-->
+        <!--    Admin: admin@pojokims.com / admin123<br>-->
+        <!--    Petugas: petugas@pojokims.com / petugas123-->
+        <!--</div>-->
     </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>

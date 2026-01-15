@@ -14,5 +14,6 @@ class BeritaAcara extends Model
         'jabatan_mengetahui',
         'pembuat',
         'jabatan_pembuat',
+        'file_pdf',
     ];
 }

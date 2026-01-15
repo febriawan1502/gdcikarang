@@ -17,6 +17,22 @@
             margin: 0;
             padding: 0;
         }
+        .stamp-checked {
+    display: inline-block;
+
+    color: #c00000;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+
+    transform: rotate(-12deg);
+    opacity: 0.9;
+
+    line-height: 1;
+}
+
+
 
         /* Wrapper untuk 3 copy */
         .copy {
@@ -154,6 +170,17 @@
         .page-break {
             page-break-after: always;
         }
+        .copy-label {
+            position: fixed;
+            top: -10mm;          /* sejajar header */
+            right: -10mm;        /* PAS di batas margin kanan */
+            font-size: 11px;
+            font-weight: bold;
+            border: 1px solid #333;
+            padding: 4px 10px;
+            background: #fff;
+            z-index: 999;
+        }
     </style>
 </head>
 
@@ -161,6 +188,13 @@
 
 @for($copy = 1; $copy <= 3; $copy++)
 <div class="copy">
+    @if($copy == 1)
+    <div class="copy-label">UNTUK PEMINTA</div>
+@elseif($copy == 2)
+    <div class="copy-label">ARSIP GUDANG</div>
+@else
+    <div class="copy-label">ARSIP SATPAM</div>
+@endif
 
 <div class="watermark">{{ strtoupper($suratJalan->status) }}</div>
 
@@ -288,23 +322,35 @@
     @endif
 
     <!-- Signature -->
-    <div class="signature-section">
-        <table class="signature-table">
-            <tr>
-                <td><strong>Yang menerima</strong></td>
-                <td><strong>Security</strong></td>
-                <td><strong>Admin Gudang</strong></td>
-            </tr>
-            <tr class="signature-space">
-                <td></td><td></td><td></td>
-            </tr>
-            <tr>
-                <td>{{ $suratJalan->kepada }}</td>
-                <td>{{ $suratJalan->security ?? '-' }}</td>
-                <td>{{ Auth::user()->nama }}<br>NIP. {{ Auth::user()->nip ?? '-' }}</td>
-            </tr>
-        </table>
-    </div>
+<!-- Signature -->
+<div class="signature-section">
+    <table class="signature-table">
+        <tr>
+            <td><strong>Yang menerima</strong></td>
+            <td><strong>Security</strong></td>
+            <td><strong>Admin Gudang</strong></td>
+        </tr>
+
+        {{-- BARIS STEMPEL --}}
+        <tr class="signature-space">
+            <td></td>
+            <td style="text-align:center; vertical-align:middle;">
+                @if($suratJalan->security_checked_at)
+                    <div class="stamp-checked">CHECKED</div>
+                @endif
+            </td>
+            <td></td>
+        </tr>
+
+        {{-- BARIS NAMA --}}
+        <tr>
+            <td>{{ $suratJalan->kepada }}</td>
+            <td>{{ $suratJalan->security ?? '-' }}</td>
+            <td>{{ Auth::user()->nama }}<br>NIP. {{ Auth::user()->nip ?? '-' }}</td>
+        </tr>
+    </table>
+</div>
+
 
     <div class="page-footer">
         Halaman {{ $pageNum }} dari {{ $totalPages }}

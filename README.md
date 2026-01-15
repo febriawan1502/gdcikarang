@@ -7,19 +7,23 @@ ASI (Automatic System Inventory) adalah sistem manajemen gudang berbasis web yan
 ## Fitur Utama
 
 ### ✅ Sudah Diimplementasi
+
 - **Autentikasi & Otorisasi**
+
   - Login/Logout dengan validasi
   - Role-based access control (Admin & Petugas)
   - Change Password dengan validasi keamanan
   - Session management
 
 - **Dashboard**
+
   - Statistik real-time material
   - DataTables dengan fitur pencarian, sorting, dan pagination
   - Action buttons (View, Edit, Delete)
   - Responsive design
 
 - **Master Material**
+
   - CRUD operations lengkap
   - Form validation
   - Auto-fill functionality
@@ -34,11 +38,13 @@ ASI (Automatic System Inventory) adalah sistem manajemen gudang berbasis web yan
   - Soft deletes
 
 ### 🚧 Template Tersedia (Siap Dikembangkan)
+
 - **Input Material Masuk** - Template form sudah tersedia
 - **Surat Jalan** - Template form sudah tersedia
 - **Stock Opname** - Template halaman sudah tersedia
 
 ### 📋 Rencana Pengembangan
+
 - User Management (Admin only)
 - Reports & Analytics
 - Export/Import functionality
@@ -49,12 +55,14 @@ ASI (Automatic System Inventory) adalah sistem manajemen gudang berbasis web yan
 ## Teknologi yang Digunakan
 
 ### Backend
+
 - **Laravel 10** - PHP Framework
 - **PHP 8.4** - Programming Language
 - **PostgreSQL** - Primary Database
 - **MySQL** - Alternative Database
 
 ### Frontend
+
 - **Bootstrap 5.3** - CSS Framework
 - **jQuery 3.7** - JavaScript Library
 - **DataTables** - Table Enhancement
@@ -63,6 +71,7 @@ ASI (Automatic System Inventory) adalah sistem manajemen gudang berbasis web yan
 - **Chart.js** - Charts & Graphs
 
 ### Build Tools
+
 - **Vite 4** - Frontend Build Tool
 - **Sass** - CSS Preprocessor
 - **NPM** - Package Manager
@@ -70,6 +79,7 @@ ASI (Automatic System Inventory) adalah sistem manajemen gudang berbasis web yan
 ## Persyaratan Sistem
 
 ### Minimum Requirements
+
 - **PHP**: 8.4 atau lebih tinggi
 - **Composer**: 2.0 atau lebih tinggi
 - **Node.js**: 16.0 atau lebih tinggi
@@ -77,6 +87,7 @@ ASI (Automatic System Inventory) adalah sistem manajemen gudang berbasis web yan
 - **Database**: PostgreSQL 12+ atau MySQL 8.0+
 
 ### Ekstensi PHP yang Diperlukan
+
 - BCMath PHP Extension
 - Ctype PHP Extension
 - cURL PHP Extension
@@ -95,12 +106,14 @@ ASI (Automatic System Inventory) adalah sistem manajemen gudang berbasis web yan
 ## Instalasi
 
 ### 1. Clone Repository
+
 ```bash
 git clone <repository-url>
 cd asi-apps
 ```
 
 ### 2. Install Dependencies
+
 ```bash
 # Install PHP dependencies
 composer install
@@ -110,6 +123,7 @@ npm install
 ```
 
 ### 3. Environment Setup
+
 ```bash
 # Copy environment file
 cp .env.example .env
@@ -119,9 +133,11 @@ php artisan key:generate
 ```
 
 ### 4. Database Configuration
+
 Edit file `.env` dan sesuaikan konfigurasi database:
 
 #### Untuk PostgreSQL:
+
 ```env
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
@@ -132,6 +148,7 @@ DB_PASSWORD=your_password
 ```
 
 #### Untuk MySQL:
+
 ```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -142,6 +159,7 @@ DB_PASSWORD=your_password
 ```
 
 ### 5. Database Migration & Seeding
+
 ```bash
 # Run migrations and seeders
 php artisan migrate --seed
@@ -151,6 +169,7 @@ php artisan storage:link
 ```
 
 ### 6. Build Assets
+
 ```bash
 # Development build
 npm run dev
@@ -160,6 +179,7 @@ npm run build
 ```
 
 ### 7. Start Development Server
+
 ```bash
 # Start Laravel development server
 php artisan serve
@@ -179,6 +199,7 @@ composer run-script setup-dev
 ```
 
 Script ini akan menjalankan:
+
 - `composer install`
 - `php artisan key:generate`
 - `php artisan migrate --seed`
@@ -191,16 +212,19 @@ Script ini akan menjalankan:
 Setelah menjalankan seeder, Anda dapat login dengan akun berikut:
 
 ### Administrator
+
 - **Email**: admin@asi.com
 - **Password**: admin123
 - **Role**: Admin (Full Access)
 
 ### Petugas
+
 - **Email**: petugas@asi.com
 - **Password**: petugas123
 - **Role**: Petugas (Limited Access)
 
 ### Test Users
+
 - **Email**: user1@asi.com, user2@asi.com, user3@asi.com
 - **Password**: password
 - **Role**: Petugas
@@ -254,28 +278,33 @@ asi-apps/
 ## Penggunaan
 
 ### 1. Login
+
 - Akses `http://localhost:8000`
 - Gunakan salah satu akun default di atas
 - Sistem akan redirect ke dashboard setelah login berhasil
 
 ### 2. Dashboard
+
 - Lihat statistik material (Total, Aktif, Tidak Aktif, Stok Rendah)
 - Kelola material melalui DataTable
 - Gunakan fitur pencarian, filter, dan sorting
 
 ### 3. Material Management
+
 - **Tambah Material**: Klik "Tambah Material" di dashboard
 - **Edit Material**: Klik tombol "Edit" pada baris material
 - **Hapus Material**: Klik tombol "Hapus" (dengan konfirmasi)
 - **Lihat Detail**: Klik tombol "Detail" untuk melihat informasi lengkap
 
 ### 4. Role & Permissions
+
 - **Admin**: Full access ke semua fitur
 - **Petugas**: Access terbatas (sesuai konfigurasi)
 
 ## Development
 
 ### Running Tests
+
 ```bash
 # Run PHP tests
 php artisan test
@@ -285,6 +314,7 @@ php artisan test --coverage
 ```
 
 ### Code Style
+
 ```bash
 # Fix code style
 ./vendor/bin/pint
@@ -294,6 +324,7 @@ php artisan test --coverage
 ```
 
 ### Asset Development
+
 ```bash
 # Watch for changes (development)
 npm run dev
@@ -306,6 +337,7 @@ npm run preview
 ```
 
 ### Database Operations
+
 ```bash
 # Fresh migration with seeding
 php artisan migrate:fresh --seed
@@ -322,17 +354,20 @@ php artisan migrate:status
 ### Common Issues
 
 1. **Permission Denied Errors**
+
    ```bash
    sudo chown -R www-data:www-data storage bootstrap/cache
    sudo chmod -R 775 storage bootstrap/cache
    ```
 
 2. **Database Connection Error**
+
    - Pastikan database service berjalan
    - Periksa konfigurasi `.env`
    - Test koneksi: `php artisan tinker` → `DB::connection()->getPdo()`
 
 3. **Asset Not Loading**
+
    ```bash
    npm run build
    php artisan config:clear
@@ -384,6 +419,7 @@ Jika Anda mengalami masalah atau memiliki pertanyaan:
 ## Changelog
 
 ### Version 1.0.0 (Current)
+
 - ✅ Initial release
 - ✅ Authentication & Authorization
 - ✅ Dashboard with statistics

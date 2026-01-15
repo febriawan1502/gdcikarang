@@ -6,7 +6,7 @@
 
     <style>
         body {
-            font-family: "Times New Roman", serif;
+            font-family: "Arial", serif;
             font-size: 12pt;
             margin: 28px 60px;
             line-height: 1.45; 
@@ -14,7 +14,7 @@
 
         .center { text-align: center; }
         .bold { font-weight: bold; }
-        .title { font-size: 16pt; font-weight: bold; margin-top: 25px; }
+        .title { font-size: 13pt; font-weight: bold; margin-top: 25px; }
         .subtitle { font-size: 12pt; margin-top: 1px; }
 
         .paragraph {
@@ -63,8 +63,8 @@ $tanggalSurat = $tgl->translatedFormat('d F Y');
 
 {{-- PARAGRAPH 1 --}}
 <p class="paragraph">
-    Pada hari ini <strong>{{ $ba->hari }}</strong> Tanggal
-    <strong>{{ $ba->tanggal_teks }}</strong> ({{ $tanggalAngka }}),
+    Pada hari ini {{ $ba->hari }} Tanggal
+    {{ $ba->tanggal_teks }} ({{ $tanggalAngka }}),
     Kami yang bertanda tangan di bawah ini telah melakukan <i>Stock Count</i>
     di Gudang UP3 & ULP dengan rincian sebagaimana terlampir dalam Blangko TUG 15
     dan Daftar Pemeriksaan Fisik serta Saldo <i>Serial Number</i> pada aplikasi MIMS

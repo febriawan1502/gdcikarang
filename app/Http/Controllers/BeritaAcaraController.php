@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BeritaAcara;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 
 
 class BeritaAcaraController extends Controller
@@ -78,24 +79,69 @@ class BeritaAcaraController extends Controller
     }
 
     // DELETE
-    public function destroy($id)
-    {
-        $ba = BeritaAcara::findOrFail($id);
-        $ba->delete();
+// DELETE
+public function destroy($id)
+{
+    $ba = BeritaAcara::findOrFail($id);
 
-        return redirect()
-            ->route('berita-acara.index')
-            ->with('success', 'Berita Acara berhasil dihapus!');
+    if ($ba->file_pdf && Storage::disk('local')->exists($ba->file_pdf)) {
+        Storage::disk('local')->delete($ba->file_pdf);
     }
 
-    // PDF
+    $ba->delete();
+
+    return redirect()
+        ->route('berita-acara.index')
+        ->with('success', 'Berita Acara berhasil dihapus!');
+
+    }
     public function pdf($id)
 {
     $ba = BeritaAcara::findOrFail($id);
 
     $pdf = Pdf::loadView('exports.berita-acara-pdf', compact('ba'))
-                ->setPaper('A4', 'portrait');
+        ->setPaper('A4', 'portrait');
 
-    return $pdf->stream('Berita Acara '.$ba->id.'.pdf');
+    return $pdf->stream('Berita_Acara_'.$ba->id.'.pdf');
 }
+
+// UPLOAD PDF
+public function uploadPdf(Request $request, $id)
+{
+    $request->validate([
+        'file_pdf' => 'required|mimes:pdf|max:5120',
+    ]);
+
+    $ba = BeritaAcara::findOrFail($id);
+
+    // hapus file lama
+    if ($ba->file_pdf && Storage::disk('local')->exists($ba->file_pdf)) {
+        Storage::disk('local')->delete($ba->file_pdf);
+    }
+
+    // SIMPAN & AMBIL PATH ASLI DARI LARAVEL
+    $path = $request->file('file_pdf')
+        ->store('berita-acara-pdf', 'local');
+
+    // SIMPAN PATH INI KE DB
+    $ba->update([
+        'file_pdf' => $path
+    ]);
+
+    return back()->with('success', 'PDF berhasil diupload');
+}
+
+// VIEW PDF (STREAM)
+public function viewUploadedPdf($id)
+{
+    
+    $ba = BeritaAcara::findOrFail($id);
+
+    if (!$ba->file_pdf || !Storage::disk('local')->exists($ba->file_pdf)) {
+        abort(404);
+    }
+
+    return response()->file(storage_path('app/'.$ba->file_pdf));
+}
+
 }

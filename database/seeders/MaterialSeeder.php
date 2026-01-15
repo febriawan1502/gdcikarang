@@ -47,7 +47,7 @@ class MaterialSeeder extends Seeder
                 'qty' => 60,
                 'tanggal_terima' => Carbon::parse('2025-01-15'),
                 'keterangan' => 'Proses',
-                'status' => Material::STATUS_PROSES,
+                'status' => Material::STATUS_BAIK,
             ],
             [
                 'nomor' => 2,
@@ -80,7 +80,7 @@ class MaterialSeeder extends Seeder
                 'qty' => 40,
                 'tanggal_terima' => Carbon::parse('2025-01-15'),
                 'keterangan' => 'SELESAI',
-                'status' => Material::STATUS_SELESAI,
+                'status' => Material::STATUS_RUSAK,
             ],
             [
                 'nomor' => 3,
@@ -113,7 +113,7 @@ class MaterialSeeder extends Seeder
                 'qty' => 1,
                 'tanggal_terima' => Carbon::parse('2025-01-13'),
                 'keterangan' => 'SELESAI',
-                'status' => Material::STATUS_SELESAI,
+                'status' => Material::STATUS_DALAM_PERBAIKAN,
             ],
             // Data tambahan dari format CSV yang diberikan
             [
@@ -147,7 +147,7 @@ class MaterialSeeder extends Seeder
                 'qty' => 10,
                 'tanggal_terima' => Carbon::parse('2025-01-10'),
                 'keterangan' => 'SELESAI',
-                'status' => Material::STATUS_SELESAI,
+                'status' => Material::STATUS_BAIK,
             ],
             [
                 'nomor' => 5,
@@ -180,7 +180,7 @@ class MaterialSeeder extends Seeder
                 'qty' => 6,
                 'tanggal_terima' => Carbon::parse('2025-01-10'),
                 'keterangan' => 'PENDING INSTALASI',
-                'status' => Material::STATUS_PENDING,
+                'status' => Material::STATUS_BAIK,
             ],
         ];
 

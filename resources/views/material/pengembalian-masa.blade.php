@@ -19,6 +19,7 @@
             </div>
 
             <!-- Form Pengembalian -->
+            @if(auth()->user()->role !== 'guest')
             <form action="{{ route('surat-jalan.kembalikan', ['suratId' => $surat->id, 'detailId' => $detail->id]) }}" method="POST">
                 @csrf
                 @method('PUT')
@@ -134,6 +135,7 @@
                     <button type="submit" class="btn btn-primary rounded-pill">Simpan</button>
                 </div>
             </form>
+            @endif
             @if ($detail->pengembalianHistories->count() > 0)
 <div class="mt-5">
     <h5 class="fw-semibold mb-3">

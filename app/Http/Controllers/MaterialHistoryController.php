@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MaterialHistoryExport;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Pagination\LengthAwarePaginator;
+
 
 class MaterialHistoryController extends Controller
 {
@@ -36,8 +38,19 @@ public function index(Request $request, $id = null)
             $item->sisa_persediaan = $runningStock;
             return $item;
         });
+        $isSearch = $request->query->count() > 0;
+        $histories = $isSearch
+    ? $histories->values()
+    : $histories->reverse()->values();
 
-        return view('material.history', compact('material', 'histories'));
+// $histories = $this->paginateCollection($histories, 10);
+
+return view('material.history', [
+    'material'  => $material,
+    'histories' => $histories
+]);
+
+
     }
 
     // ==============================
@@ -70,11 +83,24 @@ public function index(Request $request, $id = null)
 
         $finalHistories = $finalHistories->merge($mapped);
     }
+    $isSearch = $request->filled('q');
 
-    return view('material.history', [
-        'histories' => $finalHistories,
-        'material' => null
-    ]);
+        $finalHistories = $isSearch
+            ? $finalHistories->values() // SEARCH → baca dari atas
+            : $finalHistories
+        ->sortByDesc('tanggal')
+        ->sortByDesc('id')
+        ->values();
+
+
+
+    // $finalHistories = $this->paginateCollection($finalHistories, 10);
+
+return view('material.history', [
+    'histories' => $finalHistories,
+    'material'  => null
+]);
+
 }
 
 

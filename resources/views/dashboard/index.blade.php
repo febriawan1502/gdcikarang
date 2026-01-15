@@ -385,6 +385,7 @@
 </div>
 
 <!-- Action Buttons -->
+@if(auth()->user()->role !== 'guest')
 <div class="row mb-4">
     <div class="col-12">
         <div class="card">
@@ -408,7 +409,7 @@
         </div>
     </div>
 </div>
-
+@endif
 <!-- Materials DataTable -->
 <div class="row">
     <div class="col-12">
@@ -543,8 +544,8 @@ function viewDetail(id) {
                             </table>
                         </div>
                     </div>
-                    <div class="row mt-3">
-                        <div class="col-12">
+                    <div class="row">
+                        <div class="col-md-6">
                             <h6 class="text-primary">Informasi Stock & Harga</h6>
                                 <table class="table table-sm">
                                 <tr>
@@ -559,11 +560,12 @@ function viewDetail(id) {
                                 </tr>
                             </table>
                         </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-12">
-                            
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Keterangan</h6>
+                                ${material.keterangan ?? '-'}
+                            </div>
                         </div>
+                    </div>
                     </div>
                 `;
                 

@@ -9,6 +9,8 @@ class MaterialHistory extends Model
 {
     protected $fillable = [
     'material_id',
+     'source_type',     // ✅ TAMBAHKAN
+    'source_id',       // ✅ TAMBAHKAN
     'tanggal',
     'tipe',
     'no_slip',
@@ -44,7 +46,9 @@ class MaterialHistory extends Model
     $qty,
     $no_slip = '-',
     $catatan = null,
-    $tanggal = null
+    $tanggal = null,
+    $sourceType = null,
+    $sourceId = null
 ) {
     $material = Material::find($material_id);
 
@@ -81,6 +85,8 @@ class MaterialHistory extends Model
 
     return self::create([
         'material_id'     => $material_id,
+        'source_type'     => $sourceType,
+        'source_id'       => $sourceId,
         'tanggal'         => $tanggal ?? now(),
         'tipe'            => $tipe,
         'no_slip'         => $no_slip ?: '-',

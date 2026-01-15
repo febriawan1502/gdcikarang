@@ -10,17 +10,21 @@
                 <div class="card-header">
                     <h3 class="card-title">Daftar Material Masuk</h3>
                     <div class="card-tools">
+                         @if(auth()->user()->role !== 'guest')
                         <a href="{{ route('material-masuk.create') }}" class="btn btn-primary">
-                        <i class="fa fa-plus"></i> Tambah Material Masuk
-                    </a>
+                        <i class="fa fa-plus"></i> Tambah Material Masuk</a>
+                        @endif
+                        <a href="{{ route('material-masuk.print') }}"
+                        target="_blank"
+                        class="btn btn-success">
+                            <i class="fa fa-print"></i> Print PDF
+                        </a>
+                        <a href="{{ route('material-masuk.export-excel') }}"
+                        class="btn btn-danger">
+                            <i class="fa fa-file-excel"></i> Export Excel
+                        </a>
                     </div>
-                    <!-- <div class="card-tools">
-    <a href="{{ route('material-masuk.daftar-sap') }}" class="btn btn-success">
-        <i class="fa fa-check"></i> Selesai SAP
-    </a>
-</div> -->
-
-                </div>
+                    </div>
                 <div class="card-body">
                     <!-- Alert Messages -->
                     @if(session('success'))
@@ -120,7 +124,7 @@ $(document).ready(function() {
                 // { data: 'nomor_doc', name: 'nomor_doc' },
                 // { data: 'tugas_4', name: 'tugas_4' },
                 { data: 'pabrikan', name: 'pabrikan' },
-                { data: 'material_info', name: 'material_info', orderable: false, searchable: false },
+                { data: 'material_info', name: 'material_info', orderable: false, searchable: true },
                 { data: 'total_quantity', name: 'total_quantity', orderable: false },
                 { data: 'creator_name', name: 'creator.nama' },
                 { data: 'status_sap', name: 'status_sap' },

@@ -1,3 +1,9 @@
+@php
+    $isSecurity   = auth()->user()->role === 'security';
+    $hasUnchecked = $suratJalan->details->where('is_checked', false)->count() > 0;
+@endphp
+
+{{-- ================= DETAIL SURAT JALAN ================= --}}
 <div class="row">
     <div class="col-md-6">
         <table class="table table-borderless table-sm">
@@ -24,7 +30,15 @@
 
 <hr>
 
-<h6><strong>Detail Material:</strong></h6>
+{{-- ================= FORM CHECKING ================= --}}
+@if($isSecurity && $hasUnchecked)
+<form id="formCheckedMaterial"
+      action="{{ route('surat-jalan.submit-checked') }}"
+      method="POST">
+    @csrf
+    <input type="hidden" name="surat_jalan_id" value="{{ $suratJalan->id }}">
+@endif
+
 <div class="table-responsive">
     <table class="table table-bordered table-sm">
         <thead class="thead-light">
@@ -36,27 +50,73 @@
                 <th>Keterangan</th>
             </tr>
         </thead>
+
         <tbody>
-            @foreach($suratJalan->details as $detail)
+        @foreach($suratJalan->details as $detail)
             <tr>
+                @if($isSecurity && $hasUnchecked)
+                    <td class="text-center">
+                        @if(!$detail->is_checked)
+                            <input type="checkbox"
+                                   name="detail_ids[]"
+                                   value="{{ $detail->id }}"
+                                   class="check-item">
+                        @else
+                            <i class="fa fa-check-circle text-success"></i>
+                        @endif
+                    </td>
+                @endif
+
                 @if($detail->is_manual)
-                    {{-- Mode Manual --}}
                     <td>-</td>
-                    <td>{{ $detail->nama_barang_manual ?? '-' }}</td>
+                    <td>{{ $detail->nama_barang_manual }}</td>
                     <td>{{ $detail->quantity }}</td>
-                    <td>{{ $detail->satuan_manual ?? $detail->satuan ?? '-' }}</td>
-                    <td>{{ $detail->keterangan ?? '-' }}</td>
+                    <td>{{ $detail->satuan_manual }}</td>
+                    <td>{{ $detail->keterangan }}</td>
                 @else
-                    {{-- Mode Normal --}}
-                    <td>{{ $detail->material->material_code ?? '-' }}</td>
-                    <td>{{ $detail->material->material_description ?? '-' }}</td>
+                    <td>{{ $detail->material->material_code }}</td>
+                    <td>{{ $detail->material->material_description }}</td>
                     <td>{{ $detail->quantity }}</td>
-                    <td>{{ $detail->satuan ?? '-' }}</td>
-                    <td>{{ $detail->keterangan ?? '-' }}</td>
+                    <td>{{ $detail->satuan }}</td>
+                    <td>{{ $detail->keterangan }}</td>
                 @endif
             </tr>
-            @endforeach
-
+        @endforeach
         </tbody>
     </table>
 </div>
+
+@if($isSecurity && $hasUnchecked)
+<div class="text-right mt-3">
+    <button type="button" id="btnChecked" class="btn btn-success">
+        <i class="fa fa-check"></i> Checked
+    </button>
+</div>
+</form>
+@endif
+
+{{-- ================= VALIDASI CHECKBOX ================= --}}
+<script>
+$(document).off('click', '#btnChecked').on('click', '#btnChecked', function () {
+
+    const totalCheckbox = $('.check-item').length;
+    const checkedCheckbox = $('.check-item:checked').length;
+
+    if (checkedCheckbox < totalCheckbox) {
+        Swal.fire({
+            title: 'Belum Lengkap',
+            text: 'Semua material harus dicentang sebelum melakukan Checked.',
+            icon: 'warning',
+            confirmButtonText: 'Mengerti'
+        });
+        return;
+    }
+
+    $('#formCheckedMaterial').submit();
+});
+
+// CHECK ALL
+$(document).off('change', '#checkAll').on('change', '#checkAll', function () {
+    $('.check-item').prop('checked', this.checked);
+});
+</script>

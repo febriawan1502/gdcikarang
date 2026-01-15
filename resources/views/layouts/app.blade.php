@@ -6,7 +6,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>@yield('title', 'ASI - Automatic System Inventory')</title>
+    <title>@yield('title', 'POJOK INVENTORY')</title>
     <link rel="icon" type="image/ico" href="{{ asset('assets/images/favicon.ico') }}" />
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -189,87 +189,76 @@
                             </div>
                             <div id="sidebarNav" class="panel-collapse collapse in" role="tabpanel">
                                 <div class="panel-body">
-                                    <ul class="nav nav-pills nav-stacked">
-                                        {{-- Dashboard --}}
-                                        <li class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                                            <a href="{{ route('dashboard') }}">
-                                                <i class="fa fa-tachometer-alt"></i>
-                                                <span>Dashboard</span>
-                                            </a>
-                                        </li>
+<ul class="nav nav-pills nav-stacked">
 
-                                        {{-- Material Masuk --}}
-                                        @if(auth()->user()->role === 'admin' || auth()->user()->role === 'guest')
-                                            <li class="{{ request()->routeIs('material-masuk.*') ? 'active' : '' }}">
-                                                <a href="{{ route('material-masuk.index') }}">
-                                                    <i class="fa fa-arrow-down"></i>
-                                                    <span>Material Masuk</span>
-                                                </a>
-                                            </li>
-                                        @endif
+    {{-- Dashboard (TIDAK untuk security) --}}
+    @if(auth()->user()->role !== 'security')
+    <li class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
+        <a href="{{ route('dashboard') }}">
+            <i class="fa fa-dashboard"></i>
+            <span>Dashboard</span>
+        </a>
+    </li>
+    @endif
 
-                                        {{-- Surat Jalan --}}
-                                        <li class="{{ request()->routeIs('surat-jalan.*') ? 'active' : '' }}">
-                                            <a href="{{ route('surat-jalan.index') }}">
-                                                <i class="fa fa-truck"></i>
-                                                <span>Surat Jalan</span>
-                                            </a>
-                                        </li>
-                                        {{-- Masa Peminjaman --}}
-                                        <li class="{{ request()->is('surat-jalan/peminjaman/masa') ? 'active' : '' }}">
-                                            <a href="{{ route('surat.masa', ['jenis' => 'Peminjaman']) }}">
-                                                <i class="fa fa-clock-o"></i>
-                                                <span>Masa Pengeluaran</span>
-                                            </a>
-                                        </li>           
-                                        <li class="{{ request()->routeIs('material.history') ? 'active' : '' }}">
-    <a href="{{ route('material.history') }}">
-        <i class="fas fa-history"></i> 
-        <span>Material Histories</span>
-    </a>
-</li>
+    {{-- Material Masuk (TIDAK untuk security) --}}
+    @if(auth()->user()->role !== 'security' && 
+    (
+        auth()->user()->role === 'admin' ||
+        auth()->user()->role === 'guest' ||
+        auth()->user()->role === 'petugas'
+    ))
 
+    <li class="{{ request()->routeIs('material-masuk.*') ? 'active' : '' }}">
+        <a href="{{ route('material-masuk.index') }}">
+            <i class="fa fa-arrow-down"></i>
+            <span>Material Masuk</span>
+        </a>
+    </li>
+    @endif
 
-                             
+    {{-- ✅ Surat Jalan (BOLEH untuk security) --}}
+    @if(in_array(auth()->user()->role, ['admin', 'guest', 'petugas', 'security']))
+    <li class="{{ request()->routeIs('surat-jalan.*') ? 'active' : '' }}">
+        <a href="{{ route('surat-jalan.index') }}">
+            <i class="fa fa-truck"></i>
+            <span>Surat Jalan</span>
+        </a>
+    </li>
+    @endif
 
-                                        {{-- Approval Surat Jalan --}}
-                                            @auth
-                                                @if(auth()->user()->role === 'guest')
-                                                <script>
-                                                document.addEventListener('DOMContentLoaded', function () {
-                                                    // Hilangkan semua tombol selain "View"
-                                                    document.querySelectorAll('.btn').forEach(btn => {
-                                                        // Biarkan tombol logout tetap hidup
-                                                        if (!btn.classList.contains('btn-info') && !btn.closest('#logout-form')) {
-                                                            btn.remove();
-                                                        }
-                                                    });
+    {{-- Menu lain (TIDAK untuk security) --}}
+    @if(auth()->user()->role !== 'security')
+    {{-- Masa Peminjaman --}}
+        <li class="{{ request()->is('surat-jalan/peminjaman/masa') ? 'active' : '' }}">
+            <a href="{{ route('surat.masa', ['jenis' => 'Peminjaman']) }}">
+                <i class="fa fa-clock-o"></i>
+                <span>Masa Pengeluaran</span>
+            </a>
+        </li>
+        <li class="{{ request()->routeIs('material.history') ? 'active' : '' }}">
+            <a href="{{ route('material.history') }}">
+                <i class="fa fa-history"></i>
+                <span>Material Histories</span>
+            </a>
+        </li>
 
-                                                    // Disable semua input, select, textarea, button
-                                                    // tapi JANGAN disable yang ada di form logout
-                                                    document.querySelectorAll('input, select, textarea, button').forEach(el => {
-                                                        if (!el.closest('#logout-form')) {
-                                                            el.disabled = true;
-                                                        }
-                                                    });
-                                                });
-                                                </script>
-                                                @endif
-                                            @endauth
-                                            <li class="{{ request()->routeIs('material.pemeriksaanFisik') ? 'active' : '' }}">
-                                                <a href="{{ route('material.pemeriksaanFisik') }}">
-                                                    <i class="fa fa-file-text-o"></i>
-                                                    <span>Pemeriksaan Fisik</span>
-                                                </a>
-                                            </li>
-                                            <li class="{{ request()->routeIs('berita-acara.*') ? 'active' : '' }}">
-                                                <a href="{{ route('berita-acara.index') }}">
-                                                    <i class="fa fa-file-invoice"></i>
-                                                    <span>Berita Acara</span>
-                                                </a>
-                                            </li>
+        <li class="{{ request()->routeIs('material.pemeriksaanFisik') ? 'active' : '' }}">
+            <a href="{{ route('material.pemeriksaanFisik') }}">
+                <i class="fa fa-file-text-o"></i>
+                <span>Pemeriksaan Fisik</span>
+            </a>
+        </li>
 
-                                    </ul>
+        <li class="{{ request()->routeIs('berita-acara.*') ? 'active' : '' }}">
+            <a href="{{ route('berita-acara.index') }}">
+                <i class="fa fa-file-text"></i>
+                <span>Berita Acara</span>
+            </a>
+        </li>
+    @endif
+
+</ul>
                                 </div>
                             </div>
                         </div>

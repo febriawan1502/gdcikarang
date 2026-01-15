@@ -6,10 +6,21 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\MaterialHistory;
+
 
 class SuratJalan extends Model
 {
     use HasFactory;
+    protected static function booted()
+{
+    static::deleting(function ($suratJalan) {
+        MaterialHistory::where('source_type', 'surat_jalan')
+            ->where('source_id', $suratJalan->id)
+            ->delete();
+    });
+}
+
 
     protected $table = 'surat_jalan';
 
@@ -135,4 +146,18 @@ class SuratJalan extends Model
     {
         return $query->where('status', $status);
     }
+    public function isManualLike(): bool
+    {
+        return in_array($this->jenis_surat_jalan, ['Manual', 'Peminjaman']);
+    }
+    public static function isManualLikeJenis(string $jenis): bool
+    {
+        return in_array($jenis, ['Manual', 'Peminjaman']);
+    }
+    public static function isStockAffectingJenis($jenis)
+    {
+        // HANYA NORMAL YANG NGURANGI STOK
+        return $jenis === 'Normal';
+    }
+
 }

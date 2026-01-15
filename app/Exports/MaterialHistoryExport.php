@@ -8,6 +8,8 @@ use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use App\Models\Material;
+
 
 class MaterialHistoryExport implements FromView, WithStyles, ShouldAutoSize
 {

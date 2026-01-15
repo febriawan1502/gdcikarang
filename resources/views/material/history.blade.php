@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @push('styles')
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 <style>
     a.disabled {
         pointer-events: none;
@@ -30,13 +30,13 @@
 
                 <a href="#"
                    id="exportPdfBtn"
+                    target="_blank"
                    class="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-3 {{ $materialId ? '' : 'disabled' }}"
                    {{ $materialId ? 'href=' . route('material.history.export-pdf', ['id' => $materialId]) : 'onclick=return false;' }}>
                     <i class="fa fa-file-pdf"></i>
                     <span>Export PDF</span>
                 </a>
             </div>
-
             {{-- 🔍 AUTOCOMPLETE MATERIAL --}}
             <form id="filterForm" class="mb-4">
                 <div class="row g-3 align-items-end justify-content-between">
@@ -59,10 +59,12 @@
                     </div>
                 </div>
             </form>
-
+            
             {{-- 📋 TABLE --}}
             <div class="table-responsive">
-                <table class="table align-middle table-bordered shadow-sm mb-0 rounded-3 overflow-hidden">
+                <table id="materialHistoryTable" class="table table-bordered table-striped datatable">
+
+
                     <thead class="table-light text-center align-middle">
                         <tr>
                             <th>Tanggal</th>
@@ -106,6 +108,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                
             </div>
 
         </div>
@@ -113,55 +116,70 @@
 </div>
 
 @push('scripts')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+@endpush
+
+@push('scripts')
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
 <script>
-$(function() {
-    // 🔍 AUTOCOMPLETE MATERIAL
+$(document).ready(function () {
+
+    // INIT DATATABLE
+    const table = $('#materialHistoryTable').DataTable({
+        pageLength: 10,
+        ordering: false,
+        lengthChange: true,
+        searching: true,
+        info: true,
+        paging: true
+    });
+
+    // AUTOCOMPLETE MATERIAL
     $("#searchMaterial").autocomplete({
         minLength: 1,
-        source: function(request, response) {
-            $.get("{{ route('material.autocomplete') }}", { q: request.term }, function(data) {
-                response(data);
-            });
+        source: function (request, response) {
+            $.get("{{ route('material.autocomplete') }}", { q: request.term }, response);
         },
-        select: function(event, ui) {
+        select: function (event, ui) {
+
+            // isi input
             $("#materialId").val(ui.item.id);
             $("#searchMaterial").val(ui.item.value);
 
-            // Enable Export PDF
+            // filter tabel (kolom material index = 3)
+            table.column(3).search(ui.item.value).draw();
+
+            // AKTIFKAN EXPORT PDF
             const exportPdfBtn = document.getElementById('exportPdfBtn');
             exportPdfBtn.classList.remove('disabled');
-            exportPdfBtn.setAttribute('href', `/materials/${ui.item.id}/history/export-pdf`);
+            exportPdfBtn.setAttribute(
+                'href',
+                `/materials/${ui.item.id}/history/export-pdf`
+            );
             exportPdfBtn.onclick = null;
 
-            setTimeout(() => filterTable(), 10);
             return false;
         }
     });
 
-    const tipeSelect = document.getElementById('tipe');
+    // RESET SAAT INPUT DIKOSONGKAN
+    $("#searchMaterial").on('keyup', function () {
+        if (!this.value) {
 
-    function filterTable() {
-        const keyword = $("#searchMaterial").val().toLowerCase();
-        const tipe = tipeSelect.value.toLowerCase();
+            // reset tabel
+            table.column(3).search('').draw();
 
-        $("#dataTableBody tr").each(function() {
-            let material = $(this).find("td:nth-child(4)").text().toLowerCase();
-            let tipeText = $(this).find("td:nth-child(2)").text().toLowerCase();
+            // MATIKAN EXPORT PDF
+            const exportPdfBtn = document.getElementById('exportPdfBtn');
+            exportPdfBtn.classList.add('disabled');
+            exportPdfBtn.removeAttribute('href');
+        }
+    });
 
-            let matchMaterial = !keyword || material.includes(keyword);
-            let matchTipe = !tipe || tipeText.includes(tipe);
-
-            $(this).toggle(matchMaterial && matchTipe);
-        });
-    }
-
-    tipeSelect.addEventListener('change', filterTable);
-    $("#searchMaterial").on('keyup', filterTable);
 });
 </script>
+
 @endpush
 
 @endsection

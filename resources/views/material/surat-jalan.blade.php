@@ -10,14 +10,11 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h3 class="card-title mb-0">Daftar Surat Jalan</h3>
                     <div class="card-tools">
+                        @if(!in_array(auth()->user()->role, ['security', 'guest']))
                         <a href="{{ route('surat-jalan.create') }}" class="btn btn-primary">
                             <i class="fa fa-plus"></i> Buat Surat Jalan
                         </a>
-                        <!-- @if(auth()->user()->isAdmin())
-                        <a href="{{ route('surat-jalan.approval') }}" class="btn btn-success">
-                            <i class="fa fa-check"></i> Approval
-                        </a>
-                        @endif -->
+                        @endif
                     </div>
                 </div>
 
@@ -103,6 +100,25 @@ $(document).ready(function() {
     $('#filterStatus').on('change', function () {
         table.ajax.reload();
     });
+    // ✅ SWEETALERT SUCCESS
+    @if(session('swal_success'))
+        Swal.fire({
+            title: 'Berhasil',
+            text: @json(session('swal_success')),
+            icon: 'success',
+            confirmButtonText: 'OK'
+        });
+    @endif
+
+    // ❌ SWEETALERT ERROR
+    @if(session('swal_error'))
+        Swal.fire({
+            title: 'Gagal',
+            text: @json(session('swal_error')),
+            icon: 'error',
+            confirmButtonText: 'Mengerti'
+        });
+    @endif
 });
 
 // Popup detail surat jalan
@@ -162,3 +178,4 @@ function printSuratJalan(id) {
 }
 </script>
 @endpush
+

@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Material extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $table = 'materials';
 
@@ -27,12 +26,19 @@ class Material extends Model
     'material_group',
     'base_unit_of_measure',
     'valuation_type',
+    'unrestricted_use_stock',
+    'quality_inspection_stock',
+    'blocked_stock',
+    'in_transit_stock',
+    'project_stock',
     'valuation_class',
     'valuation_description',
     'harga_satuan',
     'currency',
     'rak',
+    'keterangan',
     'created_by',
+    'updated_by',
 ];
 
 protected $attributes = [

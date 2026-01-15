@@ -14,9 +14,9 @@ return new class extends Migration
     {
         // Clean duplicate material_codes by updating duplicates with unique codes
         $duplicates = DB::select("
-            SELECT material_code, array_agg(id ORDER BY id) as ids
-            FROM materials 
-            GROUP BY material_code 
+            SELECT material_code, GROUP_CONCAT(id ORDER BY id) as ids
+            FROM materials
+            GROUP BY material_code
             HAVING COUNT(*) > 1
         ");
         

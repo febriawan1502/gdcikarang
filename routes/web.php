@@ -10,6 +10,7 @@ use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\MaterialHistoryController;
 use App\Http\Controllers\PemeriksaanFisikController;
 use App\Http\Controllers\BeritaAcaraController;
+use App\Exports\MaterialMasukExport;
 
 
 
@@ -151,7 +152,15 @@ Route::delete('/{material}', [MaterialController::class, 'destroy'])
 Route::prefix('material-masuk')->group(function () {
 
     // List & Data
+    Route::get('/material-masuk/print', [MaterialMasukController::class, 'print'])
+    ->name('material-masuk.print');
     Route::get('/', [MaterialMasukController::class, 'index'])->name('material-masuk.index');
+    Route::get('/material-masuk/export-excel', function () {
+    return Excel::download(
+        new MaterialMasukExport,
+        'material-masuk.xlsx'
+    );
+})->name('material-masuk.export-excel');
     Route::get('/data', [MaterialMasukController::class, 'getData'])->name('material-masuk.data');
     Route::get('/daftar-sap', [MaterialMasukController::class, 'daftarSAP'])->name('material-masuk.daftar-sap');
 
@@ -191,6 +200,11 @@ Route::prefix('material-masuk')->group(function () {
 // Surat Jalan Routes
     Route::get('/surat-jalan/data', [SuratJalanController::class, 'getData'])->name('surat-jalan.getData');
 Route::prefix('surat-jalan')->name('surat-jalan.')->group(function () {
+     Route::post(
+        '/submit-checked',
+        [SuratJalanController::class, 'submitChecked']
+    )->name('submit-checked');
+
     Route::get('/', [SuratJalanController::class, 'index'])->name('index');
     Route::get('/create', [SuratJalanController::class, 'create'])->name('create');
     Route::post('/', [SuratJalanController::class, 'store'])->name('surat-jalan.store');
@@ -277,7 +291,6 @@ Route::delete('/surat-masa/{surat}/{detail}', [SuratJalanController::class, 'hap
     ->name('surat.masa.hapus-detail');
 
 
-
 // Route::get('/material/{id}/history', [MaterialHistoryController::class, 'index'])
 //     ->name('material.history');
 // Route::get('/materials/history', [MaterialHistoryController::class, 'all'])
@@ -309,3 +322,29 @@ Route::resource('berita-acara', BeritaAcaraController::class);
 Route::get('/berita-acara/{id}/pdf', 
     [BeritaAcaraController::class, 'pdf']
 )->name('berita-acara.pdf');
+Route::post('/berita-acara/{id}/upload-pdf',
+    [BeritaAcaraController::class, 'uploadPdf']
+)->name('berita-acara.upload-pdf');
+Route::get('/berita-acara/{id}/pdf-upload',
+    [BeritaAcaraController::class, 'viewUploadedPdf']
+)->name('berita-acara.pdf-upload');
+
+
+Route::get('/material/pemeriksaan-fisik', [MaterialController::class, 'pemeriksaanFisik'])
+    ->name('material.pemeriksaanFisik');
+Route::post(
+    '/material/pemeriksaan-fisik/store',
+    [MaterialController::class, 'storePemeriksaanFisik']
+)->name('material.pemeriksaanFisik.store');
+Route::get(
+    '/material/pemeriksaan-fisik/pdf',
+    [MaterialController::class, 'pemeriksaanFisikPdf']
+)->name('material.pemeriksaanFisikPdf');
+Route::post('/pemeriksaan-fisik/import-sap', 
+    [MaterialController::class, 'importSap']
+)->name('material.importSap');
+
+Route::post('/pemeriksaan-fisik/import-mims', 
+    [MaterialController::class, 'importMims']
+)->name('material.importMims');
+

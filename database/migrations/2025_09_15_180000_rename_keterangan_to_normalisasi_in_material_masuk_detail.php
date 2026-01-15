@@ -9,20 +9,23 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::table('material_masuk_detail', function (Blueprint $table) {
-            $table->renameColumn('keterangan', 'normalisasi');
-        });
+        DB::statement("
+            ALTER TABLE material_masuk_detail
+            CHANGE keterangan normalisasi VARCHAR(255) NULL
+        ");
     }
 
     /**
      * Reverse the migrations.
      */
-    public function down(): void
+    public function down()
     {
-        Schema::table('material_masuk_detail', function (Blueprint $table) {
-            $table->renameColumn('normalisasi', 'keterangan');
-        });
+        DB::statement("
+            ALTER TABLE material_masuk_detail
+            CHANGE normalisasi keterangan VARCHAR(255) NULL
+        ");
     }
+
 };

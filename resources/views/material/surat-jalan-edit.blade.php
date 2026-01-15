@@ -47,17 +47,14 @@
                                 <label for="jenis_surat_jalan" class="form-label fw-semibold">
                                     Jenis Surat Jalan <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-control" 
-                                        id="jenis_surat_jalan" 
-                                        name="jenis_surat_jalan" 
-                                        required>
-                                    <option value="">Pilih Jenis Surat Jalan</option>
-                                    <option value="Normal" {{ $suratJalan->jenis_surat_jalan == 'Normal' ? 'selected' : '' }}>Normal</option>
-                                    <option value="Garansi" {{ $suratJalan->jenis_surat_jalan == 'Garansi' ? 'selected' : '' }}>Garansi</option>
-                                    <option value="Peminjaman" {{ $suratJalan->jenis_surat_jalan == 'Peminjaman' ? 'selected' : '' }}>Peminjaman</option>
-                                    <option value="Perbaikan" {{ $suratJalan->jenis_surat_jalan == 'Perbaikan' ? 'selected' : '' }}>Perbaikan</option>
-                                     <option value="Manual" {{ $suratJalan->jenis_surat_jalan == 'Manual' ? 'selected' : '' }}>Manual</option>
-                                </select>
+                                <input type="text"
+                                    class="form-control"
+                                    value="{{ $suratJalan->jenis_surat_jalan }}"
+                                    readonly>
+
+                                <input type="hidden"
+                                    name="jenis_surat_jalan"
+                                    value="{{ $suratJalan->jenis_surat_jalan }}">
                             </div>
                             
                             <div class="col-md-6 mb-3">
@@ -151,38 +148,60 @@
                                             <td>{{ $index + 1 }}</td>
 
                                             {{-- Kolom Material --}}
-                                            <td>
+                                        <td>
+                                            @if(in_array($suratJalan->jenis_surat_jalan, ['Manual', 'Peminjaman']))
                                                 @if($suratJalan->status === 'APPROVED')
-                                                    <input type="text" class="form-control form-control-sm" 
-                                                        value="{{ $detail->material->material_code ?? '' }} - {{ $detail->material->material_description ?? '' }}" 
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        value="{{ $detail->nama_barang_manual }}"
                                                         readonly>
-                                                    <input type="hidden" name="materials[{{ $index }}][material_id]" value="{{ $detail->material_id }}">
-                                                    <input type="hidden" name="materials[{{ $index }}][material_search]" 
+                                                    <input type="hidden" name="materials[{{ $index }}][nama_barang]"
+                                                        value="{{ $detail->nama_barang_manual }}">
+                                                @else
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        name="materials[{{ $index }}][nama_barang]"
+                                                        value="{{ $detail->nama_barang_manual }}"
+                                                        placeholder="Nama barang manual..."
+                                                        required>
+                                                @endif
+                                            @else
+                                                {{-- yang normal tetap pakai master/autocomplete --}}
+                                                @if($suratJalan->status === 'APPROVED')
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        value="{{ $detail->material->material_code ?? '' }} - {{ $detail->material->material_description ?? '' }}"
+                                                        readonly>
+                                                    <input type="hidden" name="materials[{{ $index }}][material_id]"
+                                                        value="{{ $detail->material_id }}">
+                                                    <input type="hidden" name="materials[{{ $index }}][material_search]"
                                                         value="{{ $detail->material->material_code ?? '' }} - {{ $detail->material->material_description ?? '' }}">
                                                 @else
-                                                    <input type="text" 
-                                                        class="form-control form-control-sm material-autocomplete" 
-                                                        name="materials[{{ $index }}][material_search]" 
+                                                    <input type="text"
+                                                        class="form-control form-control-sm material-autocomplete"
+                                                        name="materials[{{ $index }}][material_search]"
                                                         value="{{ $detail->material->material_code ?? '' }} - {{ $detail->material->material_description ?? '' }}"
-                                                        placeholder="Ketik kode atau nama material..."
                                                         autocomplete="off"
                                                         required>
-                                                    <input type="hidden" 
-                                                        name="materials[{{ $index }}][material_id]" 
+
+                                                    <input type="hidden"
+                                                        name="materials[{{ $index }}][material_id]"
                                                         value="{{ $detail->material_id }}"
                                                         class="material-id-input">
-                                                    <div class="autocomplete-results" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ddd; max-height: 400px; overflow-y: auto; width: 200%;"></div>
-                                                @endif
-                                            </td>
 
+                                                    <div class="autocomplete-results" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ddd;max-height:400px;overflow-y:auto;width:200%;"></div>
+                                                @endif
+                                            @endif
+                                        </td>
                                             {{-- Kolom Stock --}}
                                             <td>
-                                                <input type="number" 
-                                                    class="form-control form-control-sm" 
-                                                    name="materials[{{ $index }}][stock]" 
+                                            @if(in_array($suratJalan->jenis_surat_jalan, ['Manual', 'Peminjaman']))
+                                                <input type="text" class="form-control form-control-sm" value="-" readonly>
+                                            @else
+                                                <input type="number" class="form-control form-control-sm"
+                                                    name="materials[{{ $index }}][stock]"
                                                     value="{{ $detail->material->unrestricted_use_stock ?? 0 }}"
                                                     readonly>
-                                            </td>
+                                            @endif
+                                        </td>
+
 
                                             {{-- Kolom Qty --}}
                                             <td>
@@ -421,7 +440,9 @@ td {
 
 @push('scripts')
 <script>
-let rowCount = {{ count($suratJalan->details) }};
+const JENIS_SURAT = "{{ $suratJalan->jenis_surat_jalan }}";
+const STATUS_SURAT = "{{ $suratJalan->status }}";
+// let rowCount = {{ count($suratJalan->details) }};
 
 // Materials data for JavaScript
 const materialsData = [
@@ -439,49 +460,66 @@ const materialsData = [
 // Function to add new row
 function addRow() {
     const tbody = document.querySelector('#materialTable tbody');
-    const newRow = document.createElement('tr');
-    
-    newRow.innerHTML = `
-        <td>${rowCount + 1}</td>
-        <td style="position: relative;">
-            <input type="text" class="form-control form-control-sm material-autocomplete" 
-                   name="materials[${rowCount}][material_search]" 
-                   placeholder="Ketik untuk mencari material..." 
-                   autocomplete="off" required>
-            <input type="hidden" name="materials[${rowCount}][material_id]" class="material-id">
-            <div class="autocomplete-results" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ddd; max-height: 400px; overflow-y: auto; width: 200%;"></div>
-        </td>
-        <td>
-            <input type="number" class="form-control form-control-sm" name="materials[${rowCount}][stock]" readonly disabled>
-        </td>
-        <td>
-            <input type="number" class="form-control form-control-sm" name="materials[${rowCount}][quantity]" min="1" required>
-        </td>
-        <td>
-            <input type="text" class="form-control form-control-sm" name="materials[${rowCount}][satuan]" readonly>
-        </td>
-        <td>
-            <input type="text" class="form-control form-control-sm" name="materials[${rowCount}][keterangan]" placeholder="Keterangan">
-        </td>
-        <td>
-            <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
-                <i class="fa fa-trash"></i>
-            </button>
-        </td>
-    `;
-    
-    tbody.appendChild(newRow);
-    rowCount++;
-    
-    // Add autocomplete functionality for new row
-    initializeAutocomplete(newRow.querySelector('.material-autocomplete'));
-    
-    // Add quantity validation for new row
-    const quantityInput = newRow.querySelector('input[name*="[quantity]"]');
-    addQuantityValidation(quantityInput);
-    
-    // Update row numbers
-    updateRowNumbers();
+    const index = tbody.children.length;
+
+    const isManual = ['Manual', 'Peminjaman'].includes(JENIS_SURAT);
+    const isNonStock = ['Garansi', 'Perbaikan', 'Manual', 'Peminjaman'].includes(JENIS_SURAT);
+
+    const tr = document.createElement('tr');
+
+    if (isManual) {
+        tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td>
+                <input type="text" name="materials[${index}][nama_barang]"
+                       class="form-control form-control-sm" required>
+            </td>
+            <td style="display:none;">-</td>
+            <td><input type="number" name="materials[${index}][quantity]"
+                       class="form-control form-control-sm" required></td>
+            <td><input type="text" name="materials[${index}][satuan]"
+                       class="form-control form-control-sm" required></td>
+            <td><input type="text" name="materials[${index}][keterangan]"
+                       class="form-control form-control-sm"></td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm"
+                        onclick="removeRow(this)">🗑</button>
+            </td>
+        `;
+    } else {
+        tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td>
+                <input type="text" name="materials[${index}][material_search]"
+                       class="form-control form-control-sm material-autocomplete"
+                       autocomplete="off" required>
+                <input type="hidden" name="materials[${index}][material_id]"
+                       class="material-id">
+                <div class="autocomplete-results"></div>
+            </td>
+            <td style="${isNonStock ? 'display:none;' : ''}">
+                <input type="number" name="materials[${index}][stock]"
+                       class="form-control form-control-sm" readonly>
+            </td>
+            <td><input type="number" name="materials[${index}][quantity]"
+                       class="form-control form-control-sm" required></td>
+            <td><input type="text" name="materials[${index}][satuan]"
+                       class="form-control form-control-sm" readonly></td>
+            <td><input type="text" name="materials[${index}][keterangan]"
+                       class="form-control form-control-sm"></td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm"
+                        onclick="removeRow(this)">🗑</button>
+            </td>
+        `;
+    }
+
+    tbody.appendChild(tr);
+
+    if (!isManual) {
+        initializeAutocomplete(tr.querySelector('.material-autocomplete'));
+    }
+    toggleManualModeEdit();
 }
 
 // Function to remove row
@@ -582,16 +620,22 @@ function initializeAutocomplete(input) {
 
 // Function to validate stock quantity
 function validateStockQuantity(quantityInput, showAlert = true) {
+
+    // 🔕 SKIP VALIDASI STOK
+    if (['Garansi', 'Perbaikan', 'Manual', 'Peminjaman'].includes(JENIS_SURAT)) {
+        return true;
+    }
+
     const row = quantityInput.closest('tr');
     const stockInput = row.querySelector('input[name*="[stock]"]');
     const materialSearch = row.querySelector('.material-autocomplete');
-    
+
     const quantity = parseInt(quantityInput.value) || 0;
     const stock = parseInt(stockInput.value) || 0;
-    
-    if (quantity > stock && materialSearch.value.trim() !== '') {
+
+    if (quantity > stock && materialSearch && materialSearch.value.trim() !== '') {
         if (showAlert) {
-            alert(`Quantity (${quantity}) melebihi stock yang tersedia (${stock}). Silakan kurangi quantity.`);
+            alert(`Quantity (${quantity}) melebihi stock (${stock}).`);
         }
         return false;
     }
@@ -633,6 +677,23 @@ function addQuantityValidation(quantityInput) {
         }
     });
 }
+function toggleManualModeEdit() {
+    const table = document.getElementById('materialTable');
+    const isManual = ['Manual', 'Peminjaman'].includes(JENIS_SURAT);
+    const isNonStock = ['Garansi', 'Perbaikan', 'Manual', 'Peminjaman'].includes(JENIS_SURAT);
+
+    // Header material
+    table.querySelector('th:nth-child(2)').textContent =
+        isManual ? 'Nama Barang (Manual)' : 'Material';
+
+    // Header stock
+    table.querySelector('th:nth-child(3)').style.display = isNonStock ? 'none' : '';
+
+    table.querySelectorAll('tbody tr').forEach(row => {
+        row.querySelector('td:nth-child(3)').style.display = isNonStock ? 'none' : '';
+    });
+}
+
 function approveSuratJalan(id) {
 
     fetch(`/surat-jalan/${id}/approve`, {
@@ -653,29 +714,6 @@ function approveSuratJalan(id) {
         console.error("Error jaringan:", error);
     });
 }
-
-// Initialize autocomplete for existing inputs
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded');
-    const materialInputs = document.querySelectorAll('.material-autocomplete');
-    console.log('Found material inputs:', materialInputs.length);
-    console.log('Materials data:', materialsData);
-    
-    materialInputs.forEach((input, index) => {
-        console.log(`Initializing autocomplete for input ${index}:`, input);
-        initializeAutocomplete(input);
-        
-    });
-    
-    // Add validation to existing quantity inputs
-    const quantityInputs = document.querySelectorAll('input[name*="[quantity]"]');
-    quantityInputs.forEach(input => {
-        addQuantityValidation(input);
-    });
-    
-    // Update row numbers for existing rows
-    updateRowNumbers();
-});
 
 // Function to update row numbers
 function updateRowNumbers() {
@@ -732,82 +770,22 @@ function checkDuplicateMaterials() {
     
     return duplicates;
 }
-
-// Form validation
-// === Toggle mode Manual ===
 document.addEventListener('DOMContentLoaded', function() {
-    const jenisSelect = document.getElementById('jenis_surat_jalan');
-    const table = document.getElementById('materialTable');
+    console.log('DOM Content Loaded');
+    toggleManualModeEdit();
 
-    function toggleManualMode() {
-        const isManual = jenisSelect.value === 'Manual';
+    const materialInputs = document.querySelectorAll('.material-autocomplete');
+    materialInputs.forEach(input => {
+        initializeAutocomplete(input);
+    });
 
-        // Ganti label kolom
-        table.querySelector('th:nth-child(2)').textContent = isManual ? 'Nama Barang (Manual)' : 'Material';
-        table.querySelector('th:nth-child(3)').textContent = isManual ? '-' : 'Stock';
+    const quantityInputs = document.querySelectorAll('input[name*="[quantity]"]');
+    quantityInputs.forEach(input => {
+        addQuantityValidation(input);
+    });
 
-        // Loop tiap baris tabel
-        table.querySelectorAll('tbody tr').forEach((row, index) => {
-            const materialTd = row.querySelector('td:nth-child(2)');
-            const stockInput = row.querySelector('input[name*="[stock]"]');
-            const satuanInput = row.querySelector('input[name*="[satuan]"]');
-
-            // Ambil nilai lama dari row data (kalau belum ada, ambil dari input)
-            const existingMaterialInput = row.querySelector('input[name*="[material_search]"]');
-            const existingIdInput = row.querySelector('input[name*="[material_id]"]');
-            const existingValue = existingMaterialInput ? existingMaterialInput.value : '';
-            const existingId = existingIdInput ? existingIdInput.value : '';
-
-            // simpan di dataset agar toggle tidak hilang
-            if (!row.dataset.materialText) row.dataset.materialText = existingValue;
-            if (!row.dataset.materialId) row.dataset.materialId = existingId;
-
-            if (isManual) {
-                // ubah ke input manual
-                materialTd.innerHTML = `
-                    <input type="text" class="form-control form-control-sm"
-                           name="materials[${index}][nama_barang]"
-                           value="${row.dataset.namaBarangManual || ''}"
-                           placeholder="Nama barang manual..." required>
-                `;
-                satuanInput.readOnly = false;
-                satuanInput.placeholder = "Isi satuan (misal: pcs, kg)";
-                stockInput.value = '';
-                stockInput.disabled = true;
-            } else {
-                // kembali ke autocomplete normal
-                const materialText = row.dataset.materialText || '';
-                const materialId = row.dataset.materialId || '';
-
-                // rebuild hanya kalau sebelumnya manual
-                if (materialTd.querySelector('input[name*="[nama_barang]"]')) {
-                    materialTd.innerHTML = `
-                        <input type="text" class="form-control form-control-sm material-autocomplete"
-                               name="materials[${index}][material_search]"
-                               value="${materialText}"
-                               placeholder="Ketik untuk mencari material..." autocomplete="off" required>
-                        <input type="hidden" name="materials[${index}][material_id]" class="material-id" value="${materialId}">
-                        <div class="autocomplete-results" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ddd;max-height:400px;overflow-y:auto;width:200%;"></div>
-                    `;
-                    initializeAutocomplete(row.querySelector('.material-autocomplete'));
-                }
-
-                satuanInput.readOnly = true;
-                satuanInput.placeholder = '';
-                stockInput.disabled = false;
-            }
-        });
-    }
-
-    // ⚠️ Jangan panggil di awal — biar data dari DB tetap tampil
-    // toggleManualMode();
-
-    // Jalankan kalau dropdown jenis surat jalan berubah
-    jenisSelect.addEventListener('change', toggleManualMode);
-    toggleManualMode(); // <-- TAMBAHKAN INI
+    updateRowNumbers();
 });
-
-
 
 </script>
 @endpush
