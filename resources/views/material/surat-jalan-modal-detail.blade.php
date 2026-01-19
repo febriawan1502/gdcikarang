@@ -18,6 +18,50 @@
     </div>
 
     <div class="col-md-6">
+        @if($isSecurity)
+        {{-- Form untuk edit kendaraan oleh Security --}}
+        <form id="formUpdateKendaraan" method="POST">
+            @csrf
+            @method('PUT')
+            <input type="hidden" name="surat_jalan_id" value="{{ $suratJalan->id }}">
+            <table class="table table-borderless table-sm">
+                <tr>
+                    <td width="120"><strong>Kendaraan:</strong></td>
+                    <td>
+                        <input type="text" name="kendaraan" class="form-control form-control-sm" 
+                               value="{{ $suratJalan->kendaraan }}" placeholder="Jenis kendaraan">
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>No Polisi:</strong></td>
+                    <td>
+                        <input type="text" name="no_polisi" class="form-control form-control-sm" 
+                               value="{{ $suratJalan->no_polisi }}" placeholder="Nomor polisi">
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Pengemudi:</strong></td>
+                    <td>
+                        <input type="text" name="pengemudi" class="form-control form-control-sm" 
+                               value="{{ $suratJalan->pengemudi }}" placeholder="Nama pengemudi">
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="text-right pt-2">
+                        <button type="button" id="btnSaveKendaraan" class="btn btn-sm btn-primary">
+                            <i class="fa fa-save"></i> Simpan Info Kendaraan
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </form>
+        <table class="table table-borderless table-sm">
+            <tr><td><strong>Dibuat Oleh:</strong></td><td>{{ $suratJalan->creator->nama ?? '-' }}</td></tr>
+            <tr><td><strong>Disetujui Oleh:</strong></td><td>{{ $suratJalan->approver->nama ?? '-' }}</td></tr>
+            <tr><td><strong>Keterangan:</strong></td><td>{{ $suratJalan->keterangan ?? '-' }}</td></tr>
+        </table>
+        @else
+        {{-- Tampilan biasa untuk non-security --}}
         <table class="table table-borderless table-sm">
             <tr><td><strong>Kendaraan:</strong></td><td>{{ $suratJalan->kendaraan ?? '-' }}</td></tr>
             <tr><td><strong>No Polisi:</strong></td><td>{{ $suratJalan->no_polisi ?? '-' }}</td></tr>
@@ -26,6 +70,7 @@
             <tr><td><strong>Disetujui Oleh:</strong></td><td>{{ $suratJalan->approver->nama ?? '-' }}</td></tr>
             <tr><td><strong>Keterangan:</strong></td><td>{{ $suratJalan->keterangan ?? '-' }}</td></tr>
         </table>
+        @endif
     </div>
 </div>
 
@@ -119,5 +164,50 @@ $(document).off('click', '#btnChecked').on('click', '#btnChecked', function () {
 // CHECK ALL
 $(document).off('change', '#checkAll').on('change', '#checkAll', function () {
     $('.check-item').prop('checked', this.checked);
+});
+
+// SAVE KENDARAAN INFO (Security Only)
+$(document).off('click', '#btnSaveKendaraan').on('click', '#btnSaveKendaraan', function () {
+    const form = $('#formUpdateKendaraan');
+    const suratJalanId = form.find('input[name="surat_jalan_id"]').val();
+    const kendaraan = form.find('input[name="kendaraan"]').val();
+    const noPolisi = form.find('input[name="no_polisi"]').val();
+    const pengemudi = form.find('input[name="pengemudi"]').val();
+    
+    $.ajax({
+        url: '/surat-jalan/' + suratJalanId + '/update-kendaraan',
+        method: 'PUT',
+        data: {
+            _token: '{{ csrf_token() }}',
+            kendaraan: kendaraan,
+            no_polisi: noPolisi,
+            pengemudi: pengemudi
+        },
+        success: function(response) {
+            if (response.success) {
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: 'Informasi kendaraan berhasil diupdate.',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
+            } else {
+                Swal.fire({
+                    title: 'Gagal!',
+                    text: response.message || 'Terjadi kesalahan.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        },
+        error: function(xhr) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Gagal menyimpan data: ' + (xhr.responseJSON?.message || 'Unknown error'),
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    });
 });
 </script>

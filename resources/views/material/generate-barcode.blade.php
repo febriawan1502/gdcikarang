@@ -216,6 +216,12 @@
         // Generate QR Code
         const barcodeUrl = "{{ $barcodeUrl }}";
         
+        // PHP variables for JavaScript
+        const companyName = "{{ \App\Models\Setting::get('company_name', 'PT PLN (Persero)') }}";
+        const up3Name = "{{ \App\Models\Setting::get('up3_name', 'UP3 Cimahi') }}";
+        const materialCode = "{{ $material->material_code }}";
+        const materialName = "{{ Str::limit($material->material_description, 50) }}";
+        
         new QRCode(document.getElementById("qrcode"), {
             text: barcodeUrl,
             width: 256,
@@ -292,24 +298,23 @@
                 </head>
                 <body>
                     <div class="print-label">
-                        <h2>{{ \App\Models\Setting::get('company_name', 'PT PLN (Persero)') }}</h2>
-                        <h2>{{ \App\Models\Setting::get('up3_name', 'UP3 Cimahi') }}</h2>
-                        <div class="material-code">{{ $material->material_code }}</div>
-                        <div class="material-name">{{ Str::limit($material->material_description, 50) }}</div>
+                        <h2>${companyName}</h2>
+                        <h2>${up3Name}</h2>
+                        <div class="material-code">${materialCode}</div>
+                        <div class="material-name">${materialName}</div>
                         <div class="qr-code">
                             <img src="${qrImageSrc}" alt="QR Code">
                         </div>
                         <p class="scan-text">Scan untuk lihat mutasi material</p>
                     </div>
                     <script>
-                        // Wait for image to load then print
                         window.onload = function() {
                             setTimeout(function() {
                                 window.print();
                                 window.close();
                             }, 300);
                         };
-                    </script>
+                    <\/script>
                 </body>
                 </html>
             `;
@@ -324,7 +329,7 @@
             if (canvas) {
                 const url = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
-                link.download = 'QR-{{ $material->material_code }}.png';
+                link.download = 'QR-' + materialCode + '.png';
                 link.href = url;
                 link.click();
             }

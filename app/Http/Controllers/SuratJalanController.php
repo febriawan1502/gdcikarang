@@ -385,6 +385,40 @@ public function submitChecked(Request $request)
     ->with('swal_success', 'Material berhasil dicek.');
 }
 
+/**
+ * Update informasi kendaraan oleh Security
+ */
+public function updateKendaraan(Request $request, SuratJalan $suratJalan)
+{
+    $user = auth()->user();
+
+    // 🔐 Hanya security yang boleh update kendaraan via modal
+    if ($user->role !== 'security') {
+        return response()->json([
+            'success' => false,
+            'message' => 'Akses ditolak. Hanya Security yang dapat mengubah informasi kendaraan.'
+        ], 403);
+    }
+
+    try {
+        $suratJalan->update([
+            'kendaraan' => $request->kendaraan,
+            'no_polisi' => $request->no_polisi,
+            'pengemudi' => $request->pengemudi,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Informasi kendaraan berhasil diupdate.'
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Gagal update kendaraan: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal menyimpan: ' . $e->getMessage()
+        ], 500);
+    }
+}
 
 
         /**

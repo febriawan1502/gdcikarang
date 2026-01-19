@@ -249,6 +249,9 @@ Route::prefix('surat-jalan')->name('surat-jalan.')->group(function () {
     Route::post('/{suratJalan}/approve', [SuratJalanController::class, 'approve'])->name('approve');
     Route::get('/{suratJalan}/export', [SuratJalanController::class, 'export'])->name('export');
     Route::get('/{suratJalan}/export-excel', [SuratJalanController::class, 'exportExcel'])->name('export-excel');
+    
+    // ✅ Update Kendaraan (Security Only)
+    Route::put('/{suratJalan}/update-kendaraan', [SuratJalanController::class, 'updateKendaraan'])->name('update-kendaraan');
 });
 
     
