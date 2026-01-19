@@ -88,7 +88,7 @@
                                        class="form-control" 
                                        id="kepada" 
                                        name="kepada" 
-                                       placeholder="Nama perusahaan/instansi penerima"
+                                       placeholder="Vendor / Unit PLN"
                                        required>
                             </div>
                             
@@ -100,7 +100,7 @@
                                        class="form-control" 
                                        id="berdasarkan" 
                                        name="berdasarkan" 
-                                       placeholder="contoh: SLIP 49310928890" required>
+                                       placeholder="Reservasi/Permintaan" required>
                             </div>
 
                             <div class="col-md-6 mb-3">
@@ -111,18 +111,18 @@
                                        class="form-control" 
                                        id="keterangan" 
                                        name="keterangan" 
-                                       placeholder="contoh: PD G.SSJ">
+                                       placeholder="Pekerjaan / PB PD Rutin / STO">
                             </div>
                             
                             <div class="col-md-6 mb-3">
-                                <label for="security" class="form-label fw-semibold">
-                                    Security
+                                <label for="nomor_slip" class="form-label fw-semibold">
+                                    Nomor Slip
                                 </label>
                                 <input type="text" 
                                        class="form-control" 
-                                       id="security" 
-                                       name="security" 
-                                       placeholder="Nama security">
+                                       id="nomor_slip" 
+                                       name="nomor_slip" 
+                                       placeholder="No SAP : TUG8 / TUG9">
                             </div>
                         </div>
                         
@@ -207,6 +207,17 @@
                                        id="pengemudi" 
                                        name="pengemudi" 
                                        placeholder="Nama pengemudi">
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="security" class="form-label fw-semibold">
+                                    Security
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="security" 
+                                       name="security" 
+                                       placeholder="Nama security">
                             </div>
                         </div>
                         

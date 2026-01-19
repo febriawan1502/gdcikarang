@@ -10,6 +10,8 @@ use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\MaterialHistoryController;
 use App\Http\Controllers\PemeriksaanFisikController;
 use App\Http\Controllers\BeritaAcaraController;
+use App\Http\Controllers\SapCheckController;
+use App\Http\Controllers\SettingController;
 use App\Exports\MaterialMasukExport;
 
 
@@ -29,6 +31,10 @@ use App\Exports\MaterialMasukExport;
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+// Barcode Route (Public Access - No Auth Required)
+Route::get('/barcode/{materialCode}', [App\Http\Controllers\BarcodeController::class, 'show'])
+    ->name('barcode.show');
 
 // Test route tanpa auth untuk debugging
 Route::get('/debug-material', function() {
@@ -79,6 +85,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/export', [DashboardController::class, 'export'])->name('dashboard.export');
     Route::get('/dashboard/{id}', [DashboardController::class, 'show'])->name('dashboard.show');
     Route::delete('/dashboard/{id}', [DashboardController::class, 'destroy'])->name('dashboard.destroy');
+    Route::post('/dashboard/material-saving-config', [DashboardController::class, 'updateMaterialSavingConfig'])->name('dashboard.material-saving-config.update');
     
     // Test route untuk verifikasi material
     Route::get('/test-material', function() {
@@ -128,6 +135,11 @@ Route::prefix('material')->name('material.')->group(function () {
 
     // ➕ Input material masuk
     Route::get('/input-masuk', [MaterialController::class, 'inputMaterialMasuk'])->name('input-masuk');
+
+    // 🏷️ Generate Barcode
+    Route::get('/{material}/generate-barcode', [MaterialController::class, 'generateBarcode'])
+        ->where('material', '[0-9]+')
+        ->name('generate-barcode');
 
     // 🚨 HARUS PALING BAWAH! Agar tidak menangkap /history/export dsb.
     Route::get('/{material}', [MaterialController::class, 'show'])
@@ -248,6 +260,10 @@ Route::prefix('surat-jalan')->name('surat-jalan.')->group(function () {
         Route::prefix('settings')->name('settings.')->group(function () {
             Route::get('/', function() { return view('settings.index'); })->name('index');
         });
+
+        // Cek Kesesuaian SAP
+        Route::get('/sap-check', [SapCheckController::class, 'index'])->name('sap-check.index');
+        Route::post('/sap-check', [SapCheckController::class, 'store'])->name('sap-check.store');
     });
 });
 
@@ -347,4 +363,17 @@ Route::post('/pemeriksaan-fisik/import-sap',
 Route::post('/pemeriksaan-fisik/import-mims', 
     [MaterialController::class, 'importMims']
 )->name('material.importMims');
+
+
+// ⚙️ Settings Routes (Admin Only)
+Route::middleware(['auth', 'role:admin'])->prefix('settings')->name('settings.')->group(function () {
+    Route::get('/', [SettingController::class, 'index'])->name('index');
+    Route::post('/company', [SettingController::class, 'updateCompany'])->name('company.update');
+    
+    // User Management
+    Route::post('/users', [SettingController::class, 'storeUser'])->name('users.store');
+    Route::put('/users/{id}', [SettingController::class, 'updateUser'])->name('users.update');
+    Route::delete('/users/{id}', [SettingController::class, 'deleteUser'])->name('users.delete');
+});
+
 

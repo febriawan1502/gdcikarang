@@ -36,6 +36,36 @@ class MaterialHistory extends Model
     }
 
     /**
+     * Relasi polymorphic ke source (material_masuk atau surat_jalan)
+     */
+    public function source()
+    {
+        return $this->morphTo('source', 'source_type', 'source_id');
+    }
+
+    /**
+     * Accessor untuk mendapatkan pekerjaan
+     * - Jika material masuk: ambil dari nomor_kr
+     * - Jika material keluar: ambil dari keterangan surat jalan
+     */
+    public function getPekerjaanAttribute()
+    {
+        if ($this->tipe === 'masuk' && $this->source_type === 'material_masuk') {
+            // Ambil dari material_masuk
+            $materialMasuk = \App\Models\MaterialMasuk::find($this->source_id);
+            return $materialMasuk ? $materialMasuk->nomor_kr : '-';
+        }
+
+        if ($this->tipe === 'keluar' && $this->source_type === 'surat_jalan') {
+            // Ambil dari surat_jalan
+            $suratJalan = \App\Models\SuratJalan::find($this->source_id);
+            return $suratJalan ? $suratJalan->keterangan : '-';
+        }
+
+        return '-';
+    }
+
+    /**
      * =======================================================
      *  UNIVERSAL FUNCTION UNTUK RECORD MATERIAL MASUK/KELUAR
      * =======================================================

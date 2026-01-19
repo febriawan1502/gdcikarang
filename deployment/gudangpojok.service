@@ -1,0 +1,21 @@
+[Unit]
+Description=Gudang Pojok Laravel Application
+After=network.target
+
+[Service]
+# Ganti user sesuai user di server kamu (misal: ubuntu, root, dll)
+User=www-data
+Group=www-data
+
+# Arahkan ke folder project kamu di server
+WorkingDirectory=/var/www/gudangpojok
+
+# Command untuk menjalankan server
+# Pastikan path php benar (`which php`)
+ExecStart=/usr/bin/php artisan serve --host=127.0.0.1 --port=8000
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

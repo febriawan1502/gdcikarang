@@ -26,9 +26,34 @@ class MaterialController extends Controller
     /**
      * Tampilkan daftar material
      */
-    public function index()
+    public function index(Request $request)
     {
-        $materials = Material::orderBy('nomor_kr')->paginate(15);
+        $perPage = $request->get('per_page', 10);
+        $search = $request->get('search');
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortDirection = $request->get('sort_direction', 'desc');
+        
+        // Validate sort column
+        $allowedSorts = ['material_code', 'material_description', 'unrestricted_use_stock', 'total_nilai', 'created_at'];
+        if (!in_array($sortBy, $allowedSorts)) {
+            $sortBy = 'created_at';
+        }
+        
+        // Validate sort direction
+        $sortDirection = in_array($sortDirection, ['asc', 'desc']) ? $sortDirection : 'desc';
+        
+        $materials = Material::query()
+            ->selectRaw('*, (harga_satuan * unrestricted_use_stock) as total_nilai')
+            ->when($search, function($query, $search) {
+                return $query->where(function($q) use ($search) {
+                    $q->where('material_code', 'LIKE', "%{$search}%")
+                      ->orWhere('material_description', 'LIKE', "%{$search}%");
+                });
+            })
+            ->orderBy($sortBy, $sortDirection)
+            ->paginate($perPage)
+            ->withQueryString();
+            
         return view('material.index', compact('materials'));
     }
 
@@ -163,8 +188,31 @@ class MaterialController extends Controller
             DB::beginTransaction();
             
             // Import using Laravel Excel
+            // Import using Laravel Excel
             $import = new MaterialImport();
-            Excel::import($import, $file);
+            
+            // Fix: Pindahkan file ke storage sementara agar terbaca
+            // Fix: Pindahkan file ke storage sementara agar terbaca
+            $extension = $file->getClientOriginalExtension();
+            $filename = 'import_' . time() . '.' . $extension;
+            
+            // Manual persistent storage move
+            $destinationPath = storage_path('app/temp');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+            
+            $file->move($destinationPath, $filename);
+            $fullPath = $destinationPath . DIRECTORY_SEPARATOR . $filename;
+
+            if (!file_exists($fullPath)) {
+                throw new \Exception('Gagal menyimpan file temporary ke storage (Path empty).');
+            }
+
+            Excel::import($import, $fullPath);
+            
+            // Cleanup
+            @unlink($fullPath);
             
             $results = $import->getResults();
             $successCount = $results['success_count'];
@@ -295,6 +343,15 @@ class MaterialController extends Controller
     public function show(Material $material)
     {
         return view('material.show', compact('material'));
+    }
+
+    /**
+     * Generate barcode/QR code untuk material
+     */
+    public function generateBarcode(Material $material)
+    {
+        $barcodeUrl = url('/barcode/' . $material->material_code);
+        return view('material.generate-barcode', compact('material', 'barcodeUrl'));
     }
 
     /**
@@ -733,10 +790,30 @@ public function importSap(Request $request)
 {
     $bulan = $request->bulan;
 
+    // Fix: pindahkan ke storage temp
+    // Fix: pindahkan ke storage temp secara manual
+    $file = $request->file('file');
+    $extension = $file->getClientOriginalExtension();
+    $filename = 'sap_' . time() . '.' . $extension;
+    
+    $destinationPath = storage_path('app/temp');
+    if (!file_exists($destinationPath)) {
+        mkdir($destinationPath, 0755, true);
+    }
+    
+    $file->move($destinationPath, $filename);
+    $fullPath = $destinationPath . DIRECTORY_SEPARATOR . $filename;
+
+    if (!file_exists($fullPath)) {
+        return back()->with('error', 'Gagal menyimpan file temporary.');
+    }
+
     $rows = Excel::toCollection(
         new PemeriksaanFisikImport($bulan),
-        $request->file('file')
+        $fullPath
     )[0];
+    
+    @unlink($fullPath);
 
     foreach ($rows as $row) {
 
@@ -769,10 +846,30 @@ public function importMims(Request $request)
 {
     $bulan = $request->bulan;
 
+    // Fix: pindahkan ke storage temp
+    // Fix: pindahkan ke storage temp secara manual
+    $file = $request->file('file');
+    $extension = $file->getClientOriginalExtension();
+    $filename = 'mims_' . time() . '.' . $extension;
+
+    $destinationPath = storage_path('app/temp');
+    if (!file_exists($destinationPath)) {
+        mkdir($destinationPath, 0755, true);
+    }
+    
+    $file->move($destinationPath, $filename);
+    $fullPath = $destinationPath . DIRECTORY_SEPARATOR . $filename;
+
+    if (!file_exists($fullPath)) {
+        return back()->with('error', 'Gagal menyimpan file temporary.');
+    }
+
     $rows = Excel::toCollection(
         new PemeriksaanFisikImport($bulan),
-        $request->file('file')
+        $fullPath
     )[0];
+
+    @unlink($fullPath);
 
     foreach ($rows as $row) {
 

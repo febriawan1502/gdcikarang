@@ -84,14 +84,14 @@
                             
                             <div class="col-md-6 mb-3">
                                 <label for="kepada" class="form-label fw-semibold">
-                                    Nama Penerima <span class="text-danger">*</span>
+                                    Diberikan Kepada <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
                                        class="form-control" 
                                        id="kepada" 
                                        name="kepada" 
                                        value="{{ $suratJalan->kepada }}"
-                                       placeholder="Nama perusahaan/instansi penerima"
+                                       placeholder="Vendor / Unit PLN"
                                        required>
                             </div>
                             
@@ -103,19 +103,32 @@
                                           id="berdasarkan" 
                                           name="berdasarkan" 
                                           rows="2"
+                                          placeholder="Reservasi/Permintaan"
                                           required>{{ $suratJalan->berdasarkan }}</textarea>
                             </div>
                             
                             <div class="col-md-6 mb-3">
-                                <label for="security" class="form-label fw-semibold">
-                                    Security
+                                <label for="keterangan" class="form-label fw-semibold">
+                                    Untuk Pekerjaan
                                 </label>
                                 <input type="text" 
                                        class="form-control" 
-                                       id="security" 
-                                       name="security" 
-                                       value="{{ $suratJalan->security }}"
-                                       placeholder="Nama security">
+                                       id="keterangan" 
+                                       name="keterangan" 
+                                       value="{{ $suratJalan->keterangan }}"
+                                       placeholder="Pekerjaan / PB PD Rutin / STO">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="nomor_slip" class="form-label fw-semibold">
+                                    Nomor Slip
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="nomor_slip" 
+                                       name="nomor_slip" 
+                                       value="{{ $suratJalan->nomor_slip }}"
+                                       placeholder="No SAP : TUG8 / TUG9">
                             </div>
                         </div>
                         
@@ -321,6 +334,18 @@
                                        name="pengemudi" 
                                        value="{{ $suratJalan->pengemudi }}"
                                        placeholder="Nama pengemudi">
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="security" class="form-label fw-semibold">
+                                    Security
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="security" 
+                                       name="security" 
+                                       value="{{ $suratJalan->security }}"
+                                       placeholder="Nama security">
                             </div>
                         </div>
                         

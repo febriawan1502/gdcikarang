@@ -12,6 +12,7 @@
             <tr><td><strong>Jenis Surat Jalan:</strong></td><td>{{ $suratJalan->jenis_surat_jalan ?? '-' }}</td></tr>
             <tr><td><strong>Kepada:</strong></td><td>{{ $suratJalan->kepada ?? '-' }}</td></tr>
             <tr><td><strong>Berdasarkan:</strong></td><td>{{ $suratJalan->berdasarkan ?? '-' }}</td></tr>
+            <tr><td><strong>Nomor Slip SAP:</strong></td><td>{{ $suratJalan->nomor_slip ?? '-' }}</td></tr>
             <tr><td><strong>Status:</strong></td><td>{{ $suratJalan->status ?? '-' }}</td></tr>
         </table>
     </div>

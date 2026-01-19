@@ -17,20 +17,20 @@
         <tr>
             <th>Jenis Surat Jalan</th>
             <th colspan="2">{{ $suratJalan->jenis_surat_jalan ?? 'Normal' }}</th>
-            <th>Kepada</th>
-            <th colspan="2">{{ $suratJalan->kepada }}</th>
-        </tr>
-        <tr>
-            <th>Alamat</th>
-            <th colspan="5">{{ $suratJalan->alamat }}</th>
-        </tr>
-        <tr>
-            <th>Alamat</th>
-            <th colspan="5">{{ $suratJalan->alamat }}</th>
+            <th></th>
+            <th colspan="2"></th>
         </tr>
         <tr>
             <th>Berdasarkan</th>
-            <th colspan="5">{{ $suratJalan->berdasarkan }}</th>
+            <th colspan="2">{{ $suratJalan->berdasarkan }}</th>
+            <th>Nomor Slip SAP</th>
+            <th colspan="2">{{ $suratJalan->nomor_slip ?? '-' }}</th>
+        </tr>
+        <tr>
+            <th>Diberikan Kepada</th>
+            <th colspan="2">{{ $suratJalan->kepada }}</th>
+            <th>Untuk Pekerjaan</th>
+            <th colspan="2">{{ $suratJalan->keterangan ?? '-' }}</th>
         </tr>
         <tr>
             <th>Security</th>
@@ -64,10 +64,6 @@
         </tr>
         <tr>
             <td colspan="6"></td>
-        </tr>
-        <tr>
-            <td><strong>Keterangan:</strong></td>
-            <td colspan="5">{{ $suratJalan->keterangan ?? '-' }}</td>
         </tr>
         <tr>
             <td colspan="6"></td>

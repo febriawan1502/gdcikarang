@@ -90,6 +90,11 @@ protected $attributes = [
         return $this->belongsTo(User::class, 'updated_by');
     }
 
+    public function histories()
+    {
+        return $this->hasMany(MaterialHistory::class, 'material_id');
+    }
+
     public function scopeSearch($query, $search)
     {
         return $query->where(function ($q) use ($search) {

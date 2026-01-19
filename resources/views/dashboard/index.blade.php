@@ -384,58 +384,257 @@
     </div>
 </div>
 
-<!-- Action Buttons -->
-@if(auth()->user()->role !== 'guest')
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
+<div class="row mb-4" style="margin-top: 30px; margin-bottom: 30px;">
+    <div class="col-lg-6 col-md-6 col-sm-12">
+        <div class="card bg-cyan" style="cursor: default;">
             <div class="card-body">
-                <h5 class="card-title">Quick Actions</h5>
-                <div class="btn-group" role="group">
-                    <a href="{{ route('material.create') }}" class="btn btn-primary mb-10 mr-10">
-                        <i class="fa fa-plus"></i> Tambah Material
-                    </a>
-                    <button type="button" class="btn btn-success mb-10 mr-10" onclick="importData()">
-                        <i class="fa fa-upload"></i> Import Excel
-                    </button>
-                    <button type="button" class="btn btn-info mb-10 mr-10" onclick="refreshTable()">
-                        <i class="fa fa-sync-alt"></i> Refresh Data
-                    </button>
-                    <button type="button" class="btn btn-warning mb-10" onclick="exportData()">
-                        <i class="fa fa-download"></i> Export Excel
-                    </button>
+                <div class="row">
+                    <div class="col-xs-4">
+                        <i class="fa fa-money fa-4x"></i>
+                    </div>
+                    <div class="col-xs-8">
+                        <p class="text-elg text-strong mb-0">Rp {{ number_format($stats['total_saldo'], 0, ',', '.') }}</p>
+                        <span>Total Saldo Gudang</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 col-md-6 col-sm-12">
+        <div class="card bg-cyan" style="cursor: default;">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-xs-4">
+                        <i class="fa fa-search fa-4x"></i>
+                    </div>
+                    <div class="col-xs-8">
+                        <p class="text-elg text-strong mb-0">Rp {{ number_format($material_saving_config->total_inspeksi, 0, ',', '.') }}</p>
+                        <span>Total Inspeksi</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-@endif
-<!-- Materials DataTable -->
+
+<!-- Row 1: 10 Material Fast Moving + Klasifikasi Material Saving -->
 <div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fa fa-table me-2"></i>
-                    Master Material
-                </h5>
+    <!-- 10 Material Fast Moving (Left Half) -->
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-fire"></i> 10 Material Fast Moving</h3>
             </div>
-            
-            <div class="card-body">
+            <div class="panel-body">
                 <div class="table-responsive">
-                    <table id="materials-table" class="table table-striped table-hover">
-                        <thead class="table-dark">
+                    <table class="table table-striped table-hover table-sm">
+                        <thead>
                             <tr>
-                                <th>No</th>
-                                <th>Normalisasi</th>
-                                <th>Material</th>
-                                <th>Stock</th>
-                                <th>Rak</th>
-                                <th>Harga Satuan</th>
-                                <th>Total Harga</th>
-                                <th>Action</th>
+                                <th width="20%">Normalisasi</th>
+                                <th width="40%">Nama Material</th>
+                                <th class="text-center" width="15%">Stok</th>
+                                <th class="text-center" width="25%">Status</th>
                             </tr>
                         </thead>
+                        <tbody>
+                            @forelse($fast_moving_materials as $mat)
+                            <tr>
+                                <td>{{ $mat->material_code }}</td>
+                                <td>{{ Str::limit($mat->material_description, 50) }}</td>
+                                <td class="text-center">
+                                    <span class="badge badge-info">{{ number_format($mat->unrestricted_use_stock, 0, ',', '.') }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge badge-{{ $mat->stock_badge }}" style="font-size: 12px; padding: 6px 12px;">
+                                        {{ strtoupper($mat->stock_status) }}
+                                    </span>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="4" class="text-center">Belum ada data</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Klasifikasi Material Saving (Right Half) -->
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <i class="fa fa-pie-chart"></i> Klasifikasi Material Saving
+                    <button class="btn btn-xs btn-default pull-right" onclick="openMaterialSavingConfigModal()" title="Konfigurasi">
+                        <i class="fa fa-cog"></i>
+                    </button>
+                </h3>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Standby:</strong></p>
+                        <p class="mb-2">Rp {{ number_format($material_saving_config->standby, 0, ',', '.') }}</p>
+                        
+                        <p class="mb-1"><strong>Garansi:</strong></p>
+                        <p class="mb-2">Rp {{ number_format($material_saving_config->garansi, 0, ',', '.') }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Perbaikan:</strong></p>
+                        <p class="mb-2">Rp {{ number_format($material_saving_config->perbaikan, 0, ',', '.') }}</p>
+                        
+                        <p class="mb-1"><strong>Usul Hapus:</strong></p>
+                        <p class="mb-2">Rp {{ number_format($material_saving_config->usul_hapus, 0, ',', '.') }}</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-12">
+                        <p class="mb-1"><strong>Total Inspeksi:</strong></p>
+                        <p class="mb-0 text-primary"><strong style="font-size: 18px;">Rp {{ number_format($material_saving_config->total_inspeksi, 0, ',', '.') }}</strong></p>
+                        <small class="text-muted">Standby + Garansi + Perbaikan + Usul Hapus</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 2: 10 Nilai Material Terbesar + 10 Stock Material Terbesar -->
+<div class="row">
+    <!-- 10 Nilai Material Terbesar -->
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-dollar"></i> 10 Nilai Material Terbesar</h3>
+            </div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th>Kode</th>
+                                <th>Deskripsi</th>
+                                <th class="text-right">Total Nilai</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($top_value_materials as $mat)
+                            <tr>
+                                <td>{{ $mat->material_code }}</td>
+                                <td>{{ Str::limit($mat->material_description, 30) }}</td>
+                                <td class="text-right">Rp {{ number_format($mat->calculated_total_value, 0, ',', '.') }}</td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="3" class="text-center">Belum ada data</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10 Material Stock Terbesar -->
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-cubes"></i> 10 Stock Material Terbesar</h3>
+            </div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th>Kode</th>
+                                <th>Deskripsi</th>
+                                <th class="text-center">Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($top_stock_materials as $mat)
+                            <tr>
+                                <td>{{ $mat->material_code }}</td>
+                                <td>{{ Str::limit($mat->material_description, 30) }}</td>
+                                <td class="text-center">
+                                    <span class="badge badge-info">{{ number_format($mat->unrestricted_use_stock, 0, ',', '.') }}</span>
+                                    <small>{{ $mat->base_unit_of_measure }}</small>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="3" class="text-center">Belum ada data</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 3: 10 Surat Jalan Terakhir + 10 Material Masuk Terakhir -->
+<div class="row">
+    <!-- 10 Surat Jalan Terakhir -->
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-truck"></i> 10 Surat Jalan Terakhir</h3>
+            </div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th>No Surat</th>
+                                <th>Tanggal</th>
+                                <th>Penerima</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($latest_surat_jalan as $sj)
+                            <tr>
+                                <td>{{ $sj->nomor_surat }}</td>
+                                <td>{{ $sj->tanggal ? $sj->tanggal->format('d/m/Y') : '-' }}</td>
+                                <td>{{ $sj->kepada }}</td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="3" class="text-center">Belum ada data</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10 Material Masuk Terakhir -->
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-arrow-down"></i> 10 Material Masuk Terakhir</h3>
+            </div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th>No PO</th>
+                                <th>Tanggal</th>
+                                <th>Pabrikan/Pengirim</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($latest_material_masuk as $mm)
+                            <tr>
+                                <td>{{ $mm->nomor_po ?? '-' }}</td>
+                                <td>{{ $mm->tanggal_masuk ? $mm->tanggal_masuk->format('d/m/Y') : '-' }}</td>
+                                <td>{{ $mm->pabrikan }}</td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="3" class="text-center">Belum ada data</td></tr>
+                            @endforelse
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -463,328 +662,88 @@
         </div>
     </div>
 </div>
+
+<!-- Material Saving Configuration Modal -->
+<div class="modal fade" id="materialSavingConfigModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa fa-cog me-2"></i>
+                    Konfigurasi Klasifikasi Material Saving
+                </h5>
+                <button type="button" class="btn-close" data-dismiss="modal"></button>
+            </div>
+            <form id="materialSavingConfigForm">
+                @csrf
+                <div class="modal-body">
+                    <p class="text-muted"><small><i class="fa fa-info-circle"></i> Total Inspeksi akan dihitung otomatis dari penjumlahan keempat field di bawah ini.</small></p>
+                    <div class="form-group">
+                        <label for="standby">Standby (Rp)</label>
+                        <input type="number" class="form-control" id="standby" name="standby" 
+                               value="{{ $material_saving_config->standby }}" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="garansi">Garansi (Rp)</label>
+                        <input type="number" class="form-control" id="garansi" name="garansi" 
+                               value="{{ $material_saving_config->garansi }}" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="perbaikan">Perbaikan (Rp)</label>
+                        <input type="number" class="form-control" id="perbaikan" name="perbaikan" 
+                               value="{{ $material_saving_config->perbaikan }}" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="usul_hapus">Usul Hapus (Rp)</label>
+                        <input type="number" class="form-control" id="usul_hapus" name="usul_hapus" 
+                               value="{{ $material_saving_config->usul_hapus }}" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
-let materialsTable;
+function openMaterialSavingConfigModal() {
+    $('#materialSavingConfigModal').modal('show');
+}
 
 $(document).ready(function() {
-    // Initialize DataTable
-    materialsTable = $('#materials-table').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: '{{ route('dashboard.data') }}',
-            type: 'GET'
-        },
-        columns: [
-            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-            { data: 'material_code', name: 'normalisasi' },
-            { data: 'material_description', name: 'material_description' },
-            { data: 'unrestricted_use_stock', name: 'unrestricted_use_stock', className: 'text-center' },
-            { data: 'rak', name: 'rak', className: 'text-center' },
-            { data: 'harga_satuan', name: 'harga_satuan', className: 'text-end' },
-            { data: 'total_harga', name: 'total_harga', className: 'text-end' },
-            { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' }
-        ],
-        order: [[2, 'desc']],
-        pageLength: 25,
-        responsive: true,
-        language: {
-            "sProcessing": "Sedang memproses...",
-            "sLengthMenu": "Tampilkan _MENU_ entri",
-            "sZeroRecords": "Tidak ditemukan data yang sesuai",
-            "sInfo": "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
-            "sInfoEmpty": "Menampilkan 0 sampai 0 dari 0 entri",
-            "sInfoFiltered": "(disaring dari _MAX_ entri keseluruhan)",
-            "sSearch": "Cari:",
-            "oPaginate": {
-                "sFirst": "Pertama",
-                "sPrevious": "Sebelumnya",
-                "sNext": "Selanjutnya",
-                "sLast": "Terakhir"
+    // Material Saving Config Form Submit
+    $('#materialSavingConfigForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $.ajax({
+            url: '{{ route('dashboard.material-saving-config.update') }}',
+            method: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.success) {
+                    $('#materialSavingConfigModal').modal('hide');
+                    alert('Konfigurasi berhasil disimpan!');
+                    location.reload(); // Reload page to show updated values
+                } else {
+                    alert('Gagal menyimpan konfigurasi: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Gagal menyimpan konfigurasi';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                alert(errorMessage);
             }
-        },
-        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
-             '<"row"<"col-sm-12"tr>>' +
-             '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+        });
     });
 });
-
-// View Detail Function
-function viewDetail(id) {
-    $.ajax({
-        url: '{{ route('dashboard.show', ':id') }}'.replace(':id', id),
-        type: 'GET',
-        success: function(response) {
-            if (response.success) {
-                const material = response.data;
-                const detailHtml = `
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="text-primary">Informasi Dasar</h6>
-                            <table class="table table-sm">
-                                <tr><td><strong>Material Code:</strong></td><td>${material.material_code}</td></tr>
-                                <tr><td><strong>Deskripsi:</strong></td><td>${material.material_description}</td></tr>
-                                <tr><td><strong>Stock:</strong></td><td>${material.unrestricted_use_stock} ${material.base_unit_of_measure}</td></tr>
-                                <tr><td><strong>Rak:</strong></td><td>${material.rak}</td></tr>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="text-primary">Informasi Material</h6>
-                            <table class="table table-sm">
-                                <tr><td><strong>Company:</strong></td><td>${material.company_code} - ${material.company_code_description}</td></tr>
-                                <tr><td><strong>Plant:</strong></td><td>${material.plant} - ${material.plant_description}</td></tr>
-                                <tr><td><strong>Storage:</strong></td><td>${material.storage_location} - ${material.storage_location_description}</td></tr>
-                                <tr><td><strong>Material Type:</strong></td><td>${material.material_type} - ${material.material_type_description}</td></tr>
-                                <tr><td><strong>Material Group:</strong></td><td>${material.material_group}</td></tr>
-                                <tr><td><strong>Valuation:</strong></td><td>${material.valuation_class} - ${material.valuation_description}</td></tr>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="text-primary">Informasi Stock & Harga</h6>
-                                <table class="table table-sm">
-                                <tr>
-                                    <td><strong>Unrestricted Stock:</strong></td>
-                                    <td>${material.unrestricted_use_stock}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Harga Satuan:</strong></td>
-                                    <td>Rp ${new Intl.NumberFormat('id-ID').format(material.harga_satuan)}</td>
-                                    <td><strong>Total Harga:</strong></td>
-                                    <td>Rp ${new Intl.NumberFormat('id-ID').format(material.total_harga)}</td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="text-primary">Keterangan</h6>
-                                ${material.keterangan ?? '-'}
-                            </div>
-                        </div>
-                    </div>
-                    </div>
-                `;
-                
-                $('#detail-content').html(detailHtml);
-                $('#detailModal').modal('show');
-            }
-        },
-        error: function() {
-            Swal.fire('Error!', 'Gagal memuat detail material', 'error');
-        }
-    });
-}
-
-// Edit Material Function
-function editMaterial(id) {
-    window.location.href = '{{ route('material.edit', ':id') }}'.replace(':id', id);
-}
-
-// Delete Material Function
-function deleteMaterial(id) {
-    Swal.fire({
-        title: 'Hapus Material?',
-        text: 'Data yang dihapus tidak dapat dikembalikan!',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Ya, Hapus!',
-        cancelButtonText: 'Batal'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: '{{ route('dashboard.destroy', ':id') }}'.replace(':id', id),
-                type: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(response) {
-                    if (response.success) {
-                        Swal.fire('Berhasil!', response.message, 'success');
-                        materialsTable.ajax.reload();
-                    } else {
-                        Swal.fire('Error!', response.message, 'error');
-                    }
-                },
-                error: function() {
-                    Swal.fire('Error!', 'Gagal menghapus material', 'error');
-                }
-            });
-        }
-    });
-}
-
-// Refresh Table Function
-function refreshTable() {
-    materialsTable.ajax.reload();
-    Swal.fire({
-        title: 'Data Diperbarui!',
-        text: 'Tabel telah diperbarui dengan data terbaru',
-        icon: 'success',
-        timer: 1500,
-        showConfirmButton: false
-    });
-}
-
-// Export Data Function
-function exportData() {
-    Swal.fire({
-        title: 'Export Data',
-        text: 'Apakah Anda yakin ingin mengexport semua data material ke Excel?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Ya, Export!',
-        cancelButtonText: 'Batal'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Show loading
-            Swal.fire({
-                title: 'Mengexport Data...',
-                text: 'Mohon tunggu, sedang memproses data',
-                icon: 'info',
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                willOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-            
-            // Redirect to export route
-            window.location.href = '{{ route("dashboard.export") }}';
-            
-            // Close loading after a short delay
-            setTimeout(() => {
-                Swal.close();
-                Swal.fire({
-                    title: 'Berhasil!',
-                    text: 'Data berhasil diexport ke Excel',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-            }, 2000);
-        }
-    });
-}
-
-// Import Data Function
-function importData() {
-    Swal.fire({
-        title: 'Import Excel',
-        html: `
-            <form id="importForm" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="importFile" class="form-label">Pilih File Excel (.xlsx)</label>
-                    <input type="file" class="form-control" id="importFile" name="file" accept=".xlsx,.xls" required>
-                </div>
-                <div class="alert alert-info mt-3">
-                    <small>
-                        <strong>Format File:</strong><br>
-                        - File harus berformat Excel (.xlsx atau .xls)<br>
-                        - Kolom yang diperlukan: Material Code, Material Description, Base Unit, dll<br>
-                        - Data lama akan di-archive setelah import berhasil
-                    </small>
-                </div>
-            </form>
-        `,
-        showCancelButton: true,
-        confirmButtonText: 'Import',
-        cancelButtonText: 'Batal',
-        confirmButtonColor: '#28a745',
-        preConfirm: () => {
-            const fileInput = document.getElementById('importFile');
-            const file = fileInput.files[0];
-            
-            if (!file) {
-                Swal.showValidationMessage('Silakan pilih file terlebih dahulu');
-                return false;
-            }
-            
-            if (!file.name.match(/\.(xlsx|xls|XLSX|XLS)$/)) {
-                Swal.showValidationMessage('File harus berformat Excel (.xlsx atau .xls)');
-                return false;
-            }
-            
-            return file;
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const file = result.value;
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
-            
-            // Show loading
-            Swal.fire({
-                title: 'Mengimport Data...',
-                text: 'Mohon tunggu, sedang memproses file Excel',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-            
-            $.ajax({
-                url: '{{ route('material.import') }}',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(response) {
-                    if (response.success) {
-                        let message = response.message;
-                        let icon = 'success';
-                        
-                        // Jika ada error, tampilkan detail error
-                        if (response.details && response.details.error_count > 0) {
-                            icon = 'warning';
-                            message += '\n\nDetail Error:';
-                            
-                            // Tampilkan maksimal 5 error pertama
-                            const errorsToShow = response.details.errors.slice(0, 5);
-                            errorsToShow.forEach(function(error) {
-                                if (typeof error === 'object' && error.row) {
-                                    message += `\n• Baris ${error.row}: ${error.material_code} - ${error.material_description}`;
-                                } else {
-                                    message += `\n• ${error}`;
-                                }
-                            });
-                            
-                            if (response.details.errors.length > 5) {
-                                message += `\n... dan ${response.details.errors.length - 5} error lainnya`;
-                            }
-                        }
-                        
-                        Swal.fire({
-                            title: response.details && response.details.error_count > 0 ? 'Import Selesai dengan Error' : 'Import Berhasil!',
-                            text: message,
-                            icon: icon,
-                            confirmButtonText: 'OK'
-                        }).then(() => {
-                            materialsTable.ajax.reload();
-                        });
-                    } else {
-                        Swal.fire('Error!', response.message, 'error');
-                    }
-                },
-                error: function(xhr) {
-                    let errorMessage = 'Gagal mengimport data';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMessage = xhr.responseJSON.message;
-                    }
-                    Swal.fire('Error!', errorMessage, 'error');
-                }
-            });
-        } 
-    });
-}
 </script>
 @endpush
 

@@ -209,9 +209,9 @@
 
     <!-- Page Header -->
     <div class="page-header">
-        PT PLN (PERSERO)<br>
+        {{ strtoupper(\App\Models\Setting::get('company_name', 'PT PLN (PERSERO)')) }}<br>
         UID JAWA BARAT<br>
-        UP3 CIMAHI
+        {{ strtoupper(\App\Models\Setting::get('up3_name', 'UP3 Cimahi')) }}
     </div>
 
     @if($pageNum == 1)
@@ -231,12 +231,14 @@
             <tr>
                 <td class="info-label">Berdasarkan</td>
                 <td>{{ $suratJalan->berdasarkan }}</td>
-                <td class="info-label">Untuk Pekerjaan</td>
-                <td>{{ $suratJalan->keterangan ?? '-' }}</td>
+                <td class="info-label">Nomor Slip SAP</td>
+                <td>{{ $suratJalan->nomor_slip ?? '-' }}</td>
             </tr>
             <tr>
                 <td class="info-label">Diberikan Kepada</td>
-                <td colspan="3">{{ $suratJalan->kepada }}</td>
+                <td>{{ $suratJalan->kepada }}</td>
+                <td class="info-label">Untuk Pekerjaan</td>
+                <td>{{ $suratJalan->keterangan ?? '-' }}</td>
             </tr>
         </table>
 

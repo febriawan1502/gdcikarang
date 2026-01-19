@@ -11,6 +11,7 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Exports\MaterialExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Monitoring;
+use App\Models\MaterialSavingConfig;
 
 class DashboardController extends Controller
 {
@@ -21,13 +22,110 @@ class DashboardController extends Controller
     {
         $stats = [
             'total_materials' => Material::count(),
-            // 'total_stock' => Material::sum('qty'),
             'total_stock' => Material::sum('unrestricted_use_stock'), 
             'total_material_masuk' => MaterialMasuk::count(),
             'total_surat_jalan' => SuratJalan::count(),
+            // Calculate total saldo: sum(harga_satuan * stock)
+            // Using DB::raw to be safe if total_harga column isn't perfectly synced or if we want exact calculation
+            'total_saldo' => Material::sum(\DB::raw('harga_satuan * unrestricted_use_stock')),
         ];
+
+        // 10 Surat Jalan Terakhir
+        $latest_surat_jalan = SuratJalan::latest()->take(10)->get();
+        
+        // 10 Material Masuk Terakhir
+        $latest_material_masuk = MaterialMasuk::latest()->take(10)->get();
+        
+        // 10 Nilai Material Terbesar (Highest Value)
+        $top_value_materials = Material::select('*', \DB::raw('harga_satuan * unrestricted_use_stock as calculated_total_value'))
+            ->orderBy('calculated_total_value', 'desc')
+            ->take(10)
+            ->get();
+        
+        // 10 Material dengan volume stock terbesar
+        $top_stock_materials = Material::orderBy('unrestricted_use_stock', 'desc')->take(10)->get();
+
+        // 10 Material Fast Moving (hardcoded list)
+        $fast_moving_codes = [
+            '000000003110025' => ['name' => 'CABLE PWR;NFA2X;2X10mm2;0.6/1kV;OH', 'stok_min' => 12000],
+            '000000003110029' => ['name' => 'CABLE PWR;NFA2X;4X16mm2;0.6/1kV;OH', 'stok_min' => 1000],
+            '000000002190224' => ['name' => 'MTR;kWH E;;3P;230V/400V;5-80A;1;;2W', 'stok_min' => 1000],
+            '000000002190218' => ['name' => 'MTR;kWH E;;3P;230/400V;5-80A;1;;4W', 'stok_min' => 90],
+            '000000002190252' => ['name' => 'MTR;kWH E-PR;;3P;230/400V;5-80A;1;;4W', 'stok_min' => 30],
+            '000000002190438' => ['name' => 'MTR;kWHE;;3P;57.7/100V-230/400;5A;0.5;4W', 'stok_min' => 30],
+            '000000002190502' => ['name' => 'MTR;kWH E;;1P;230V;5-80A;1;;2W', 'stok_min' => 500],
+            '000000003250048' => ['name' => 'MCB;230/400V;1P;2A;50Hz;', 'stok_min' => 500],
+            '000000003250046' => ['name' => 'MCB;230/400V;1P;2A;50Hz;', 'stok_min' => 500],
+            '000000003250050' => ['name' => 'MCB;230/400V;1P;6A;50Hz;', 'stok_min' => 500],
+        ];
+        
+        $fast_moving_materials = collect($fast_moving_codes)->map(function($data, $code) {
+            // Find material in database by code
+            $material = Material::where('material_code', $code)->whereNull('deleted_at')->first();
+            
+            $stok_minimum = $data['stok_min'];
+            
+            // If material not found in database, use hardcoded data with stock 0
+            if (!$material) {
+                return (object)[
+                    'id' => null,
+                    'material_code' => $code,
+                    'material_description' => $data['name'],
+                    'unrestricted_use_stock' => 0,
+                    'stok_minimum' => $stok_minimum,
+                    'stock_status' => 'habis',
+                    'stock_badge' => 'danger',
+                ];
+            }
+            
+            $current_stock = $material->unrestricted_use_stock;
+            
+            // Determine stock status
+            if ($current_stock == 0) {
+                $stock_status = 'habis';
+                $stock_badge = 'danger';
+            } elseif ($current_stock <= $stok_minimum) {
+                $stock_status = 'kurang';
+                $stock_badge = 'warning';
+            } else {
+                $stock_status = 'aman';
+                $stock_badge = 'success';
+            }
+            
+            return (object)[
+                'id' => $material->id,
+                'material_code' => $material->material_code,
+                'material_description' => $material->material_description,
+                'unrestricted_use_stock' => $current_stock,
+                'stok_minimum' => $stok_minimum,
+                'stock_status' => $stock_status,
+                'stock_badge' => $stock_badge,
+            ];
+        });
+
         $monitorings = Monitoring::all();
-        return view('dashboard.index', compact('stats','monitorings'));
+        
+        // Get or create material saving config
+        $material_saving_config = MaterialSavingConfig::first();
+        if (!$material_saving_config) {
+            $material_saving_config = MaterialSavingConfig::create([
+                'standby' => 0,
+                'garansi' => 0,
+                'perbaikan' => 0,
+                'usul_hapus' => 0,
+            ]);
+        }
+        
+        return view('dashboard.index', compact(
+            'stats',
+            'monitorings',
+            'latest_surat_jalan',
+            'latest_material_masuk',
+            'top_value_materials',
+            'top_stock_materials',
+            'fast_moving_materials',
+            'material_saving_config'
+        ));
     }
 
     /**
@@ -167,6 +265,39 @@ class DashboardController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengambil statistik: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update material saving configuration
+     */
+    public function updateMaterialSavingConfig(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'standby' => 'required|numeric|min:0',
+                'garansi' => 'required|numeric|min:0',
+                'perbaikan' => 'required|numeric|min:0',
+                'usul_hapus' => 'required|numeric|min:0',
+            ]);
+
+            $config = MaterialSavingConfig::first();
+            if (!$config) {
+                $config = MaterialSavingConfig::create($validated);
+            } else {
+                $config->update($validated);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Konfigurasi berhasil disimpan',
+                'data' => $config
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan konfigurasi: ' . $e->getMessage()
             ], 500);
         }
     }

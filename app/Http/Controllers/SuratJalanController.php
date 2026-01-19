@@ -255,6 +255,7 @@ public function store(Request $request)
             'berdasarkan' => $request->berdasarkan,
             'security' => $request->security,
             'keterangan' => $request->keterangan,
+            'nomor_slip' => $request->nomor_slip,
             'kendaraan' => $request->kendaraan,
             'no_polisi' => $request->no_polisi,
             'pengemudi' => $request->pengemudi,
@@ -485,6 +486,7 @@ private function handleSuratJalanUpdate(Request $request, SuratJalan $suratJalan
             'berdasarkan' => $request->berdasarkan,
             'security' => $request->security,
             'keterangan' => $request->keterangan,
+            'nomor_slip' => $request->nomor_slip,
             'kendaraan' => $request->kendaraan,
             'no_polisi' => $request->no_polisi,
             'pengemudi' => $request->pengemudi,
@@ -508,6 +510,14 @@ foreach ($request->materials as $item) {
         'keterangan' => $item['keterangan'] ?? null,
     ]);
 }
+
+        // 🔄 Update material histories jika ada
+        MaterialHistory::where('source_type', 'surat_jalan')
+            ->where('source_id', $suratJalan->id)
+            ->update([
+                'no_slip' => $request->nomor_slip ?? $request->berdasarkan,
+                'tanggal' => $request->tanggal,
+            ]);
 
     });
 }

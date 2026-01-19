@@ -32,6 +32,7 @@ class SuratJalan extends Model
         'berdasarkan',
         'security',
         'keterangan',
+        'nomor_slip',
         'kendaraan',
         'no_polisi',
         'pengemudi',
@@ -68,6 +69,15 @@ class SuratJalan extends Model
     public function details(): HasMany
     {
         return $this->hasMany(SuratJalanDetail::class);
+    }
+
+    /**
+     * Relasi ke material histories
+     */
+    public function histories()
+    {
+        return $this->hasMany(MaterialHistory::class, 'source_id')
+            ->where('source_type', 'surat_jalan');
     }
 
     /**

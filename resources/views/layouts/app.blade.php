@@ -97,10 +97,66 @@
             font-weight: bold;
         }
         .page-content {
-            margin-top: 80px;
+            margin-top: 0 !important;
+            padding-top: 0 !important;
         }
         .page-header {
-            margin-bottom: 40px;
+            margin-bottom: 10px !important;
+            padding-bottom: 5px !important;
+            overflow: hidden;
+            min-height: auto;
+            border-bottom: none;
+        }
+        .page-title {
+            margin: 5px 0;
+            line-height: 1.2;
+            font-weight: bold;
+        }
+        /* Override generic content padding */
+        #content {
+            padding-top: 10px !important;
+        }
+        
+        /* Sidebar Collapse Styles */
+        #sidebar {
+            transition: width 0.3s ease;
+        }
+        
+        body.sidebar-collapsed #sidebar {
+            width: 70px !important;
+        }
+        
+        /* Hide menu text when collapsed */
+        body.sidebar-collapsed #sidebar .nav-stacked li a span {
+            display: none !important;
+        }
+        
+        body.sidebar-collapsed #sidebar .nav-stacked li a {
+            text-align: center;
+            padding: 15px 0 !important;
+        }
+        
+        body.sidebar-collapsed #sidebar .nav-stacked li a i {
+            margin-right: 0 !important;
+            font-size: 20px;
+        }
+        
+        /* Hide panel title text */
+        body.sidebar-collapsed #sidebar .panel-title a {
+            font-size: 0 !important;
+        }
+        
+        body.sidebar-collapsed #sidebar .panel-title a i {
+            font-size: 16px !important;
+        }
+        
+        body.sidebar-collapsed #sidebar .panel-heading {
+            padding: 10px 5px;
+        }
+        
+        /* Adjust content margin when sidebar is collapsed */
+        body.sidebar-collapsed #controls {
+            margin-left: 70px;
         }
     </style>
     @stack('styles')
@@ -150,13 +206,13 @@
                                 <li class="list-group-item">
                                     <a href="{{ route('auth.change-password') }}" class="media">
                                         <div class="media-body">
-                                            <i class="fa fa-key"></i> Ganti Password
+                                            <i class="fa fa-key" style="margin-left: 8px;"></i> Ganti Password
                                         </div>
                                     </a>
                                 </li>
                                     <a href="#" id="logout-link" class="media">
                                         <div class="media-body">
-                                            <i class="fa fa-sign-out"></i> Logout
+                                            <i class="fa fa-sign-out" style="margin-left: 8px;"></i> Logout
                                         </div>
                                     </a>
                             </ul>
@@ -197,6 +253,16 @@
         <a href="{{ route('dashboard') }}">
             <i class="fa fa-dashboard"></i>
             <span>Dashboard</span>
+        </a>
+    </li>
+    @endif
+    
+    {{-- Data Material (Semua User kecuali Security) --}}
+    @if(auth()->user()->role !== 'security')
+    <li class="{{ request()->routeIs('material.index') ? 'active' : '' }}">
+        <a href="{{ route('material.index') }}">
+            <i class="fa fa-cubes"></i>
+            <span>Data Material</span>
         </a>
     </li>
     @endif
@@ -256,6 +322,26 @@
                 <span>Berita Acara</span>
             </a>
         </li>
+    @endif
+    
+    {{-- ✅ Cek Kesesuaian SAP (Admin Only) --}}
+    @if(auth()->user()->role === 'admin')
+    <li class="{{ request()->routeIs('sap-check.*') ? 'active' : '' }}">
+        <a href="{{ route('sap-check.index') }}">
+            <i class="fa fa-check-square-o"></i>
+            <span>Cek Kesesuaian SAP</span>
+        </a>
+    </li>
+    @endif
+
+    {{-- ⚙️ Settings (Admin Only) --}}
+    @if(auth()->user()->role === 'admin')
+    <li class="{{ request()->routeIs('settings.*') ? 'active' : '' }}">
+        <a href="{{ route('settings.index') }}">
+            <i class="fa fa-cogs"></i>
+            <span>Pengaturan</span>
+        </a>
+    </li>
     @endif
 
 </ul>
@@ -373,6 +459,30 @@ $(document).ready(function () {
             });
         });
     }
+});
+</script>
+
+<script>
+// Fallback untuk animsition yang hilang
+$(document).ready(function() {
+    // Jika animsition tidak tersedia, buat dummy function
+    if (typeof $.fn.animsition === 'undefined') {
+        $.fn.animsition = function() { return this; };
+    }
+    
+    // Pastikan sidebar collapse berfungsi
+    $('.collapse-sidebar').off('click').on('click', function(e) {
+        e.preventDefault();
+        var $icon = $(this).find('i');
+        
+        if ($('body').hasClass('sidebar-collapsed')) {
+            $('body').removeClass('sidebar-collapsed');
+            $icon.removeClass('fa-indent').addClass('fa-outdent');
+        } else {
+            $('body').addClass('sidebar-collapsed');
+            $icon.removeClass('fa-outdent').addClass('fa-indent');
+        }
+    });
 });
 </script>
 

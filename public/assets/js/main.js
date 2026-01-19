@@ -221,7 +221,7 @@ $(function () {
   //!!!!!!!!!!!!!!!!!!!!!!!!!
 
   MINOVATE.header = {
-    init: function () {},
+    init: function () { },
   };
 
   //!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -333,18 +333,16 @@ $(function () {
 
     collapse: function () {
       $collapseSidebarEl.on("click", function (e) {
-        if ($app.hasClass("sidebar-sm")) {
-          $app.removeClass("sidebar-sm").addClass("sidebar-xs");
-        } else if ($app.hasClass("sidebar-xs")) {
-          $app.removeClass("sidebar-xs");
+        var $icon = $(this).find('i');
+
+        if ($('body').hasClass("sidebar-collapsed")) {
+          $('body').removeClass("sidebar-collapsed");
+          $icon.removeClass("fa-indent").addClass("fa-outdent");
         } else {
-          $app.addClass("sidebar-sm");
+          $('body').addClass("sidebar-collapsed");
+          $icon.removeClass("fa-outdent").addClass("fa-indent");
         }
 
-        $app.removeClass("sidebar-sm-forced sidebar-xs-forced");
-        $app.parent().removeClass("sidebar-sm sidebar-xs");
-        MINOVATE.navbar.removeRipple;
-        //$window.trigger('resize');
         e.preventDefault();
       });
     },
@@ -485,8 +483,8 @@ $(function () {
             .find("span")
             .html(
               moment().subtract(29, "days").format("MMMM D, YYYY") +
-                " - " +
-                moment().format("MMMM D, YYYY")
+              " - " +
+              moment().format("MMMM D, YYYY")
             );
 
           element.daterangepicker(
@@ -555,8 +553,8 @@ $(function () {
                 .find("span")
                 .html(
                   start.format("MMMM D, YYYY") +
-                    " - " +
-                    end.format("MMMM D, YYYY")
+                  " - " +
+                  end.format("MMMM D, YYYY")
                 );
             }
           );
@@ -832,7 +830,7 @@ $(function () {
     // run on window scrolling
 
     windowscroll: function () {
-      $window.on("scroll", function () {});
+      $window.on("scroll", function () { });
     },
 
     setSidebar: function () {
@@ -867,7 +865,7 @@ $(function () {
   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   MINOVATE.documentOnLoad = {
-    init: function () {},
+    init: function () { },
   };
 
   //!!!!!!!!!!!!!!!!!!!!!!!!!
