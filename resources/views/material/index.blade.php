@@ -19,6 +19,9 @@
                 <a href="{{ route('dashboard.export') }}" class="btn btn-warning" target="_blank">
                     <i class="fa fa-file-excel-o"></i> Export Excel
                 </a>
+                <a href="{{ route('material.bulk-print-barcode') }}" class="btn btn-info" target="_blank">
+                    <i class="fa fa-qrcode"></i> Bulk Print Barcode
+                </a>
                 <a href="{{ route('material.create') }}" class="btn btn-primary">
                     <i class="fa fa-plus"></i> Tambah Material
                 </a>

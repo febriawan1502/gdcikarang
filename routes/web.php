@@ -136,6 +136,9 @@ Route::prefix('material')->name('material.')->group(function () {
     // ➕ Input material masuk
     Route::get('/input-masuk', [MaterialController::class, 'inputMaterialMasuk'])->name('input-masuk');
 
+    // 🏷️ Bulk Print All Barcodes
+    Route::get('/bulk-print-barcode', [MaterialController::class, 'bulkPrintBarcode'])->name('bulk-print-barcode');
+
     // 🏷️ Generate Barcode
     Route::get('/{material}/generate-barcode', [MaterialController::class, 'generateBarcode'])
         ->where('material', '[0-9]+')

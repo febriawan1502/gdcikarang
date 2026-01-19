@@ -227,28 +227,95 @@
 
         // Function untuk print
         function printBarcode() {
-            // Generate QR code untuk print
-            const printDiv = document.getElementById('printTemplate');
-            const qrPrintDiv = document.getElementById('qrcodePrint');
-            qrPrintDiv.innerHTML = ''; // Clear previous
+            // Buat window baru untuk print
+            const printWindow = window.open('', '_blank', 'width=400,height=600');
             
-            new QRCode(qrPrintDiv, {
-                text: barcodeUrl,
-                width: 200,
-                height: 200,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-
-            // Print
-            const originalContents = document.body.innerHTML;
-            const printContents = printDiv.innerHTML;
+            // Ambil QR code yang sudah ada sebagai image
+            const existingQR = document.querySelector('#qrcode canvas');
+            let qrImageSrc = '';
+            if (existingQR) {
+                qrImageSrc = existingQR.toDataURL('image/png');
+            }
             
-            document.body.innerHTML = printContents;
-            window.print();
-            document.body.innerHTML = originalContents;
-            location.reload(); // Reload untuk restore QR code
+            // HTML untuk print
+            const printHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Print Barcode</title>
+                    <style>
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            display: flex; 
+                            justify-content: center; 
+                            align-items: center; 
+                            min-height: 100vh;
+                            padding: 20px;
+                        }
+                        .print-label {
+                            border: 2px solid #333;
+                            padding: 20px;
+                            width: 300px;
+                            text-align: center;
+                        }
+                        .print-label h2 {
+                            font-size: 16px;
+                            margin-bottom: 5px;
+                        }
+                        .material-code {
+                            font-size: 22px;
+                            font-weight: bold;
+                            margin: 10px 0;
+                            font-family: monospace;
+                        }
+                        .material-name {
+                            font-size: 11px;
+                            margin: 10px 0;
+                            color: #666;
+                        }
+                        .qr-code {
+                            margin: 15px auto;
+                        }
+                        .qr-code img {
+                            width: 180px;
+                            height: 180px;
+                        }
+                        .scan-text {
+                            font-size: 10px;
+                            margin-top: 10px;
+                        }
+                        @media print {
+                            body { padding: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-label">
+                        <h2>{{ \App\Models\Setting::get('company_name', 'PT PLN (Persero)') }}</h2>
+                        <h2>{{ \App\Models\Setting::get('up3_name', 'UP3 Cimahi') }}</h2>
+                        <div class="material-code">{{ $material->material_code }}</div>
+                        <div class="material-name">{{ Str::limit($material->material_description, 50) }}</div>
+                        <div class="qr-code">
+                            <img src="${qrImageSrc}" alt="QR Code">
+                        </div>
+                        <p class="scan-text">Scan untuk lihat mutasi material</p>
+                    </div>
+                    <script>
+                        // Wait for image to load then print
+                        window.onload = function() {
+                            setTimeout(function() {
+                                window.print();
+                                window.close();
+                            }, 300);
+                        };
+                    </script>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(printHTML);
+            printWindow.document.close();
         }
 
         // Function untuk download QR code

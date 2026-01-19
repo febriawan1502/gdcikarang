@@ -355,6 +355,27 @@ class MaterialController extends Controller
     }
 
     /**
+     * Bulk print all material barcodes
+     */
+    public function bulkPrintBarcode(Request $request)
+    {
+        // Get all materials ordered by material_code
+        $materials = Material::orderBy('material_code')->get();
+        
+        // Generate barcode URLs for each material
+        $materials = $materials->map(function ($material) {
+            $material->barcodeUrl = url('/barcode/' . $material->material_code);
+            return $material;
+        });
+        
+        // Get company settings
+        $companyName = \App\Models\Setting::get('company_name', 'PT PLN (Persero)');
+        $up3Name = \App\Models\Setting::get('up3_name', 'UP3 Cimahi');
+        
+        return view('material.bulk-print-barcode', compact('materials', 'companyName', 'up3Name'));
+    }
+
+    /**
      * Tampilkan form stock opname
      */
     public function stockOpname()
