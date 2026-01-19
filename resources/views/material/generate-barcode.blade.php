@@ -233,8 +233,8 @@
 
         // Function untuk print
         function printBarcode() {
-            // Buat window baru untuk print
-            const printWindow = window.open('', '_blank', 'width=400,height=600');
+            // Buat window baru untuk print (full size)
+            const printWindow = window.open('', '_blank');
             
             // Ambil QR code yang sudah ada sebagai image
             const existingQR = document.querySelector('#qrcode canvas');
