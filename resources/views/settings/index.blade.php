@@ -81,7 +81,7 @@
                                 @foreach($users as $user)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
-                                    <td>{{ $user->name }}</td>
+                                    <td>{{ $user->nama }}</td>
                                     <td>{{ $user->email }}</td>
                                     <td>
                                         <span class="label label-{{ $user->role == 'admin' ? 'danger' : ($user->role == 'user' ? 'primary' : 'default') }}">
@@ -92,7 +92,7 @@
                                     <td class="text-center">
                                         <button class="btn btn-xs btn-warning btn-edit-user" 
                                                 data-id="{{ $user->id }}"
-                                                data-name="{{ $user->name }}"
+                                                data-name="{{ $user->nama }}"
                                                 data-email="{{ $user->email }}"
                                                 data-role="{{ $user->role }}">
                                             <i class="fa fa-edit"></i>

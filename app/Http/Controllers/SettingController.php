@@ -58,7 +58,7 @@ class SettingController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|in:admin,user',
+            'role' => 'required|in:admin,user,petugas,guest,security',
         ]);
 
         if ($validator->fails()) {
@@ -67,7 +67,7 @@ class SettingController extends Controller
 
         try {
             User::create([
-                'name' => $request->name,
+                'nama' => $request->name, // Map request 'name' to db 'nama'
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'role' => $request->role,
@@ -90,7 +90,7 @@ class SettingController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
             'password' => 'nullable|string|min:6|confirmed',
-            'role' => 'required|in:admin,user',
+            'role' => 'required|in:admin,user,petugas,guest,security',
         ]);
 
         if ($validator->fails()) {
@@ -99,7 +99,7 @@ class SettingController extends Controller
 
         try {
             $data = [
-                'name' => $request->name,
+                'nama' => $request->name, // Map request 'name' to db 'nama'
                 'email' => $request->email,
                 'role' => $request->role,
             ];

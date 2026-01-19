@@ -64,3 +64,53 @@ sudo certbot --nginx -d cikarang.bhumiteduh.my.id
 ```
 
 Selesai! Aplikasi sekarang bisa diakses di https://cikarang.bhumiteduh.my.id
+
+## 5. Setup Auto Deployment (Optional)
+Agar aplikasi otomatis ter-update saat push ke GitHub, lakukan langkah ini:
+
+1.  Masuk ke Repository GitHub kamu > **Settings** > **Secrets and variables** > **Actions**.
+2.  Klik **New repository secret** dan tambahkan 3 secret berikut:
+
+    | Name | Value |
+    |------|-------|
+    | `SSH_HOST` | IP Address Server kamu (misal: `103.xxx.xxx.xxx`) |
+    | `SSH_USERNAME` | Username login server (misal: `root` atau `ubuntu`) |
+    | `SSH_PRIVATE_KEY` | Isi Private Key SSH kamu (Isi dari file `id_rsa` di komputer lokal atau hasil generate baru) |
+
+    **Cara mendapatkan SSH_PRIVATE_KEY:**
+    Jika servermu menggunakan SSH key untuk login, buka file private key di komputermu (biasanya di `~/.ssh/id_rsa`) dan copy isinya.
+    Jika belum ada, kamu bisa generate di server (`ssh-keygen`), lalu tambahkan public key-nya ke `~/.ssh/authorized_keys` di server.
+
+3.  Setelah disave, coba push perubahan ke branch `main`.
+4.  Cek tab **Actions** di GitHub untuk melihat proses deployment berjalan.
+
+
+## 6. Cara Update Manual (Jika tidak pakai Auto Deploy)
+Jika kamu ingin mengupdate aplikasi di server secara manual, ikuti langkah ini:
+
+1.  Login ke server via SSH.
+2.  Masuk ke folder project:
+    ```bash
+    cd /var/www/gudangpojok
+    ```
+3.  Jalankan perintah update berikut:
+    ```bash
+    # 1. Ambil kode terbaru
+    git pull origin main
+
+    # 2. Update dependencies (PHP & JS)
+    composer install --optimize-autoloader --no-dev
+    npm install && npm run build
+
+    # 3. Update database
+    php artisan migrate --force
+
+    # 4. Bersihkan cache
+    php artisan optimize:clear
+    php artisan config:cache
+    php artisan route:cache
+    php artisan view:cache
+
+    # 5. Restart service agar kode baru jalan
+    sudo systemctl restart gudangpojok
+    ```
