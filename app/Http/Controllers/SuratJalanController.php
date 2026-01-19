@@ -247,6 +247,31 @@ public function store(Request $request)
     try {
         DB::beginTransaction();
 
+        // Process foto_penerima if exists
+        $fotoPath = null;
+        if ($request->foto_penerima) {
+            // Extract base64 data
+            $base64Image = $request->foto_penerima;
+            
+            // Check if it's a valid base64 image
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $matches)) {
+                $extension = strtolower($matches[1]);
+                if ($extension === 'jpeg') $extension = 'jpg';
+                
+                // Remove the data:image/xxx;base64, prefix
+                $base64Image = preg_replace('/^data:image\/\w+;base64,/', '', $base64Image);
+                $imageData = base64_decode($base64Image);
+                
+                // Generate unique filename
+                $filename = 'foto_penerima_' . date('YmdHis') . '_' . uniqid() . '.' . $extension;
+                $path = 'surat-jalan/' . $filename;
+                
+                // Save to storage
+                \Storage::disk('public')->put($path, $imageData);
+                $fotoPath = $path;
+            }
+        }
+
         $suratJalan = SuratJalan::create([
             'nomor_surat' => $request->nomor_surat,
             'jenis_surat_jalan' => $request->jenis_surat_jalan,
@@ -259,6 +284,7 @@ public function store(Request $request)
             'kendaraan' => $request->kendaraan,
             'no_polisi' => $request->no_polisi,
             'pengemudi' => $request->pengemudi,
+            'foto_penerima' => $fotoPath,
             'status' => 'BUTUH_PERSETUJUAN',
             'created_by' => auth()->id(),
         ]);

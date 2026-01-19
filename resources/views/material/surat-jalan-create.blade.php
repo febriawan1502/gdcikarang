@@ -124,6 +124,37 @@
                                        name="nomor_slip" 
                                        placeholder="No SAP : TUG8 / TUG9">
                             </div>
+                            
+                            <!-- Foto Penerima -->
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="fa fa-camera me-1"></i> Foto Penerima
+                                </label>
+                                <div class="d-flex align-items-start gap-3">
+                                    <div>
+                                        <button type="button" class="btn btn-outline-primary" onclick="openCameraModal()">
+                                            <i class="fa fa-camera me-1"></i> Ambil Gambar
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary ms-2" onclick="uploadFromGallery()">
+                                            <i class="fa fa-image me-1"></i> Pilih dari Galeri
+                                        </button>
+                                        <input type="file" id="galleryInput" accept="image/*" style="display: none;" onchange="handleGalleryUpload(event)">
+                                    </div>
+                                    <div id="photoPreview" class="d-none">
+                                        <div class="position-relative" style="display: inline-block;">
+                                            <img id="thumbnailImg" src="" alt="Preview" 
+                                                 style="max-width: 150px; max-height: 150px; border-radius: 8px; border: 2px solid #ddd;">
+                                            <button type="button" class="btn btn-danger btn-sm position-absolute" 
+                                                    style="top: -8px; right: -8px; border-radius: 50%; width: 24px; height: 24px; padding: 0;"
+                                                    onclick="removePhoto()">
+                                                <i class="fa fa-times"></i>
+                                            </button>
+                                        </div>
+                                        <input type="hidden" name="foto_penerima" id="fotoBase64">
+                                    </div>
+                                </div>
+                                <small class="text-muted">Foto akan dikompresi ke resolusi 720p</small>
+                            </div>
                         </div>
                         
                         <!-- Daftar Material -->
@@ -251,6 +282,37 @@
     </div>
 </div>
 @endsection
+
+<!-- Camera Modal -->
+<div class="modal fade" id="cameraModal" tabindex="-1" aria-labelledby="cameraModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cameraModalLabel">
+                    <i class="fa fa-camera me-2"></i> Ambil Foto Penerima
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeCameraModal()"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="cameraContainer">
+                    <video id="cameraVideo" autoplay playsinline style="max-width: 100%; border-radius: 8px;"></video>
+                </div>
+                <canvas id="cameraCanvas" style="display: none;"></canvas>
+                <div class="mt-3">
+                    <button type="button" class="btn btn-success btn-lg" onclick="capturePhoto()">
+                        <i class="fa fa-camera me-1"></i> Capture
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="switchCamera()">
+                        <i class="fa fa-sync-alt me-1"></i> Ganti Kamera
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeCameraModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @push('styles')
 <style>
@@ -711,6 +773,233 @@ document.addEventListener('DOMContentLoaded', function () {
 
     resetTable(); // ⬅️ PENTING: bikin row pertama
 });
+
+// ============================================
+// CAMERA CAPTURE FUNCTIONS
+// ============================================
+let currentStream = null;
+let useFrontCamera = true;
+
+// Open camera modal
+function openCameraModal() {
+    const modal = document.getElementById('cameraModal');
+    modal.style.display = 'block';
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+    
+    // Try to use Bootstrap modal if available
+    if (typeof $ !== 'undefined' && $.fn.modal) {
+        $('#cameraModal').modal('show');
+    }
+    
+    startCamera();
+}
+
+// Close camera modal
+function closeCameraModal() {
+    stopCamera();
+    
+    const modal = document.getElementById('cameraModal');
+    modal.style.display = 'none';
+    modal.classList.remove('show');
+    document.body.classList.remove('modal-open');
+    
+    // Remove backdrop if exists
+    const backdrop = document.querySelector('.modal-backdrop');
+    if (backdrop) backdrop.remove();
+    
+    if (typeof $ !== 'undefined' && $.fn.modal) {
+        $('#cameraModal').modal('hide');
+    }
+}
+
+// Start camera
+async function startCamera() {
+    try {
+        if (currentStream) {
+            stopCamera();
+        }
+        
+        // Check if mediaDevices is available
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            let errorMsg = 'Browser tidak mendukung akses kamera.';
+            
+            // Check if running on non-secure context
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+                errorMsg = 'Kamera membutuhkan HTTPS atau localhost.\n\n' +
+                           'Solusi:\n' +
+                           '1. Akses via http://localhost:8000 atau\n' +
+                           '2. Akses via http://127.0.0.1:8000 atau\n' +
+                           '3. Gunakan fitur "Pilih dari Galeri" untuk upload foto';
+            }
+            
+            alert(errorMsg);
+            closeCameraModal();
+            return;
+        }
+        
+        const constraints = {
+            video: {
+                facingMode: useFrontCamera ? 'user' : 'environment',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            }
+        };
+        
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        const video = document.getElementById('cameraVideo');
+        video.srcObject = currentStream;
+    } catch (err) {
+        console.error('Error accessing camera:', err);
+        
+        let errorMsg = 'Tidak dapat mengakses kamera.';
+        
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+            errorMsg = 'Izin kamera ditolak. Silakan izinkan akses kamera di browser.\n\n' +
+                       'Klik ikon kunci/info di address bar untuk mengubah pengaturan.';
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+            errorMsg = 'Kamera tidak ditemukan. Pastikan perangkat memiliki kamera.';
+        } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+            errorMsg = 'Kamera sedang digunakan aplikasi lain.';
+        } else if (err.name === 'OverconstrainedError') {
+            errorMsg = 'Kamera tidak mendukung resolusi yang diminta.';
+        } else if (err.name === 'TypeError') {
+            errorMsg = 'Kamera membutuhkan HTTPS atau localhost.\n\n' +
+                       'Gunakan http://localhost:8000 atau "Pilih dari Galeri"';
+        }
+        
+        alert(errorMsg);
+        closeCameraModal();
+    }
+}
+
+// Stop camera
+function stopCamera() {
+    if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+        currentStream = null;
+    }
+}
+
+// Switch between front and back camera
+function switchCamera() {
+    useFrontCamera = !useFrontCamera;
+    startCamera();
+}
+
+// Capture photo from camera
+function capturePhoto() {
+    const video = document.getElementById('cameraVideo');
+    const canvas = document.getElementById('cameraCanvas');
+    
+    // Get video dimensions
+    const videoWidth = video.videoWidth;
+    const videoHeight = video.videoHeight;
+    
+    // Calculate 720p dimensions maintaining aspect ratio
+    const maxHeight = 720;
+    const maxWidth = 1280;
+    
+    let targetWidth, targetHeight;
+    
+    if (videoWidth / videoHeight > maxWidth / maxHeight) {
+        targetWidth = maxWidth;
+        targetHeight = Math.round(maxWidth * videoHeight / videoWidth);
+    } else {
+        targetHeight = maxHeight;
+        targetWidth = Math.round(maxHeight * videoWidth / videoHeight);
+    }
+    
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+    
+    // Compress to JPEG with quality 0.7
+    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+    
+    // Set thumbnail and hidden input
+    setPhotoPreview(compressedBase64);
+    
+    // Close modal
+    closeCameraModal();
+}
+
+// Handle gallery upload
+function uploadFromGallery() {
+    document.getElementById('galleryInput').click();
+}
+
+function handleGalleryUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        compressImage(e.target.result, function(compressedBase64) {
+            setPhotoPreview(compressedBase64);
+        });
+    };
+    reader.readAsDataURL(file);
+}
+
+// Compress image to 720p
+function compressImage(base64, callback) {
+    const img = new Image();
+    img.onload = function() {
+        const canvas = document.createElement('canvas');
+        
+        const maxHeight = 720;
+        const maxWidth = 1280;
+        
+        let targetWidth, targetHeight;
+        
+        if (img.width / img.height > maxWidth / maxHeight) {
+            targetWidth = Math.min(img.width, maxWidth);
+            targetHeight = Math.round(targetWidth * img.height / img.width);
+        } else {
+            targetHeight = Math.min(img.height, maxHeight);
+            targetWidth = Math.round(targetHeight * img.width / img.height);
+        }
+        
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+        
+        // Compress to JPEG with quality 0.7
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+        callback(compressedBase64);
+    };
+    img.src = base64;
+}
+
+// Set photo preview
+function setPhotoPreview(base64) {
+    const preview = document.getElementById('photoPreview');
+    const thumbnail = document.getElementById('thumbnailImg');
+    const hiddenInput = document.getElementById('fotoBase64');
+    
+    thumbnail.src = base64;
+    hiddenInput.value = base64;
+    preview.classList.remove('d-none');
+}
+
+// Remove photo
+function removePhoto() {
+    const preview = document.getElementById('photoPreview');
+    const thumbnail = document.getElementById('thumbnailImg');
+    const hiddenInput = document.getElementById('fotoBase64');
+    
+    thumbnail.src = '';
+    hiddenInput.value = '';
+    preview.classList.add('d-none');
+    
+    // Reset gallery input
+    document.getElementById('galleryInput').value = '';
+}
 
 </script>
 @endpush

@@ -36,6 +36,7 @@ class SuratJalan extends Model
         'kendaraan',
         'no_polisi',
         'pengemudi',
+        'foto_penerima',
         'status',
         'created_by',
         'approved_by',
