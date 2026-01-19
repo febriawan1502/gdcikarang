@@ -267,14 +267,8 @@
     </li>
     @endif
 
-    {{-- Material Masuk (TIDAK untuk security) --}}
-    @if(auth()->user()->role !== 'security' && 
-    (
-        auth()->user()->role === 'admin' ||
-        auth()->user()->role === 'guest' ||
-        auth()->user()->role === 'petugas'
-    ))
-
+    {{-- Material Masuk (TIDAK untuk security, BOLEH untuk guest) --}}
+    @if(in_array(auth()->user()->role, ['admin', 'petugas', 'guest']))
     <li class="{{ request()->routeIs('material-masuk.*') ? 'active' : '' }}">
         <a href="{{ route('material-masuk.index') }}">
             <i class="fa fa-arrow-down"></i>
@@ -283,7 +277,7 @@
     </li>
     @endif
 
-    {{-- ✅ Surat Jalan (BOLEH untuk security) --}}
+    {{-- ✅ Surat Jalan (BOLEH untuk security dan guest) --}}
     @if(in_array(auth()->user()->role, ['admin', 'guest', 'petugas', 'security']))
     <li class="{{ request()->routeIs('surat-jalan.*') ? 'active' : '' }}">
         <a href="{{ route('surat-jalan.index') }}">
@@ -293,8 +287,8 @@
     </li>
     @endif
 
-    {{-- Menu lain (TIDAK untuk security) --}}
-    @if(auth()->user()->role !== 'security')
+    {{-- Menu lain (TIDAK untuk security dan guest) --}}
+    @if(in_array(auth()->user()->role, ['admin', 'petugas']))
     {{-- Masa Peminjaman --}}
         <li class="{{ request()->is('surat-jalan/peminjaman/masa') ? 'active' : '' }}">
             <a href="{{ route('surat.masa', ['jenis' => 'Peminjaman']) }}">
