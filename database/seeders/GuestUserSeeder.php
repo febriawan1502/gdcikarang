@@ -14,7 +14,7 @@ class GuestUserSeeder extends Seeder
     public function run(): void
     {
         // Check if guest already exists
-        $existingGuest = User::where('email', 'guest')->first();
+        $existingGuest = User::where('email', 'guest@gudangpojok.com')->first();
         
         if ($existingGuest) {
             $this->command->info('User guest sudah ada, melewati...');
@@ -23,8 +23,8 @@ class GuestUserSeeder extends Seeder
         
         User::create([
             'nama' => 'Guest User',
-            'email' => 'guest',
-            'password' => Hash::make('guest'),
+            'email' => 'guest@gudangpojok.com',
+            'password' => Hash::make('guest123'),
             'role' => 'guest',
             'is_active' => true,
         ]);
@@ -32,8 +32,8 @@ class GuestUserSeeder extends Seeder
         $this->command->info('User guest berhasil dibuat!');
         $this->command->info('');
         $this->command->info('=== LOGIN GUEST ===');
-        $this->command->info('Email: guest');
-        $this->command->info('Password: guest');
+        $this->command->info('Email: guest@gudangpojok.com');
+        $this->command->info('Password: guest123');
         $this->command->info('Role: guest (view-only)');
     }
 }

@@ -13,18 +13,22 @@
                 <button type="button" class="btn btn-default" onclick="window.location.reload()">
                     <i class="fa fa-refresh"></i> Refresh
                 </button>
+                @if(auth()->user()->role !== 'guest')
                 <button type="button" class="btn btn-success" data-toggle="modal" data-target="#importModal">
                     <i class="fa fa-upload"></i> Import Excel
                 </button>
+                @endif
                 <a href="{{ route('dashboard.export') }}" class="btn btn-warning" target="_blank">
                     <i class="fa fa-file-excel-o"></i> Export Excel
                 </a>
+                @if(auth()->user()->role !== 'guest')
                 <a href="{{ route('material.bulk-print-barcode') }}" class="btn btn-info" target="_blank">
                     <i class="fa fa-qrcode"></i> Bulk Print Barcode
                 </a>
                 <a href="{{ route('material.create') }}" class="btn btn-primary">
                     <i class="fa fa-plus"></i> Tambah Material
                 </a>
+                @endif
             </div>
         </div>
     </div>
@@ -130,7 +134,9 @@
                                                 @endif
                                             </a>
                                         </th>
+                                        @if(auth()->user()->role !== 'guest')
                                         <th width="14%" class="text-center">Aksi</th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -162,6 +168,7 @@
                                                     -
                                                 @endif
                                             </td>
+                                            @if(auth()->user()->role !== 'guest')
                                             <td class="text-center">
                                                 <div class="btn-group btn-group-xs">
                                                     <a href="{{ route('material.show', $material) }}" class="btn btn-info" title="Detail">
@@ -179,6 +186,7 @@
                                                     </button>
                                                 </div>
                                             </td>
+                                            @endif
                                         </tr>
                                     @endforeach
                                 </tbody>

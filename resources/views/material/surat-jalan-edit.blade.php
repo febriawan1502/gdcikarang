@@ -349,6 +349,32 @@
                             </div>
                         </div>
                         
+                        <!-- Foto Dokumentasi -->
+                        @if($suratJalan->foto_penerima)
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-info border-bottom pb-2">
+                                    <i class="fa fa-camera me-1"></i>
+                                    Foto Dokumentasi
+                                </h6>
+                            </div>
+                            <div class="col-12">
+                                <div class="text-center">
+                                    <a href="{{ asset('storage/' . $suratJalan->foto_penerima) }}" target="_blank" title="Klik untuk melihat foto ukuran penuh">
+                                        <img src="{{ asset('storage/' . $suratJalan->foto_penerima) }}" 
+                                             alt="Foto Penerima" 
+                                             class="img-thumbnail" 
+                                             style="max-width: 400px; max-height: 300px; object-fit: cover; cursor: pointer;">
+                                    </a>
+                                    <p class="text-muted small mt-2">
+                                        <i class="fa fa-info-circle me-1"></i>
+                                        Klik gambar untuk melihat ukuran penuh
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                        
                         <!-- Action Buttons -->
                         <div class="row mt-4">
     <div class="col-12 d-flex justify-content-between align-items-center">

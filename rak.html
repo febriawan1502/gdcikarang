@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Stok Gudang PLN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0d1b45;
+            /* Biru gelap PLN */
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+            --green: #28a745;
+            --teal: #17a2b8;
+            --yellow: #ffc107;
+            --red: #dc3545;
+            --blue-header: #1e3a8a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #051433 0%, #1a3a6c 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to right, #102e6e, #2b56a5);
+            padding: 15px 20px;
+            border-bottom: 3px solid #f9d423;
+            /* Garis kuning PLN */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-placeholder {
+            width: 40px;
+            height: 40px;
+            background-color: #f9d423;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #d6001c;
+            /* Merah petir */
+            font-size: 24px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .header-date {
+            text-align: right;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .sub-header {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 20px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #aabbd6;
+        }
+
+        /* SUMMARY CARDS */
+        .summary-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+
+        .card {
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h3 {
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .card .value {
+            font-size: 42px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .bg-teal {
+            background: linear-gradient(to bottom, #135863, #17a2b8);
+        }
+
+        .bg-green {
+            background: linear-gradient(to bottom, #1b5e20, #28a745);
+        }
+
+        .bg-yellow {
+            background: linear-gradient(to bottom, #b38600, #ffc107);
+            color: #fff;
+        }
+
+        .bg-red {
+            background: linear-gradient(to bottom, #8a1c27, #dc3545);
+        }
+
+        /* MAIN CONTENT GRID */
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            /* Kiri lebih lebar */
+            gap: 15px;
+            padding: 0 10px;
+        }
+
+        .section-box {
+            background: rgba(13, 27, 69, 0.7);
+            border: 1px solid #2b468b;
+            border-radius: 4px;
+            padding: 10px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+            border-left: 4px solid #fff;
+            padding-left: 10px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        /* TABLE */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            background: rgba(30, 58, 138, 0.5);
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #445;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+            display: inline-block;
+            min-width: 80px;
+        }
+
+        .badge-warning {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .badge-danger {
+            background-color: #dc3545;
+            color: #fff;
+        }
+
+        /* CHART AREA */
+        .chart-container {
+            position: relative;
+            height: 200px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            font-size: 12px;
+            margin-top: -30px;
+            /* Tarik ke atas karena chart bentuk setengah lingkaran */
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Footer Clock */
+        .footer-clock {
+            text-align: right;
+            padding: 20px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="header-title">
+            <div class="logo-placeholder">⚡</div>
+            <h1>Dashboard Stok Gudang PLN</h1>
+        </div>
+        <div class="header-date">
+            14 Januari 2026 | 09:32:47
+        </div>
+    </header>
+
+    <div class="sub-header">
+        UP3 CIKARANG
+    </div>
+
+    <div class="summary-container">
+        <div class="card bg-teal">
+            <h3>Total Item</h3>
+            <div class="value">5</div>
+        </div>
+        <div class="card bg-green">
+            <h3>Tersedia</h3>
+            <div class="value">2</div>
+        </div>
+        <div class="card bg-yellow">
+            <h3>Menipis</h3>
+            <div class="value">2</div>
+        </div>
+        <div class="card bg-red">
+            <h3>Habis</h3>
+            <div class="value">1</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+
+        <div class="section-box">
+            <div class="section-title">STOK KRITIS</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kode</th>
+                        <th>Nama Barang</th>
+                        <th style="text-align: center;">Stok</th>
+                        <th style="text-align: center;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>PLN-001</td>
+                        <td>Kabel TM 150mm</td>
+                        <td style="text-align: center;">100</td>
+                        <td style="text-align: center;"><span class="badge badge-warning">MENIPIS</span></td>
+                    </tr>
+                    <tr>
+                        <td>PLN-002</td>
+                        <td>Isolator Listrik</td>
+                        <td style="text-align: center;">10</td>
+                        <td style="text-align: center;"><span class="badge badge-warning">MENIPIS</span></td>
+                    </tr>
+                    <tr>
+                        <td>PLN-003</td>
+                        <td>Trafo 250 KVA</td>
+                        <td style="text-align: center;">5</td>
+                        <td style="text-align: center;"><span class="badge badge-warning">MENIPIS</span></td>
+                    </tr>
+                    <tr>
+                        <td>PLN-004</td>
+                        <td>MCB 20A</td>
+                        <td style="text-align: center;">0</td>
+                        <td style="text-align: center;"><span class="badge badge-danger">HABIS</span></td>
+                    </tr>
+                    <tr>
+                        <td>PLN-005</td>
+                        <td>Tiang Besi 9M</td>
+                        <td style="text-align: center;">300</td>
+                        <td style="text-align: center;">-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-box">
+            <div class="section-title">GRAFIK STATUS STOK</div>
+            <div class="chart-container">
+                <canvas id="stokChart"></canvas>
+            </div>
+            <div class="chart-legend">
+                <div class="legend-item"><span class="dot" style="background: #28a745;"></span> Tersedia</div>
+                <div class="legend-item"><span class="dot" style="background: #ffc107;"></span> Menipis</div>
+                <div class="legend-item"><span class="dot" style="background: #dc3545;"></span> Habis</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-clock">
+        09:33
+    </div>
+
+    <script>
+        const ctx = document.getElementById('stokChart').getContext('2d');
+
+        // Data sesuai gambar (2 Tersedia, 2 Menipis, 1 Habis)
+        const data = {
+            labels: ['Tersedia', 'Menipis', 'Habis'],
+            datasets: [{
+                data: [2, 2, 1],
+                backgroundColor: [
+                    '#28a745', // Hijau
+                    '#ffc107', // Kuning
+                    '#dc3545'  // Merah
+                ],
+                borderWidth: 0,
+                cutout: '60%', // Membuat lubang tengah (donut)
+            }]
+        };
+
+        // Konfigurasi Gauge (Half Doughnut)
+        const config = {
+            type: 'doughnut',
+            data: data,
+            options: {
+                rotation: -90,      // Mulai dari jam 9
+                circumference: 180, // Hanya setengah lingkaran
+                plugins: {
+                    legend: {
+                        display: false // Sembunyikan legend default chart.js
+                    },
+                    tooltip: {
+                        enabled: true
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false
+            },
+            plugins: [{
+                id: 'textCenter',
+                beforeDraw: function (chart) {
+                    // Plugin custom untuk menampilkan angka di tengah grafik jika diinginkan
+                    // Namun gambar asli menaruh angka di dalam slice, itu lebih kompleks
+                    // Di sini kita biarkan bersih sesuai gaya modern
+                }
+            }]
+        };
+
+        new Chart(ctx, config);
+    </script>
+
+</body>
+
+</html>
