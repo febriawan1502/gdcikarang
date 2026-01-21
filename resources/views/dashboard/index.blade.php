@@ -384,7 +384,7 @@
         </div>
     </div>
     <div class="col-lg-6 col-md-6 col-sm-12">
-        <div class="card bg-cyan" style="cursor: default;">
+        <div class="card bg-cyan" style="cursor: pointer;" onclick="openSaldoAwalModal()">
             <div class="card-body">
                 <div class="row">
                     <div class="col-xs-4">
@@ -662,11 +662,6 @@
                 <div class="modal-body">
                     <p class="text-muted"><small><i class="fa fa-info-circle"></i> Total Inspeksi akan dihitung otomatis dari penjumlahan keempat field di bawah ini.</small></p>
                     <div class="form-group">
-                        <label for="saldo_awal_tahun">Saldo 1 Januari (Tahun Berjalan) (Rp)</label>
-                        <input type="number" class="form-control" id="saldo_awal_tahun" name="saldo_awal_tahun" 
-                               value="{{ $material_saving_config->saldo_awal_tahun }}" step="0.01" min="0">
-                    </div>
-                    <div class="form-group">
                         <label for="standby">Standby (Rp)</label>
                         <input type="number" class="form-control" id="standby" name="standby" 
                                value="{{ $material_saving_config->standby }}" step="0.01" min="0" required>
@@ -696,6 +691,36 @@
     </div>
 </div>
 </div>
+
+<!-- Saldo Awal Configuration Modal -->
+<div class="modal fade" id="saldoAwalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa fa-cog me-2"></i>
+                    Konfigurasi Saldo Awal
+                </h5>
+                <button type="button" class="btn-close" data-dismiss="modal"></button>
+            </div>
+            <form id="saldoAwalForm">
+                @csrf
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="saldo_awal_tahun_modal">Saldo 1 Januari (Tahun Berjalan) (Rp)</label>
+                        <input type="number" class="form-control" id="saldo_awal_tahun_modal" name="saldo_awal_tahun" 
+                               value="{{ $material_saving_config->saldo_awal_tahun }}" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
 @endsection
 
 @push('scripts')
@@ -704,7 +729,38 @@ function openMaterialSavingConfigModal() {
     $('#materialSavingConfigModal').modal('show');
 }
 
+function openSaldoAwalModal() {
+    $('#saldoAwalModal').modal('show');
+}
+
 $(document).ready(function() {
+    // Saldo Awal Form Submit
+    $('#saldoAwalForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $.ajax({
+            url: '{{ route('dashboard.saldo-awal.update') }}',
+            method: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.success) {
+                    $('#saldoAwalModal').modal('hide');
+                    alert('Saldo awal berhasil disimpan!');
+                    location.reload(); // Reload page to show updated values
+                } else {
+                    alert('Gagal menyimpan saldo awal: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Gagal menyimpan saldo awal';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                alert(errorMessage);
+            }
+        });
+    });
+
     // Material Saving Config Form Submit
     $('#materialSavingConfigForm').on('submit', function(e) {
         e.preventDefault();

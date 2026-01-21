@@ -287,6 +287,36 @@ class DashboardController extends Controller
     }
 
     /**
+     * Update saldo awal tahun only
+     */
+    public function updateSaldoAwal(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'saldo_awal_tahun' => 'required|numeric|min:0',
+            ]);
+
+            $config = MaterialSavingConfig::first();
+            if (!$config) {
+                $config = MaterialSavingConfig::create($validated);
+            } else {
+                $config->update($validated);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Saldo awal berhasil disimpan',
+                'data' => $config
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan saldo awal: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Update material saving configuration
      */
     public function updateMaterialSavingConfig(Request $request)
@@ -297,7 +327,7 @@ class DashboardController extends Controller
                 'garansi' => 'required|numeric|min:0',
                 'perbaikan' => 'required|numeric|min:0',
                 'usul_hapus' => 'required|numeric|min:0',
-                'saldo_awal_tahun' => 'nullable|numeric|min:0',
+                // 'saldo_awal_tahun' removed from here as it's handled separately now
             ]);
 
             $config = MaterialSavingConfig::first();
