@@ -13,7 +13,7 @@ class PemeriksaanFisikController extends Controller
         $bulan = $request->bulan;
 
         if (!$bulan) {
-            return view('material.pemeriksaan-fisik', [
+            return view('material.pemeriksaan_fisik', [
                 'materials' => null,
                 'bulan'     => null,
                 'tahun'     => null,
@@ -28,6 +28,6 @@ class PemeriksaanFisikController extends Controller
             $m->stock_realtime = MaterialHistory::stokBulanan($m->id, $bulanAngka, $tahun);
         }
 
-        return view('material.pemeriksaan-fisik', compact('materials', 'bulan', 'tahun'));
+        return view('material.pemeriksaan_fisik', compact('materials', 'bulan', 'tahun'));
     }
 }

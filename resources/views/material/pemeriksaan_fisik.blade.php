@@ -4,203 +4,279 @@
 
 @section('content')
 
-<div class="card p-4">
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">📋 Pemeriksaan Fisik</h2>
+            <p class="text-gray-500 text-sm mt-1">Bandingkan data SAP, stok fisik, dan SN MIMS.</p>
+        </div>
+    </div>
 
-    <h3 class="mb-3">Pilih Bulan Pemeriksaan Fisik</h3>
+    <!-- Card Form Pilih Bulan -->
+    <div class="card p-6 border border-gray-100 shadow-xl shadow-gray-200/50">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-teal-500 flex items-center justify-center text-white">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800">Pilih Bulan Pemeriksaan</h3>
+        </div>
 
-    {{-- FORM PILIH BULAN --}}
-    <form action="{{ route('material.pemeriksaanFisik') }}" method="GET" class="mb-4">
-        <label class="form-label">Pilih Bulan</label>
-        <input type="month" name="bulan" value="{{ $bulan ?? '' }}"
-               class="form-control" style="max-width:300px" required>
-        <button class="btn btn-primary mt-3">Lanjut</button>
-    </form>
+        <form action="{{ route('material.pemeriksaanFisik') }}" method="GET" class="flex flex-col sm:flex-row gap-4 items-end">
+            <div class="flex-1 max-w-xs">
+                <label for="bulan" class="form-label">Bulan</label>
+                <input type="month" name="bulan" value="{{ $bulan ?? '' }}"
+                       class="form-input" required>
+            </div>
+            <button class="btn-teal px-6 py-3 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all duration-300 flex items-center gap-2">
+                <i class="fas fa-search"></i>
+                <span>Lanjut</span>
+            </button>
+        </form>
+    </div>
 
 @if($materials)
-<hr>
+    <!-- Data Card -->
+    <div class="card p-6 border border-gray-100 shadow-xl shadow-gray-200/50">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-purple-500 flex items-center justify-center text-white">
+                    <i class="fas fa-boxes"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800">Pemeriksaan Fisik Material</h3>
+                    <p class="text-gray-500 text-sm">Periode: {{ $bulan }}</p>
+                </div>
+            </div>
 
-<div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="flex flex-wrap gap-2">
+                <button onclick="openModal('importSapModal')" class="px-3 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors text-sm flex items-center gap-2">
+                    <i class="fas fa-upload"></i>
+                    <span>Import SAP</span>
+                </button>
 
-    <div class="fw-bold fs-5">
-        Pemeriksaan Fisik Material
-        <span class="text-muted">({{ $bulan }})</span>
+                <button onclick="openModal('importMimsModal')" class="px-3 py-2 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 transition-colors text-sm flex items-center gap-2">
+                    <i class="fas fa-upload"></i>
+                    <span>Import SN MIMS</span>
+                </button>
+
+                <a href="{{ route('material.pemeriksaanFisikPdf', ['bulan'=>$bulan]) }}"
+                   class="px-3 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors text-sm flex items-center gap-2"
+                   target="_blank">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>Print PDF</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Form Simpan -->
+        <form action="{{ route('material.pemeriksaanFisik.store') }}" method="POST">
+            @csrf
+            <input type="hidden" name="bulan" value="{{ $bulan }}">  
+            <div class="overflow-x-auto rounded-xl border border-gray-100">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th rowspan="2" class="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-r border-gray-200">NO</th>
+                            <th rowspan="2" class="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-r border-gray-200">No Normalisasi</th>
+                            <th rowspan="2" class="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-r border-gray-200">Nama Barang</th>
+                            <th rowspan="2" class="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-r border-gray-200">Satuan</th>
+                            <th rowspan="2" class="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-r border-gray-200">Valuation</th>
+                            <th colspan="3" class="px-3 py-2 text-xs font-bold text-teal-600 uppercase tracking-wider border-b border-r border-gray-200 bg-teal-50">SALDO / JUMLAH</th>
+                            <th colspan="3" class="px-3 py-2 text-xs font-bold text-orange-600 uppercase tracking-wider border-b border-r border-gray-200 bg-orange-50">PERBEDAAN / SELISIH</th>
+                            <th colspan="3" class="px-3 py-2 text-xs font-bold text-purple-600 uppercase tracking-wider border-b border-gray-200 bg-purple-50">JUSTIFIKASI</th>
+                        </tr>
+                        <tr class="bg-gray-50">
+                            <th class="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-r border-gray-200 bg-teal-50">SAP</th>
+                            <th class="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-r border-gray-200 bg-teal-50">Stok Fisik</th>
+                            <th class="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-r border-gray-200 bg-teal-50">SN MIMS</th>
+
+                            <th class="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-r border-gray-200 bg-orange-50">SAP–Fisik</th>
+                            <th class="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-r border-gray-200 bg-orange-50">SAP–SN</th>
+                            <th class="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-r border-gray-200 bg-orange-50">Fisik–SN</th>
+
+                            <th class="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-r border-gray-200 bg-purple-50">SAP–Fisik</th>
+                            <th class="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-r border-gray-200 bg-purple-50">SAP–SN</th>
+                            <th class="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-purple-50">Fisik–SN</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-gray-100 bg-white">
+                    @foreach($materials as $i => $m)
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-3 py-2 text-center text-gray-600 border-r border-gray-100">{{ $i+1 }}</td>
+                            <td class="px-3 py-2 text-gray-800 border-r border-gray-100">{{ $m->material_code }}</td>
+                            <td class="px-3 py-2 text-gray-800 border-r border-gray-100">{{ $m->material_description }}</td>
+                            <td class="px-3 py-2 text-center text-gray-600 border-r border-gray-100">{{ $m->base_unit_of_measure }}</td>
+                            <td class="px-3 py-2 text-center text-gray-600 border-r border-gray-100">{{ $m->valuation_type }}</td>
+
+                            <input type="hidden" name="data[{{ $i }}][material_id]" value="{{ $m->id }}">
+
+                            <!-- SAP -->
+                            <td class="px-2 py-1 border-r border-gray-100 bg-teal-50/50">
+                                <input type="number"
+                                       name="data[{{ $i }}][sap]"
+                                       id="sap_{{ $i }}"
+                                       value="{{ $m->sap }}"
+                                       class="form-input text-sm py-1 text-center"
+                                       oninput="hitung({{ $i }})">
+                            </td>
+
+                            <!-- FISIK -->
+                            <td class="px-3 py-2 text-center font-semibold text-teal-700 border-r border-gray-100 bg-teal-50/50">
+                                {{ $m->fisik ?? $m->unrestricted_use_stock ?? 0 }}
+                                <input type="hidden"
+                                       name="data[{{ $i }}][fisik]"
+                                       id="fisik_val_{{ $i }}"
+                                       value="{{ $m->fisik ?? $m->unrestricted_use_stock ?? 0 }}">
+                            </td>
+
+                            <!-- SN -->
+                            <td class="px-2 py-1 border-r border-gray-100 bg-teal-50/50">
+                                <input type="number"
+                                       name="data[{{ $i }}][sn]"
+                                       id="sn_{{ $i }}"
+                                       value="{{ $m->sn_mims }}"
+                                       class="form-input text-sm py-1 text-center"
+                                       oninput="hitung({{ $i }})">
+                            </td>
+
+                            <!-- SELISIH -->
+                            <td class="px-2 py-1 border-r border-gray-100 bg-orange-50/50">
+                                <input class="form-input text-sm py-1 text-center bg-gray-50" id="sf_{{ $i }}" name="data[{{ $i }}][selisih_sf]" value="{{ $m->selisih_sf }}" readonly>
+                            </td>
+                            <td class="px-2 py-1 border-r border-gray-100 bg-orange-50/50">
+                                <input class="form-input text-sm py-1 text-center bg-gray-50" id="ss_{{ $i }}" name="data[{{ $i }}][selisih_ss]" value="{{ $m->selisih_ss }}" readonly>
+                            </td>
+                            <td class="px-2 py-1 border-r border-gray-100 bg-orange-50/50">
+                                <input class="form-input text-sm py-1 text-center bg-gray-50" id="fs_{{ $i }}" name="data[{{ $i }}][selisih_fs]" value="{{ $m->selisih_fs }}" readonly>
+                            </td>
+
+                            <!-- JUSTIFIKASI -->
+                            <td class="px-2 py-1 border-r border-gray-100 bg-purple-50/50">
+                                <input class="form-input text-sm py-1" name="data[{{ $i }}][justifikasi_sf]" value="{{ $m->justifikasi_sf }}">
+                            </td>
+                            <td class="px-2 py-1 border-r border-gray-100 bg-purple-50/50">
+                                <input class="form-input text-sm py-1" name="data[{{ $i }}][justifikasi_ss]" value="{{ $m->justifikasi_ss }}">
+                            </td>
+                            <td class="px-2 py-1 bg-purple-50/50">
+                                <input class="form-input text-sm py-1" name="data[{{ $i }}][justifikasi_fs]" value="{{ $m->justifikasi_fs }}">
+                            </td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="flex justify-end mt-6">
+                <button class="btn-teal px-6 py-3 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all duration-300 flex items-center gap-2">
+                    <i class="fas fa-save"></i>
+                    <span>Simpan</span>
+                </button>
+            </div>
+        </form>
     </div>
-
-    <div class="d-flex gap-2">
-        <button class="btn btn-info btn-sm"
-            data-toggle="modal"
-            data-target="#importSapModal">
-            <i class="fa fa-upload"></i> Import SAP
-        </button>
-
-        <button class="btn btn-warning btn-sm"
-            data-toggle="modal"
-            data-target="#importMimsModal">
-            <i class="fa fa-upload"></i> Import SN MIMS
-        </button>
-
-        <a href="{{ route('material.pemeriksaanFisikPdf', ['bulan'=>$bulan]) }}"
-           class="btn btn-danger btn-sm"
-           target="_blank">
-            <i class="fa fa-file-pdf-o"></i> Print PDF
-        </a>
-    </div>
-
+@endif
 </div>
 
-    {{-- FORM SIMPAN --}}
-    <form action="{{ route('material.pemeriksaanFisik.store') }}" method="POST">
-        @csrf
-        <input type="hidden" name="bulan" value="{{ $bulan }}">  
-        <div class="table-responsive">
-            <table class="table table-bordered table-sm" style="font-size:12px">
-                <thead class="text-center" style="background:#f2f2f2;font-weight:bold">
-                    <tr>
-                        <th rowspan="2">NO</th>
-                        <th rowspan="2">No Normalisasi / Part</th>
-                        <th rowspan="2">Nama Barang</th>
-                        <th rowspan="2">Satuan</th>
-                        <th rowspan="2">Valuation</th>
-                        <th colspan="3">SALDO / JUMLAH</th>
-                        <th colspan="3">PERBEDAAN / SELISIH</th>
-                        <th colspan="3">JUSTIFIKASI</th>
-                    </tr>
-                    <tr>
-                        <th>SAP</th>
-                        <th>Stok Fisik</th>
-                        <th>SN MIMS</th>
+<!-- Modal Import SAP -->
+<div id="importSapModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeModal('importSapModal')"></div>
+        
+        <div class="inline-block bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full relative">
+            <form action="{{ route('material.importSap') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="bulan" value="{{ $bulan ?? '' }}">
 
-                        <th>Selisih SAP–Fisik</th>
-                        <th>Selisih SAP–SN</th>
-                        <th>Selisih Fisik–SN</th>
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-upload"></i>
+                            Import SAP
+                        </h3>
+                        <button type="button" class="text-white hover:text-gray-200 transition-colors" onclick="closeModal('importSapModal')">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
 
-                        <th>Justifikasi SAP–Fisik</th>
-                        <th>Justifikasi SAP–SN</th>
-                        <th>Justifikasi Fisik–SN</th>
-                    </tr>
-                </thead>
+                <div class="p-6">
+                    <label class="form-label">File Excel</label>
+                    <input type="file" name="file" class="form-input" required>
+                    <p class="text-sm text-gray-500 mt-2">Format: no_part | sap</p>
+                </div>
 
-                <tbody>
-                @foreach($materials as $i => $m)
-                    <tr>
-                        <td class="text-center">{{ $i+1 }}</td>
-                        <td>{{ $m->material_code }}</td>
-                        <td>{{ $m->material_description }}</td>
-                        <td class="text-center">{{ $m->base_unit_of_measure }}</td>
-                        <td class="text-center">{{ $m->valuation_type }}</td>
-
-                        <input type="hidden" name="data[{{ $i }}][material_id]" value="{{ $m->id }}">
-
-                        {{-- SAP --}}
-                        <td>
-                            <input type="number"
-                                   name="data[{{ $i }}][sap]"
-                                   id="sap_{{ $i }}"
-                                   value="{{ $m->sap }}"
-                                   class="form-control form-control-sm"
-                                   oninput="hitung({{ $i }})">
-                        </td>
-
-                                                {{-- FISIK --}}
-                        <td class="text-center">
-                            {{ $m->fisik ?? $m->unrestricted_use_stock ?? 0 }}
-                            <input type="hidden"
-                                   name="data[{{ $i }}][fisik]"
-                                   id="fisik_val_{{ $i }}"
-                                   value="{{ $m->fisik ?? $m->unrestricted_use_stock ?? 0 }}">
-                        </td>
-
-
-                        {{-- SN --}}
-                        <td>
-                            <input type="number"
-                                   name="data[{{ $i }}][sn]"
-                                   id="sn_{{ $i }}"
-                                   value="{{ $m->sn_mims }}"
-                                   class="form-control form-control-sm"
-                                   oninput="hitung({{ $i }})">
-                        </td>
-
-                        {{-- SELISIH --}}
-                        <td><input class="form-control form-control-sm" id="sf_{{ $i }}" name="data[{{ $i }}][selisih_sf]" value="{{ $m->selisih_sf }}" readonly></td>
-                        <td><input class="form-control form-control-sm" id="ss_{{ $i }}" name="data[{{ $i }}][selisih_ss]" value="{{ $m->selisih_ss }}" readonly></td>
-                        <td><input class="form-control form-control-sm" id="fs_{{ $i }}" name="data[{{ $i }}][selisih_fs]" value="{{ $m->selisih_fs }}" readonly></td>
-
-                        {{-- JUSTIFIKASI --}}
-                        <td><input class="form-control form-control-sm" name="data[{{ $i }}][justifikasi_sf]" value="{{ $m->justifikasi_sf }}"></td>
-                        <td><input class="form-control form-control-sm" name="data[{{ $i }}][justifikasi_ss]" value="{{ $m->justifikasi_ss }}"></td>
-                        <td><input class="form-control form-control-sm" name="data[{{ $i }}][justifikasi_fs]" value="{{ $m->justifikasi_fs }}"></td>
-                    </tr>
-                @endforeach
-                </tbody>
-            </table>
-</div>
-         <div class="d-flex justify-content-end mt-3">
-            <button class="btn btn-success btn-sm">
-                <i class="fa fa-save"></i> Simpan
-            </button>
+                <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                    <button type="button" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors" onclick="closeModal('importSapModal')">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors">
+                        Import
+                    </button>
+                </div>
+            </form>
         </div>
-    </form>
-    @endif
-</div>
-
-<div class="modal fade" id="importSapModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-
-      <form action="{{ route('material.importSap') }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        <input type="hidden" name="bulan" value="{{ $bulan }}">
-
-        <div class="modal-header">
-          <h5 class="modal-title">Import SAP</h5>
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
-        </div>
-
-        <div class="modal-body">
-          <input type="file" name="file" class="form-control" required>
-          <small class="text-muted">Format: no_part | sap</small>
-        </div>
-
-        <div class="modal-footer">
-          <button class="btn btn-success btn-sm">Import</button>
-        </div>
-      </form>
-
     </div>
-  </div>
 </div>
 
-<div class="modal fade" id="importMimsModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
+<!-- Modal Import MIMS -->
+<div id="importMimsModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeModal('importMimsModal')"></div>
+        
+        <div class="inline-block bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full relative">
+            <form action="{{ route('material.importMims') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="bulan" value="{{ $bulan ?? '' }}">
 
-      <form action="{{ route('material.importMims') }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        <input type="hidden" name="bulan" value="{{ $bulan }}">
+                <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-upload"></i>
+                            Import SN MIMS
+                        </h3>
+                        <button type="button" class="text-white hover:text-gray-200 transition-colors" onclick="closeModal('importMimsModal')">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
 
-        <div class="modal-header">
-          <h5 class="modal-title">Import SN MIMS</h5>
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <div class="p-6">
+                    <label class="form-label">File Excel</label>
+                    <input type="file" name="file" class="form-input" required>
+                    <p class="text-sm text-gray-500 mt-2">Format: no_part | sn_mims</p>
+                </div>
+
+                <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                    <button type="button" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors" onclick="closeModal('importMimsModal')">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 transition-colors">
+                        Import
+                    </button>
+                </div>
+            </form>
         </div>
-
-        <div class="modal-body">
-          <input type="file" name="file" class="form-control" required>
-          <small class="text-muted">Format: no_part | sn_mims</small>
-        </div>
-
-        <div class="modal-footer">
-          <button class="btn btn-success btn-sm">Import</button>
-        </div>
-      </form>
-
     </div>
-  </div>
 </div>
 
 @endsection
+
 @push('scripts')
 <script>
+// Modal functions
+function openModal(id) {
+    document.getElementById(id).classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+// Calculation function
 function hitung(i) {
     const sapVal   = document.getElementById(`sap_${i}`).value;
     const fisikVal = document.getElementById(`fisik_val_${i}`).value;
@@ -229,3 +305,4 @@ document.addEventListener('DOMContentLoaded', function () {
     @endif
 });
 </script>
+@endpush
