@@ -348,7 +348,7 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-3 col-md-6 col-sm-12">
+    <div class="col-lg-6 col-md-12 col-sm-12">
         <a href="{{ route('material-masuk.index') }}" class="text-decoration-none">
             <div class="card bg-orange" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
                 <div class="card-body">
@@ -357,25 +357,8 @@
                             <i class="fa fa-arrow-down fa-4x"></i>
                         </div>
                         <div class="col-xs-8">
-                            <p class="text-elg text-strong mb-0">{{ number_format($stats['total_material_masuk']) }}</p>
-                            <span>Total Material Masuk</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-lg-3 col-md-6 col-sm-12">
-        <a href="{{ route('surat-jalan.index') }}" class="text-decoration-none">
-            <div class="card bg-lightred" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-xs-4">
-                            <i class="fa fa-truck fa-4x"></i>
-                        </div>
-                        <div class="col-xs-8">
-                            <p class="text-elg text-strong mb-0">{{ number_format($stats['total_surat_jalan']) }}</p>
-                            <span>Total Surat Jalan</span>
+                            <p class="text-elg text-strong mb-0">Rp {{ number_format($stats['total_pemakaian'], 0, ',', '.') }}</p>
+                            <span>Pemakaian Komulatif</span>
                         </div>
                     </div>
                 </div>
@@ -405,11 +388,11 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-xs-4">
-                        <i class="fa fa-search fa-4x"></i>
+                        <i class="fa fa-refresh fa-4x"></i>
                     </div>
                     <div class="col-xs-8">
-                        <p class="text-elg text-strong mb-0">Rp {{ number_format($material_saving_config->total_inspeksi, 0, ',', '.') }}</p>
-                        <span>Total Inspeksi</span>
+                        <p class="text-elg text-strong mb-0">{{ number_format($stats['ito'], 2, ',', '.') }} Kali</p>
+                        <span>ITO</span>
                     </div>
                 </div>
             </div>
@@ -678,6 +661,11 @@
                 @csrf
                 <div class="modal-body">
                     <p class="text-muted"><small><i class="fa fa-info-circle"></i> Total Inspeksi akan dihitung otomatis dari penjumlahan keempat field di bawah ini.</small></p>
+                    <div class="form-group">
+                        <label for="saldo_awal_tahun">Saldo 1 Januari (Tahun Berjalan) (Rp)</label>
+                        <input type="number" class="form-control" id="saldo_awal_tahun" name="saldo_awal_tahun" 
+                               value="{{ $material_saving_config->saldo_awal_tahun }}" step="0.01" min="0">
+                    </div>
                     <div class="form-group">
                         <label for="standby">Standby (Rp)</label>
                         <input type="number" class="form-control" id="standby" name="standby" 

@@ -16,6 +16,7 @@ class MaterialSavingConfig extends Model
         'garansi',
         'perbaikan',
         'usul_hapus',
+        'saldo_awal_tahun',
     ];
 
     protected $casts = [
@@ -23,6 +24,7 @@ class MaterialSavingConfig extends Model
         'garansi' => 'decimal:2',
         'perbaikan' => 'decimal:2',
         'usul_hapus' => 'decimal:2',
+        'saldo_awal_tahun' => 'decimal:2',
     ];
 
     /**

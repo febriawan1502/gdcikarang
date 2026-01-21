@@ -23,7 +23,10 @@ class DashboardController extends Controller
         $stats = [
             'total_materials' => Material::count(),
             'total_stock' => Material::sum('unrestricted_use_stock'), 
-            'total_material_masuk' => MaterialMasuk::count(),
+            'total_pemakaian' => \DB::table('surat_jalan_detail')
+                ->join('materials', 'surat_jalan_detail.material_id', '=', 'materials.id')
+                ->whereNull('materials.deleted_at')
+                ->sum(\DB::raw('surat_jalan_detail.quantity * materials.harga_satuan')),
             'total_surat_jalan' => SuratJalan::count(),
             // Calculate total saldo: sum(harga_satuan * stock)
             // Using DB::raw to be safe if total_harga column isn't perfectly synced or if we want exact calculation
@@ -113,8 +116,22 @@ class DashboardController extends Controller
                 'garansi' => 0,
                 'perbaikan' => 0,
                 'usul_hapus' => 0,
+                'saldo_awal_tahun' => 0,
             ]);
         }
+
+        // Calculate ITO
+        // Rumus: Pemakaian Komulatif / ((Saldo Awal + Saldo Akhir) / 2)
+        $saldo_awal = $material_saving_config->saldo_awal_tahun ?? 0;
+        $saldo_akhir = $stats['total_saldo'] ?? 0;
+        $rata_rata_persediaan = ($saldo_awal + $saldo_akhir) / 2;
+        
+        $ito = 0;
+        if ($rata_rata_persediaan > 0) {
+            $ito = $stats['total_pemakaian'] / $rata_rata_persediaan;
+        }
+
+        $stats['ito'] = $ito;
         
         return view('dashboard.index', compact(
             'stats',
@@ -280,6 +297,7 @@ class DashboardController extends Controller
                 'garansi' => 'required|numeric|min:0',
                 'perbaikan' => 'required|numeric|min:0',
                 'usul_hapus' => 'required|numeric|min:0',
+                'saldo_awal_tahun' => 'nullable|numeric|min:0',
             ]);
 
             $config = MaterialSavingConfig::first();
