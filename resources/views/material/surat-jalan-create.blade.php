@@ -5,310 +5,319 @@
 @section('page-title', 'Buat Surat Jalan')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fa fa-plus-circle me-2"></i>
-                        Buat Surat Jalan Baru
-                    </h5>
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">Buat Surat Jalan</h2>
+            <p class="text-gray-500 text-sm mt-1">Isi form di bawah untuk membuat surat jalan baru.</p>
+        </div>
+        <a href="{{ route('surat-jalan.index') }}" class="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors">
+            <i class="fas fa-arrow-left"></i>
+            <span>Kembali</span>
+        </a>
+    </div>
+
+    <!-- Form Container -->
+    <div class="card border border-gray-100 shadow-xl shadow-gray-200/50">
+        <form action="{{ route('surat-jalan.store') }}" method="POST" id="suratJalanForm">
+            @csrf
+            
+            <!-- Section: Informasi Surat Jalan -->
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-teal-500 flex items-center justify-center text-white">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">Informasi Surat Jalan</h3>
                 </div>
-                <div class="card-body">
-                    <form action="{{ route('surat-jalan.store') }}" method="POST" id="suratJalanForm">
-                        @csrf
-                        
-                        <!-- Informasi Surat Jalan -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h6 class="text-info border-bottom pb-2">
-                                    <i class="fa fa-file-alt me-1"></i>
-                                    Informasi Surat Jalan
-                                </h6>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="nomor_surat" class="form-label fw-semibold">
-                                    Nomor Surat Jalan <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="nomor_surat" 
-                                       name="nomor_surat" 
-                                       value="{{ $nomorSurat }}"
-                                       readonly>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="jenis_surat_jalan" class="form-label fw-semibold">
-                                    Jenis Surat Jalan <span class="text-danger">*</span>
-                                </label>
-                                <select class="form-control" 
-                                        id="jenis_surat_jalan" 
-                                        name="jenis_surat_jalan" 
-                                        required>
-                                    <option value="">Pilih Jenis Surat Jalan</option>
-                                    <option value="Normal" selected>Normal</option>
-                                    <option value="Garansi">Garansi</option>
-                                    <option value="Peminjaman">Peminjaman</option>
-                                    <option value="Perbaikan">Perbaikan</option>
-                                    <option value="Manual">Manual</option>
-
-                                </select>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="tanggal" class="form-label fw-semibold">
-                                    Tanggal Surat Jalan <span class="text-danger">*</span>
-                                </label>
-                                <input type="date" 
-                                       class="form-control" 
-                                       id="tanggal" 
-                                       name="tanggal" 
-                                       value="{{ date('Y-m-d') }}"
-                                       required>
-                            </div>
-                        </div>
-                        
-                        <!-- Informasi Penerima -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h6 class="text-info border-bottom pb-2">
-                                    <i class="fa fa-user-check me-1"></i>
-                                    Informasi Penerima
-                                </h6>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="kepada" class="form-label fw-semibold">
-                                    Diberikan Kepada <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="kepada" 
-                                       name="kepada" 
-                                       placeholder="Vendor / Unit PLN"
-                                       required>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="berdasarkan" class="form-label fw-semibold">
-                                    Berdasarkan <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="berdasarkan" 
-                                       name="berdasarkan" 
-                                       placeholder="Reservasi/Permintaan" required>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="keterangan" class="form-label fw-semibold">
-                                    Untuk Pekerjaan
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="keterangan" 
-                                       name="keterangan" 
-                                       placeholder="Pekerjaan / PB PD Rutin / STO">
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="nomor_slip" class="form-label fw-semibold">
-                                    Nomor Slip
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="nomor_slip" 
-                                       name="nomor_slip" 
-                                       placeholder="No SAP : TUG8 / TUG9">
-                            </div>
-                            
-                            <!-- Foto Penerima -->
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label fw-semibold">
-                                    <i class="fa fa-camera me-1"></i> Foto Penerima
-                                </label>
-                                <div class="d-flex align-items-start gap-3">
-                                    <div>
-                                        <button type="button" class="btn btn-outline-primary" onclick="openCameraModal()">
-                                            <i class="fa fa-camera me-1"></i> Ambil Gambar
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary ms-2" onclick="uploadFromGallery()">
-                                            <i class="fa fa-image me-1"></i> Pilih dari Galeri
-                                        </button>
-                                        <input type="file" id="galleryInput" accept="image/*" style="display: none;" onchange="handleGalleryUpload(event)">
-                                    </div>
-                                    <div id="photoPreview" class="d-none">
-                                        <div class="position-relative" style="display: inline-block;">
-                                            <img id="thumbnailImg" src="" alt="Preview" 
-                                                 style="max-width: 150px; max-height: 150px; border-radius: 8px; border: 2px solid #ddd;">
-                                            <button type="button" class="btn btn-danger btn-sm position-absolute" 
-                                                    style="top: -8px; right: -8px; border-radius: 50%; width: 24px; height: 24px; padding: 0;"
-                                                    onclick="removePhoto()">
-                                                <i class="fa fa-times"></i>
-                                            </button>
-                                        </div>
-                                        <input type="hidden" name="foto_penerima" id="fotoBase64">
-                                    </div>
-                                </div>
-                                <small class="text-muted">Foto akan dikompresi ke resolusi 720p</small>
-                            </div>
-                        </div>
-                        
-                        <!-- Daftar Material -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h6 class="text-info border-bottom pb-2">
-                                    <i class="fa fa-boxes me-1"></i>
-                                    Daftar Material
-                                </h6>
-                            </div>
-                            
-                            <div class="col-12 mb-3">
-                                <div id="manualNotice" class="alert alert-info d-none">
-                                    <i class="fa fa-info-circle me-1"></i>
-                                    Mode <strong>Manual / Peminjaman</strong> aktif. Isi nama barang secara bebas tanpa memilih dari daftar material.
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-bordered" id="materialTable">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th width="5%">No</th>
-                                                <th width="30%">Material</th>
-                                                <!-- <th width="10%">Stock</th> -->
-                                                <th width="10%" class="col-stock">Stock</th>
-                                                <th width="10%">Qty</th>
-                                                <th width="10%">Satuan</th>
-                                                <th width="25%">Keterangan</th>
-                                                <th width="10%">Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                                
-                                <div class="mt-2" style="display: flex !important; justify-content: flex-end !important; width: 100%;">
-                                    <button type="button" class="btn btn-success btn-sm" onclick="addRow()">
-                                        <i class="fa fa-plus me-1"></i>
-                                        Tambah Material
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Informasi Kendaraan -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h6 class="text-info border-bottom pb-2">
-                                    <i class="fa fa-truck me-1"></i>
-                                    Informasi Kendaraan
-                                </h6>
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="kendaraan" class="form-label fw-semibold">
-                                    Kendaraan
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="kendaraan" 
-                                       name="kendaraan" 
-                                       placeholder="Jenis/Merk kendaraan">
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="no_polisi" class="form-label fw-semibold">
-                                    No. Polisi
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="no_polisi" 
-                                       name="no_polisi" 
-                                       placeholder="Nomor polisi kendaraan">
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="pengemudi" class="form-label fw-semibold">
-                                    Pengemudi
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="pengemudi" 
-                                       name="pengemudi" 
-                                       placeholder="Nama pengemudi">
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="security" class="form-label fw-semibold">
-                                    Security
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="security" 
-                                       name="security" 
-                                       placeholder="Nama security">
-                            </div>
-                        </div>
-                        
-                        <!-- Action Buttons -->
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="d-flex justify-content-between">
-                                    <a href="{{ route('surat-jalan.index') }}" class="btn btn-secondary">
-                                        <i class="fa fa-arrow-left me-1"></i>
-                                        Kembali
-                                    </a>
-                                    
-                                    <div>
-                                        <button type="reset" class="btn btn-warning me-2">
-                                            <i class="fa fa-undo me-1"></i>
-                                            Reset Form
-                                        </button>
-                                        
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fa fa-save me-1"></i>
-                                            Simpan Surat Jalan
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="nomor_surat" class="form-label">
+                            Nomor Surat Jalan <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" 
+                               class="form-input bg-gray-50" 
+                               id="nomor_surat" 
+                               name="nomor_surat" 
+                               value="{{ $nomorSurat }}"
+                               readonly>
+                    </div>
+                    
+                    <div>
+                        <label for="jenis_surat_jalan" class="form-label">
+                            Jenis Surat Jalan <span class="text-red-500">*</span>
+                        </label>
+                        <select class="form-input" 
+                                id="jenis_surat_jalan" 
+                                name="jenis_surat_jalan" 
+                                required>
+                            <option value="">Pilih Jenis Surat Jalan</option>
+                            <option value="Normal" selected>Normal</option>
+                            <option value="Garansi">Garansi</option>
+                            <option value="Peminjaman">Peminjaman</option>
+                            <option value="Perbaikan">Perbaikan</option>
+                            <option value="Manual">Manual</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="tanggal" class="form-label">
+                            Tanggal Surat Jalan <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" 
+                               class="form-input" 
+                               id="tanggal" 
+                               name="tanggal" 
+                               value="{{ date('Y-m-d') }}"
+                               required>
+                    </div>
                 </div>
             </div>
-        </div>
+                        
+            <!-- Section: Informasi Penerima -->
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center text-white">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">Informasi Penerima</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="kepada" class="form-label">
+                            Diberikan Kepada <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" 
+                               class="form-input" 
+                               id="kepada" 
+                               name="kepada" 
+                               placeholder="Vendor / Unit PLN"
+                               required>
+                    </div>
+                    
+                    <div>
+                        <label for="berdasarkan" class="form-label">
+                            Berdasarkan <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" 
+                               class="form-input" 
+                               id="berdasarkan" 
+                               name="berdasarkan" 
+                               placeholder="Reservasi/Permintaan" required>
+                    </div>
+
+                    <div>
+                        <label for="keterangan" class="form-label">
+                            Untuk Pekerjaan
+                        </label>
+                        <input type="text" 
+                               class="form-input" 
+                               id="keterangan" 
+                               name="keterangan" 
+                               placeholder="Pekerjaan / PB PD Rutin / STO">
+                    </div>
+                    
+                    <div>
+                        <label for="nomor_slip" class="form-label">
+                            Nomor Slip
+                        </label>
+                        <input type="text" 
+                               class="form-input" 
+                               id="nomor_slip" 
+                               name="nomor_slip" 
+                               placeholder="No SAP : TUG8 / TUG9">
+                    </div>
+                    
+                    <!-- Foto Penerima -->
+                    <div class="md:col-span-2">
+                        <label class="form-label">
+                            <i class="fas fa-camera mr-1"></i> Foto Penerima
+                        </label>
+                        <div class="flex flex-wrap items-start gap-4">
+                            <div class="flex gap-2">
+                                <button type="button" class="px-4 py-2 rounded-lg border border-teal-500 text-teal-600 hover:bg-teal-50 transition-colors" onclick="openCameraModal()">
+                                    <i class="fas fa-camera mr-1"></i> Ambil Gambar
+                                </button>
+                                <button type="button" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors" onclick="uploadFromGallery()">
+                                    <i class="fas fa-image mr-1"></i> Pilih dari Galeri
+                                </button>
+                                <input type="file" id="galleryInput" accept="image/*" style="display: none;" onchange="handleGalleryUpload(event)">
+                            </div>
+                            <div id="photoPreview" class="hidden">
+                                <div class="relative inline-block">
+                                    <img id="thumbnailImg" src="" alt="Preview" 
+                                         class="max-w-[150px] max-h-[150px] rounded-lg border-2 border-gray-200">
+                                    <button type="button" class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center hover:bg-red-600" onclick="removePhoto()">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <input type="hidden" name="foto_penerima" id="fotoBase64">
+                            </div>
+                        </div>
+                        <p class="text-gray-400 text-xs mt-2">Foto akan dikompresi ke resolusi 720p</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section: Daftar Material -->
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-purple-500 flex items-center justify-center text-white">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">Daftar Material</h3>
+                </div>
+                
+                <div id="manualNotice" class="hidden mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 text-sm">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Mode <strong>Manual / Peminjaman</strong> aktif. Isi nama barang secara bebas tanpa memilih dari daftar material.
+                </div>
+                
+                <div class="overflow-x-auto rounded-xl border border-gray-100">
+                    <table class="table-purity w-full" id="materialTable">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-12">No</th>
+                                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Material</th>
+                                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-24 col-stock">Stock</th>
+                                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Qty</th>
+                                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Satuan</th>
+                                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Keterangan</th>
+                                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-16">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 bg-white"></tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-4 flex justify-end">
+                    <button type="button" class="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center gap-2" onclick="addRow()">
+                        <i class="fas fa-plus"></i>
+                        <span>Tambah Material</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Section: Informasi Kendaraan -->
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">Informasi Kendaraan</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div>
+                        <label for="kendaraan" class="form-label">Kendaraan</label>
+                        <input type="text" 
+                               class="form-input" 
+                               id="kendaraan" 
+                               name="kendaraan" 
+                               placeholder="Jenis/Merk kendaraan">
+                    </div>
+                    
+                    <div>
+                        <label for="no_polisi" class="form-label">No. Polisi</label>
+                        <input type="text" 
+                               class="form-input" 
+                               id="no_polisi" 
+                               name="no_polisi" 
+                               placeholder="Nomor polisi kendaraan">
+                    </div>
+                    
+                    <div>
+                        <label for="pengemudi" class="form-label">Pengemudi</label>
+                        <input type="text" 
+                               class="form-input" 
+                               id="pengemudi" 
+                               name="pengemudi" 
+                               placeholder="Nama pengemudi">
+                    </div>
+                    
+                    <div>
+                        <label for="security" class="form-label">Security</label>
+                        <input type="text" 
+                               class="form-input" 
+                               id="security" 
+                               name="security" 
+                               placeholder="Nama security">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="p-6 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <a href="{{ route('surat-jalan.index') }}" class="w-full sm:w-auto px-6 py-3 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors flex items-center justify-center gap-2">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Kembali</span>
+                </a>
+                
+                <div class="flex gap-3 w-full sm:w-auto">
+                    <button type="reset" class="flex-1 sm:flex-none px-6 py-3 rounded-xl border border-yellow-400 text-yellow-600 hover:bg-yellow-50 transition-colors flex items-center justify-center gap-2">
+                        <i class="fas fa-undo"></i>
+                        <span>Reset</span>
+                    </button>
+                    
+                    <button type="submit" class="flex-1 sm:flex-none btn-teal px-6 py-3 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all duration-300 flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i>
+                        <span>Simpan Surat Jalan</span>
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 @endsection
 
-<!-- Camera Modal -->
-<div class="modal fade" id="cameraModal" tabindex="-1" aria-labelledby="cameraModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="cameraModalLabel">
-                    <i class="fa fa-camera me-2"></i> Ambil Foto Penerima
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeCameraModal()"></button>
+<!-- Camera Modal (Tailwind) -->
+<div id="cameraModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeCameraModal()"></div>
+
+        <!-- Modal panel -->
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                        <i class="fas fa-camera"></i>
+                        Ambil Foto Penerima
+                    </h3>
+                    <button type="button" class="text-white hover:text-gray-200 transition-colors" onclick="closeCameraModal()">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
             </div>
-            <div class="modal-body text-center">
-                <div id="cameraContainer">
-                    <video id="cameraVideo" autoplay playsinline style="max-width: 100%; border-radius: 8px;"></video>
+            
+            <!-- Body -->
+            <div class="p-6 text-center">
+                <div id="cameraContainer" class="mb-4">
+                    <video id="cameraVideo" autoplay playsinline class="w-full max-w-lg mx-auto rounded-xl border border-gray-200"></video>
                 </div>
                 <canvas id="cameraCanvas" style="display: none;"></canvas>
-                <div class="mt-3">
-                    <button type="button" class="btn btn-success btn-lg" onclick="capturePhoto()">
-                        <i class="fa fa-camera me-1"></i> Capture
+                <div class="flex justify-center gap-3 mt-4">
+                    <button type="button" class="px-6 py-3 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center gap-2" onclick="capturePhoto()">
+                        <i class="fas fa-camera"></i>
+                        <span>Capture</span>
                     </button>
-                    <button type="button" class="btn btn-secondary" onclick="switchCamera()">
-                        <i class="fa fa-sync-alt me-1"></i> Ganti Kamera
+                    <button type="button" class="px-6 py-3 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors flex items-center gap-2" onclick="switchCamera()">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Ganti Kamera</span>
                     </button>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeCameraModal()">Tutup</button>
+            
+            <!-- Footer -->
+            <div class="bg-gray-50 px-6 py-4 flex justify-end">
+                <button type="button" class="px-6 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors" onclick="closeCameraModal()">
+                    Tutup
+                </button>
             </div>
         </div>
     </div>
@@ -759,7 +768,7 @@ function toggleManualMode() {
     });
 
     // ⚠️ NOTICE MANUAL → HANYA MANUAL
-    notice.classList.toggle('d-none', !isManual);
+    notice.classList.toggle('hidden', !isManual);
 }
 
 
@@ -783,34 +792,17 @@ let useFrontCamera = true;
 // Open camera modal
 function openCameraModal() {
     const modal = document.getElementById('cameraModal');
-    modal.style.display = 'block';
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-    
-    // Try to use Bootstrap modal if available
-    if (typeof $ !== 'undefined' && $.fn.modal) {
-        $('#cameraModal').modal('show');
-    }
-    
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Prevent body scroll
     startCamera();
 }
 
 // Close camera modal
 function closeCameraModal() {
     stopCamera();
-    
     const modal = document.getElementById('cameraModal');
-    modal.style.display = 'none';
-    modal.classList.remove('show');
-    document.body.classList.remove('modal-open');
-    
-    // Remove backdrop if exists
-    const backdrop = document.querySelector('.modal-backdrop');
-    if (backdrop) backdrop.remove();
-    
-    if (typeof $ !== 'undefined' && $.fn.modal) {
-        $('#cameraModal').modal('hide');
-    }
+    modal.classList.add('hidden');
+    document.body.style.overflow = ''; // Restore body scroll
 }
 
 // Start camera

@@ -7,6 +7,24 @@
         pointer-events: none;
         opacity: 0.5;
     }
+    .ui-autocomplete {
+        z-index: 9999 !important;
+        max-height: 300px;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    .ui-menu-item {
+        padding: 10px 12px;
+        cursor: pointer;
+    }
+    .ui-menu-item:hover, .ui-state-active {
+        background: #f0fdfa !important;
+        color: #0d9488 !important;
+        border: none !important;
+    }
 </style>
 @endpush
 
@@ -14,110 +32,117 @@
 @php
     $materialId = $material->id ?? null;
 @endphp
-<div class="container-fluid px-lg-5 px-3 py-4">
-    <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-body py-4 px-4">
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">📊 Material Historis</h2>
+            <p class="text-gray-500 text-sm mt-1">Riwayat transaksi material masuk dan keluar.</p>
+        </div>
+        
+        <!-- Export Buttons -->
+        <div class="flex gap-2">
+            <a href="{{ $materialId 
+                        ? route('material.history.export', ['id' => $materialId]) 
+                        : route('material.history.export') }}"
+               class="px-4 py-2 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center gap-2">
+                <i class="fas fa-file-excel"></i>
+                <span>Export Excel</span>
+            </a>
 
-            {{-- 🔝 HEADER & EXPORT --}}
-            <div class="d-flex gap-2 mt-3 mt-md-0">
-                <a href="{{ $materialId 
-                            ? route('material.history.export', ['id' => $materialId]) 
-                            : route('material.history.export') }}"
-                   class="btn btn-success shadow-sm d-flex align-items-center gap-2 px-3 py-2 rounded-3">
-                    <i class="fa fa-file-excel"></i>
-                    <span>Export Excel</span>
-                </a>
+            <a href="#"
+               id="exportPdfBtn"
+               target="_blank"
+               class="px-4 py-2 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors flex items-center gap-2 {{ $materialId ? '' : 'disabled opacity-50 cursor-not-allowed' }}"
+               {{ $materialId ? 'href=' . route('material.history.export-pdf', ['id' => $materialId]) : 'onclick=return false;' }}>
+                <i class="fas fa-file-pdf"></i>
+                <span>Export PDF</span>
+            </a>
+        </div>
+    </div>
 
-                <a href="#"
-                   id="exportPdfBtn"
-                    target="_blank"
-                   class="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-3 {{ $materialId ? '' : 'disabled' }}"
-                   {{ $materialId ? 'href=' . route('material.history.export-pdf', ['id' => $materialId]) : 'onclick=return false;' }}>
-                    <i class="fa fa-file-pdf"></i>
-                    <span>Export PDF</span>
-                </a>
-            </div>
-            {{-- 🔍 AUTOCOMPLETE MATERIAL --}}
-            <form id="filterForm" class="mb-4">
-                <div class="row g-3 align-items-end justify-content-between">
-                    <div class="col-lg-8 col-md-7">
-                        <label for="searchMaterial" class="form-label text-muted small mb-1">Cari Material</label>
-                        <input type="text" id="searchMaterial"
-                               class="form-control shadow-sm rounded-3 form-control-sm"
-                               placeholder="Ketik nama material...">
-                    </div>
-
-                    <input type="hidden" id="materialId">
-
-                    <div class="col-lg-3 col-md-5 text-md-end">
-                        <label for="tipe" class="form-label text-muted small mb-1 d-block">Jenis Transaksi</label>
-                        <select name="tipe" id="tipe" class="form-select shadow-sm rounded-3 form-select-sm">
-                            <option value="">Semua Tipe</option>
-                            <option value="MASUK">MASUK</option>
-                            <option value="KELUAR">KELUAR</option>
-                        </select>
-                    </div>
+    <!-- Content Card -->
+    <div class="card p-6 border border-gray-100 shadow-xl shadow-gray-200/50">
+        <!-- Filter Section -->
+        <form id="filterForm" class="mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div class="md:col-span-2">
+                    <label for="searchMaterial" class="form-label">Cari Material</label>
+                    <input type="text" id="searchMaterial"
+                           class="form-input"
+                           placeholder="Ketik nama material...">
                 </div>
-            </form>
-            
-            {{-- 📋 TABLE --}}
-            <div class="table-responsive">
-                <table id="materialHistoryTable" class="table table-bordered table-striped datatable">
 
+                <input type="hidden" id="materialId">
 
-                    <thead class="table-light text-center align-middle">
-                        <tr>
-                            <th>Tanggal</th>
-                            <th>Tipe</th>
-                            <th>No Slip</th>
-                            <th>Material</th>
-                            <th>Masuk</th>
-                            <th>Keluar</th>
-                            <th>Sisa Persediaan</th>
-                            <th>Catatan</th>
-                        </tr>
-                    </thead>
+                <div>
+                    <label for="tipe" class="form-label">Jenis Transaksi</label>
+                    <select name="tipe" id="tipe" class="form-input">
+                        <option value="">Semua Tipe</option>
+                        <option value="MASUK">MASUK</option>
+                        <option value="KELUAR">KELUAR</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Table -->
+        <div class="overflow-x-auto rounded-xl border border-gray-100">
+            <table id="materialHistoryTable" class="table-purity w-full">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal</th>
+                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Tipe</th>
+                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">No Slip</th>
+                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Material</th>
+                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Masuk</th>
+                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Keluar</th>
+                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Sisa Persediaan</th>
+                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Catatan</th>
+                    </tr>
+                </thead>
 
-                    <tbody id="dataTableBody">
-                        @forelse ($histories as $h)
-                            <tr class="text-center">
-                                <td>{{ $h->tanggal ? \Carbon\Carbon::parse($h->tanggal)->format('Y-m-d') : '-' }}</td>
+                <tbody id="dataTableBody" class="divide-y divide-gray-100 bg-white">
+                    @forelse ($histories as $h)
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-4 py-3 text-gray-600">{{ $h->tanggal ? \Carbon\Carbon::parse($h->tanggal)->format('Y-m-d') : '-' }}</td>
 
-                                <td>
-                                    <span class="badge 
-                                        @if($h->tipe === 'MASUK') bg-success 
-                                        @elseif($h->tipe === 'KELUAR') bg-danger 
-                                        @else bg-secondary @endif px-3 py-2">
+                            <td class="px-4 py-3">
+                                @if($h->tipe === 'MASUK')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        MASUK
+                                    </span>
+                                @elseif($h->tipe === 'KELUAR')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        KELUAR
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                         {{ strtoupper($h->tipe) }}
                                     </span>
-                                </td>
+                                @endif
+                            </td>
 
-                                <td>{{ $h->no_slip ?? '-' }}</td>
-                                <td class="text-start">{{ optional($h->material)->material_description ?? '-' }}</td>
-                                <td class="text-success fw-semibold">{{ number_format($h->masuk ?? 0) }}</td>
-                                <td class="text-danger fw-semibold">{{ number_format($h->keluar ?? 0) }}</td>
-                                <td class="fw-semibold text-primary">{{ number_format($h->sisa_persediaan ?? 0) }}</td>
-                                <td class="text-start text-muted">{{ $h->catatan ?? '-' }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center text-muted py-4">
-                                    ❌ Tidak ada data histori
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-                
-            </div>
-
+                            <td class="px-4 py-3 text-gray-600">{{ $h->no_slip ?? '-' }}</td>
+                            <td class="px-4 py-3 text-gray-800">{{ optional($h->material)->material_description ?? '-' }}</td>
+                            <td class="px-4 py-3 font-semibold text-green-600">{{ number_format($h->masuk ?? 0) }}</td>
+                            <td class="px-4 py-3 font-semibold text-red-600">{{ number_format($h->keluar ?? 0) }}</td>
+                            <td class="px-4 py-3 font-semibold text-blue-600">{{ number_format($h->sisa_persediaan ?? 0) }}</td>
+                            <td class="px-4 py-3 text-gray-500">{{ $h->catatan ?? '-' }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="px-4 py-8 text-center text-gray-400">
+                                <i class="fas fa-inbox text-4xl mb-2"></i>
+                                <p>Tidak ada data histori</p>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-
-@push('scripts')
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-@endpush
 
 @push('scripts')
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
@@ -132,7 +157,14 @@ $(document).ready(function () {
         lengthChange: true,
         searching: true,
         info: true,
-        paging: true
+        paging: true,
+        language: {
+            search: "🔍 Cari:",
+            lengthMenu: "Tampilkan _MENU_ data per halaman",
+            info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+            paginate: { previous: "Sebelumnya", next: "Berikutnya" },
+            zeroRecords: "Tidak ada data ditemukan"
+        }
     });
 
     // AUTOCOMPLETE MATERIAL
@@ -152,7 +184,7 @@ $(document).ready(function () {
 
             // AKTIFKAN EXPORT PDF
             const exportPdfBtn = document.getElementById('exportPdfBtn');
-            exportPdfBtn.classList.remove('disabled');
+            exportPdfBtn.classList.remove('disabled', 'opacity-50', 'cursor-not-allowed');
             exportPdfBtn.setAttribute(
                 'href',
                 `/materials/${ui.item.id}/history/export-pdf`
@@ -172,9 +204,15 @@ $(document).ready(function () {
 
             // MATIKAN EXPORT PDF
             const exportPdfBtn = document.getElementById('exportPdfBtn');
-            exportPdfBtn.classList.add('disabled');
+            exportPdfBtn.classList.add('disabled', 'opacity-50', 'cursor-not-allowed');
             exportPdfBtn.removeAttribute('href');
         }
+    });
+
+    // FILTER TIPE
+    $('#tipe').on('change', function() {
+        const value = $(this).val();
+        table.column(1).search(value).draw();
     });
 
 });

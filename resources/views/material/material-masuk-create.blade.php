@@ -3,145 +3,176 @@
 @section('title', 'Tambah Material Masuk')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">Tambah Material Masuk</h3>
-                    <a href="{{ route('material-masuk.index') }}" class="btn btn-secondary btn-sm">
-                        <i class="fa fa-arrow-left"></i> Kembali
-                    </a>
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">Tambah Material Masuk</h2>
+            <p class="text-gray-500 text-sm mt-1">Isi form di bawah untuk menambahkan material masuk baru.</p>
+        </div>
+        <a href="{{ route('material-masuk.index') }}" class="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors">
+            <i class="fas fa-arrow-left"></i>
+            <span>Kembali</span>
+        </a>
+    </div>
+
+    <!-- Form Container -->
+    <div class="card border border-gray-100 shadow-xl shadow-gray-200/50">
+        <!-- Error Messages -->
+        @if ($errors->any())
+            <div class="mx-6 mt-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+                <div class="flex items-center gap-2 font-semibold mb-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Terdapat kesalahan:</span>
                 </div>
+                <ul class="list-disc list-inside text-sm">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
-                <div class="card-body">
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <ul class="mb-0">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
+        <form action="{{ route('material-masuk.store') }}" method="POST" id="materialMasukForm">
+            @csrf
 
-                    <form action="{{ route('material-masuk.store') }}" method="POST" id="materialMasukForm">
-                        @csrf
-
-                        {{-- --- Bagian Identitas Utama --- --}}
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="nomor_kr">Nomor KR</label>
-                                <input type="text" class="form-control" id="nomor_kr" name="nomor_kr" placeholder="Masukkan Nomor KR" value="{{ old('nomor_kr') }}">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="pabrikan">Pabrikan</label>
-                                <input type="text" class="form-control" id="pabrikan" name="pabrikan" placeholder="Masukkan Pabrikan" value="{{ old('pabrikan') }}">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="tanggal_masuk">Tanggal Masuk <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control" id="tanggal_masuk" name="tanggal_masuk" value="{{ old('tanggal_masuk', date('Y-m-d')) }}" required>
-                            </div>
-
-                            <!--<div class="col-md-4 mb-3">-->
-                            <!--    <label for="tanggal_keluar">Tanggal Keluar</label>-->
-                            <!--    <input type="date" class="form-control" id="tanggal_keluar" name="tanggal_keluar" value="{{ old('tanggal_keluar') }}">-->
-                            <!--</div>-->
-
-                            <div class="col-md-4 mb-3">
-                                <label for="jenis">Jenis</label>
-                                <select name="jenis" id="jenis" class="form-control">
-                                    <option value="">-- Pilih Jenis --</option>
-                                    <option value="B1" {{ old('jenis')=='B1' ? 'selected' : '' }}>B1</option>
-                                    <option value="B2" {{ old('jenis')=='B2' ? 'selected' : '' }}>B2</option>
-                                    <option value="AO" {{ old('jenis')=='AO' ? 'selected' : '' }}>AO</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="nomor_po">Nomor PO</label>
-                                <input type="text" class="form-control" id="nomor_po" name="nomor_po" placeholder="Masukkan Nomor PO" value="{{ old('nomor_po') }}">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="nomor_doc">Nomor DOC</label>
-                                <input type="text" class="form-control" id="nomor_doc" name="nomor_doc" placeholder="Masukkan Nomor DOC" value="{{ old('nomor_doc') }}">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="tugas_4">Tug 4</label>
-                                <input type="text" class="form-control" id="tugas_4" name="tugas_4" placeholder="Masukkan Tug 4" value="{{ old('tugas_4') }}">
-                            </div>
-                        </div>
-
-                        <div class="form-group mb-4">
-                            <label for="keterangan">Keterangan</label>
-                            <textarea class="form-control" id="keterangan" name="keterangan" rows="3" placeholder="Masukkan keterangan (opsional)">{{ old('keterangan') }}</textarea>
-                        </div>
-
-                        {{-- --- Detail Material Table (JS Autocomplete tetap) --- --}}
-                        <hr>
-                        <h5>Detail Material</h5>
-                        <div class="table-responsive">
-                            <table class="table table-bordered" id="materialTable">
-                                <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Material</th>
-                                        <th>Normalisasi</th>
-                                        <th>Qty</th>
-                                        <th>Satuan</th>
-                                        <th>Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="materialTableBody">
-                                    <tr>
-                                        <td class="text-center">1</td>
-                                        <td>
-                                            <div class="autocomplete-container">
-                                                <input type="text" class="form-control form-control-sm material-search" 
-                                                    name="materials[0][material_description]" 
-                                                    placeholder="Ketik untuk mencari material..." autocomplete="off" required>
-                                                <input type="hidden" name="materials[0][material_id]" class="material-id">
-<input type="hidden" name="materials[0][material_name]" class="material-name">
-
-                                                <div class="autocomplete-results"></div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="autocomplete-container">
-                                                <input type="text" class="form-control form-control-sm normalisasi-search" 
-                                                    name="materials[0][normalisasi]" placeholder="Normalisasi">
-                                                <div class="autocomplete-results"></div>
-                                            </div>
-                                        </td>
-                                        <td><input type="number" class="form-control form-control-sm" name="materials[0][quantity]" placeholder="Qty" min="1" required></td>
-                                        <td><input type="text" class="form-control form-control-sm" name="materials[0][satuan]" placeholder="Satuan" required></td>
-                                        <td>
-                                            <button type="button" class="btn btn-danger btn-sm remove-row" onclick="removeRow(this)" disabled>
-                                                <i class="fa fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <button type="button" class="btn btn-success btn-sm mb-3" onclick="addRow()">
-                            <i class="fa fa-plus"></i> Tambah Material
-                        </button>
-
-                        <div class="form-group mt-3">
-                            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Simpan Material Masuk</button>
-                            <a href="{{ route('material-masuk.index') }}" class="btn btn-secondary"><i class="fa fa-times"></i> Batal</a>
-                        </div>
-                    </form>
+            <!-- Section: Identitas Utama -->
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-teal-500 flex items-center justify-center text-white">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">Identitas Dokumen</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="nomor_kr" class="form-label">Nomor KR</label>
+                        <input type="text" class="form-input" id="nomor_kr" name="nomor_kr" placeholder="Masukkan Nomor KR" value="{{ old('nomor_kr') }}">
+                    </div>
+                    <div>
+                        <label for="pabrikan" class="form-label">Pabrikan</label>
+                        <input type="text" class="form-input" id="pabrikan" name="pabrikan" placeholder="Masukkan Pabrikan" value="{{ old('pabrikan') }}">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div>
+                        <label for="tanggal_masuk" class="form-label">
+                            Tanggal Masuk <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" class="form-input" id="tanggal_masuk" name="tanggal_masuk" value="{{ old('tanggal_masuk', date('Y-m-d')) }}" required>
+                    </div>
+                    <div>
+                        <label for="jenis" class="form-label">Jenis</label>
+                        <select name="jenis" id="jenis" class="form-input">
+                            <option value="">-- Pilih Jenis --</option>
+                            <option value="B1" {{ old('jenis')=='B1' ? 'selected' : '' }}>B1</option>
+                            <option value="B2" {{ old('jenis')=='B2' ? 'selected' : '' }}>B2</option>
+                            <option value="AO" {{ old('jenis')=='AO' ? 'selected' : '' }}>AO</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                    <div>
+                        <label for="nomor_po" class="form-label">Nomor PO</label>
+                        <input type="text" class="form-input" id="nomor_po" name="nomor_po" placeholder="Masukkan Nomor PO" value="{{ old('nomor_po') }}">
+                    </div>
+                    <div>
+                        <label for="nomor_doc" class="form-label">Nomor DOC</label>
+                        <input type="text" class="form-input" id="nomor_doc" name="nomor_doc" placeholder="Masukkan Nomor DOC" value="{{ old('nomor_doc') }}">
+                    </div>
+                    <div>
+                        <label for="tugas_4" class="form-label">Tug 4</label>
+                        <input type="text" class="form-input" id="tugas_4" name="tugas_4" placeholder="Masukkan Tug 4" value="{{ old('tugas_4') }}">
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <label for="keterangan" class="form-label">Keterangan</label>
+                    <textarea class="form-input" id="keterangan" name="keterangan" rows="3" placeholder="Masukkan keterangan (opsional)">{{ old('keterangan') }}</textarea>
                 </div>
             </div>
-        </div>
+
+            <!-- Section: Detail Material -->
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-purple-500 flex items-center justify-center text-white">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">Detail Material</h3>
+                </div>
+                
+                <div class="overflow-x-auto rounded-xl border border-gray-100">
+                    <table class="table-purity w-full" id="materialTable">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-12">No</th>
+                                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Material</th>
+                                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Normalisasi</th>
+                                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Qty</th>
+                                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Satuan</th>
+                                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-16">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="materialTableBody" class="divide-y divide-gray-100 bg-white">
+                            <tr>
+                                <td class="px-4 py-3 text-center text-gray-600">1</td>
+                                <td class="px-4 py-3">
+                                    <div class="autocomplete-container">
+                                        <input type="text" class="form-input text-sm material-search" 
+                                            name="materials[0][material_description]" 
+                                            placeholder="Ketik untuk mencari material..." autocomplete="off" required>
+                                        <input type="hidden" name="materials[0][material_id]" class="material-id">
+                                        <input type="hidden" name="materials[0][material_name]" class="material-name">
+                                        <div class="autocomplete-results"></div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="autocomplete-container">
+                                        <input type="text" class="form-input text-sm normalisasi-search" 
+                                            name="materials[0][normalisasi]" placeholder="Normalisasi">
+                                        <div class="autocomplete-results"></div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <input type="number" class="form-input text-sm" name="materials[0][quantity]" placeholder="Qty" min="1" required>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <input type="text" class="form-input text-sm" name="materials[0][satuan]" placeholder="Satuan" required>
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <button type="button" class="p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors remove-row" onclick="removeRow(this)" disabled>
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-4 flex justify-end">
+                    <button type="button" class="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center gap-2" onclick="addRow()">
+                        <i class="fas fa-plus"></i>
+                        <span>Tambah Material</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="p-6 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <a href="{{ route('material-masuk.index') }}" class="w-full sm:w-auto px-6 py-3 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors flex items-center justify-center gap-2">
+                    <i class="fas fa-times"></i>
+                    <span>Batal</span>
+                </a>
+                
+                <button type="submit" class="w-full sm:w-auto btn-teal px-6 py-3 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all duration-300 flex items-center justify-center gap-2">
+                    <i class="fas fa-save"></i>
+                    <span>Simpan Material Masuk</span>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 @endsection
@@ -200,38 +231,37 @@ function addRow() {
     const newRow = document.createElement('tr');
     
     newRow.innerHTML = `
-        <td class="text-center">${rowIndex + 1}</td>
-        <td>
+        <td class="px-4 py-3 text-center text-gray-600">${rowIndex + 1}</td>
+        <td class="px-4 py-3">
             <div class="autocomplete-container">
-                <input type="text" class="form-control form-control-sm material-search" 
+                <input type="text" class="form-input text-sm material-search" 
                        name="materials[${rowIndex}][material_description]" 
                        placeholder="Ketik untuk mencari material..." 
                        autocomplete="off" required>
                 <input type="hidden" name="materials[${rowIndex}][material_id]" class="material-id">
-<input type="hidden" name="materials[${rowIndex}][material_name]" class="material-name">
-
+                <input type="hidden" name="materials[${rowIndex}][material_name]" class="material-name">
                 <div class="autocomplete-results"></div>
             </div>
         </td>
-        <td>
+        <td class="px-4 py-3">
             <div class="autocomplete-container">
-                <input type="text" class="form-control form-control-sm normalisasi-search" 
+                <input type="text" class="form-input text-sm normalisasi-search" 
                        name="materials[${rowIndex}][normalisasi]" placeholder="Normalisasi">
                 <div class="autocomplete-results"></div>
             </div>
         </td>
-        <td>
-            <input type="number" class="form-control form-control-sm" 
+        <td class="px-4 py-3">
+            <input type="number" class="form-input text-sm" 
                    name="materials[${rowIndex}][quantity]" placeholder="Qty" min="1" required>
         </td>
-        <td>
-            <input type="text" class="form-control form-control-sm" 
+        <td class="px-4 py-3">
+            <input type="text" class="form-input text-sm" 
                    name="materials[${rowIndex}][satuan]" placeholder="Satuan" required>
         </td>
-        <td>
-            <button type="button" class="btn btn-danger btn-sm remove-row" 
+        <td class="px-4 py-3 text-center">
+            <button type="button" class="p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors remove-row" 
                     onclick="removeRow(this)">
-                <i class="fa fa-trash"></i>
+                <i class="fas fa-trash"></i>
             </button>
         </td>
     `;

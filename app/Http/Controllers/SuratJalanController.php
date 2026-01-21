@@ -89,38 +89,41 @@ namespace App\Http\Controllers;
                     return $row->keterangan ?? '-';
                 })
                 ->editColumn('status', function ($row) {
+                    // Badge status utama
+                    switch ($row->status) {
+                        case 'BUTUH_PERSETUJUAN':
+                            $badgeClass = 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+                            $icon = '<i class="fas fa-clock mr-1"></i>';
+                            break;
+                        case 'APPROVED':
+                            $badgeClass = 'bg-green-100 text-green-800 border border-green-200';
+                            $icon = '<i class="fas fa-check-circle mr-1"></i>';
+                            break;
+                        case 'SELESAI':
+                            $badgeClass = 'bg-blue-100 text-blue-800 border border-blue-200';
+                            $icon = '<i class="fas fa-flag-checkered mr-1"></i>';
+                            break;
+                        default:
+                            $badgeClass = 'bg-gray-100 text-gray-800 border border-gray-200';
+                            $icon = '';
+                    }
 
-    // Badge status utama
-    switch ($row->status) {
-        case 'BUTUH_PERSETUJUAN':
-            $mainBadge = 'warning';
-            break;
-        case 'APPROVED':
-            $mainBadge = 'success';
-            break;
-        case 'SELESAI':
-            $mainBadge = 'primary';
-            break;
-        default:
-            $mainBadge = 'secondary';
-    }
+                    $html = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' . $badgeClass . '">'
+                          . $icon . strtoupper($row->status)
+                          . '</span>';
 
-    $html = '<span class="badge badge-' . $mainBadge . '">'
-          . strtoupper($row->status)
-          . '</span>';
+                    // 🔍 CEK STATUS CHECKED (SEMUA DETAIL)
+                    $totalDetail   = $row->details->count();
+                    $checkedDetail = $row->details->where('is_checked', true)->count();
 
-    // 🔍 CEK STATUS CHECKED (SEMUA DETAIL)
-    $totalDetail   = $row->details->count();
-    $checkedDetail = $row->details->where('is_checked', true)->count();
+                    if ($totalDetail > 0 && $totalDetail === $checkedDetail) {
+                        $html .= '<div class="mt-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-teal-100 text-teal-800 border border-teal-200">
+                                     <i class="fas fa-shield-alt mr-1"></i> CHECKED
+                                  </span></div>';
+                    }
 
-    if ($totalDetail > 0 && $totalDetail === $checkedDetail) {
-        $html .= '<br><span class="badge badge-danger mt-1">
-                     CHECKED
-                  </span>';
-    }
-
-    return $html;
-})
+                    return $html;
+                })
 
                 ->editColumn('created_by', function($row) {
                     return $row->creator->nama ?? '-';
@@ -128,43 +131,41 @@ namespace App\Http\Controllers;
 
                 ->addColumn('action', function($row) {
                     $user = auth()->user();
-                    $actions = '';
+                    $actions = '<div class="flex justify-end items-center gap-2">';
 
                     // Semua role bisa View detail (pakai modal AJAX)
-                    $actions .= '<button type="button" class="btn btn-sm btn-info mr-1" title="View"
+                    $actions .= '<button type="button" class="p-2 rounded-lg text-teal-600 hover:bg-teal-50 transition-colors" title="View"
                                     onclick="showDetailSuratJalan(' . $row->id . ')">
                                     <i class="fa fa-eye"></i>
                                 </button>';
 
-                    // Guest: hanya bisa lihat
-                    // 👀 Guest & Security: HANYA VIEW
+                    // Guest & Security: HANYA VIEW (stop here for them)
                     if (in_array($user->role, ['guest', 'security'])) {
-                        return $actions;
+                        return $actions . '</div>';
                     }
-
 
                     // Petugas & Admin: bisa full action
                     if (in_array($row->status, ['BUTUH_PERSETUJUAN', 'APPROVED'])) {
-                        $actions .= '<a href="' . route('surat-jalan.edit', $row->id) . '" class="btn btn-sm btn-primary mr-1" title="Edit"><i class="fa fa-edit"></i></a>';
+                        $actions .= '<a href="' . route('surat-jalan.edit', $row->id) . '" class="p-2 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors" title="Edit"><i class="fa fa-edit"></i></a>';
                     }
 
-
                     if (in_array($row->status, ['APPROVED', 'SELESAI'])) {
-                        $actions .= '<button class="btn btn-sm btn-success mr-1"
+                        $actions .= '<button class="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
                             onclick="printSuratJalan(' . $row->id . ')" title="Print">
                             <i class="fa fa-print"></i>
                         </button>';
                     }
 
-
                     // ❌ Jangan tampilkan delete kalau APPROVED atau SELESAI
                     if (!in_array($row->status, ['APPROVED', 'SELESAI'])) {
-                        $actions .= '<button class="btn btn-sm btn-danger"
+                        $actions .= '<button class="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
                             onclick="deleteSuratJalan(' . $row->id . ')"
                             title="Delete">
                             <i class="fa fa-trash"></i>
                         </button>';
                     }
+                    
+                    $actions .= '</div>';
                     return $actions;
                 })
 
