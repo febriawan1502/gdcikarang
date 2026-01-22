@@ -11,7 +11,7 @@
     
     <style>
         .login-bg {
-            background-image: url("{{ asset('assets/images/login.png') }}");
+            background-image: url("{{ asset('assets/images/bg-login.png') }}");
             background-size: cover;
             background-position: top center;
             background-repeat: no-repeat;

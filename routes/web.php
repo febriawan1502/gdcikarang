@@ -85,7 +85,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/export', [DashboardController::class, 'export'])->name('dashboard.export');
     Route::get('/dashboard/{id}', [DashboardController::class, 'show'])->name('dashboard.show');
     Route::delete('/dashboard/{id}', [DashboardController::class, 'destroy'])->name('dashboard.destroy');
-    Route::post('/dashboard/material-saving-config', [DashboardController::class, 'updateMaterialSavingConfig'])->name('dashboard.material-saving-config.update');
+    Route::post('/dashboard/update-material-saving-config', [DashboardController::class, 'updateMaterialSavingConfig'])->name('dashboard.material-saving-config.update');
+    Route::post('/dashboard/update-fast-moving-config', [DashboardController::class, 'updateFastMovingConfig'])->name('dashboard.fast-moving-config.update');
     Route::post('/dashboard/saldo-awal/update', [DashboardController::class, 'updateSaldoAwal'])->name('dashboard.saldo-awal.update');
     
     // Test route untuk verifikasi material

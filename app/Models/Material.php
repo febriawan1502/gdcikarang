@@ -37,6 +37,7 @@ class Material extends Model
     'currency',
     'rak',
     'keterangan',
+    'min_stock',
     'created_by',
     'updated_by',
 ];

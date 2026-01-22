@@ -165,18 +165,8 @@
         <main class="main-content">
             <!-- Header -->
             <header class="page-header">
-                <div class="breadcrumb-area">
-                    <nav class="breadcrumb">
-                        <a href="{{ route('dashboard') }}">Pages</a>
-                        <span>/</span>
-                        <span>@yield('breadcrumb', 'Dashboard')</span>
-                    </nav>
-                    <h1 class="page-title">@yield('title', 'Dashboard')</h1>
-                </div>
-
                 <div class="header-actions">
-                    <input type="text" class="search-input" placeholder="Type here...">
-                    
+
                     @auth
                     <div class="user-dropdown" id="userDropdown">
                         <i class="fas fa-user"></i>

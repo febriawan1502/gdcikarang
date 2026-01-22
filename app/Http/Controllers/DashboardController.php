@@ -12,6 +12,7 @@ use App\Exports\MaterialExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Monitoring;
 use App\Models\MaterialSavingConfig;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -23,11 +24,12 @@ class DashboardController extends Controller
         $stats = [
             'total_materials' => Material::count(),
             'total_stock' => Material::sum('unrestricted_use_stock'), 
-            'total_pemakaian' => \DB::table('surat_jalan_detail')
+            'pemakaian_kumulatif' => \DB::table('surat_jalan_detail')
                 ->join('materials', 'surat_jalan_detail.material_id', '=', 'materials.id')
+                ->join('surat_jalan', 'surat_jalan_detail.surat_jalan_id', '=', 'surat_jalan.id')
+                ->whereYear('surat_jalan.created_at', date('Y'))
                 ->whereNull('materials.deleted_at')
                 ->sum(\DB::raw('surat_jalan_detail.quantity * materials.harga_satuan')),
-            'total_surat_jalan' => SuratJalan::count(),
             // Calculate total saldo: sum(harga_satuan * stock)
             // Using DB::raw to be safe if total_harga column isn't perfectly synced or if we want exact calculation
             'total_saldo' => Material::sum(\DB::raw('harga_satuan * unrestricted_use_stock')),
@@ -66,7 +68,6 @@ class DashboardController extends Controller
             // Find material in database by code
             $material = Material::where('material_code', $code)->whereNull('deleted_at')->first();
             
-            $stok_minimum = $data['stok_min'];
             
             // If material not found in database, use hardcoded data with stock 0
             if (!$material) {
@@ -75,11 +76,13 @@ class DashboardController extends Controller
                     'material_code' => $code,
                     'material_description' => $data['name'],
                     'unrestricted_use_stock' => 0,
-                    'stok_minimum' => $stok_minimum,
+                    'stok_minimum' => $data['stok_min'],
                     'stock_status' => 'habis',
                     'stock_badge' => 'danger',
                 ];
             }
+            
+            $stok_minimum = $material->min_stock > 0 ? $material->min_stock : $data['stok_min'];
             
             $current_stock = $material->unrestricted_use_stock;
             
@@ -128,7 +131,7 @@ class DashboardController extends Controller
         
         $ito = 0;
         if ($rata_rata_persediaan > 0) {
-            $ito = $stats['total_pemakaian'] / $rata_rata_persediaan;
+            $ito = $stats['pemakaian_kumulatif'] / $rata_rata_persediaan;
         }
 
         $stats['ito'] = $ito;
@@ -363,6 +366,29 @@ class DashboardController extends Controller
             return Excel::download(new MaterialExport, $fileName);
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal mengexport data: ' . $e->getMessage());
+        }
+    }
+
+    public function updateFastMovingConfig(Request $request)
+    {
+        $request->validate([
+            'configs' => 'required|array',
+            'configs.*.id' => 'required|exists:materials,id',
+            'configs.*.min_stock' => 'required|integer|min:0',
+        ]);
+
+        try {
+            DB::beginTransaction();
+            
+            foreach ($request->configs as $config) {
+                Material::where('id', $config['id'])->update(['min_stock' => $config['min_stock']]);
+            }
+            
+            DB::commit();
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 }
