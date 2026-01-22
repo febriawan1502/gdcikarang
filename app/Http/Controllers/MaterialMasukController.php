@@ -66,7 +66,7 @@ class MaterialMasukController extends Controller
             ->addColumn('status_sap', function ($row) {
                 return $row->status_sap === 'Selesai SAP'
                     ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">Selesai SAP</span>'
-                    : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">Belum Selesai SAP</span>';
+                    : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">Belum Selesai SAP</span>';
             })
             ->addColumn('action', function ($row) {
                 $user = auth()->user();
