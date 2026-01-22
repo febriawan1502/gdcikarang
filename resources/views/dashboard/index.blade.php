@@ -852,16 +852,25 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 // MRWI Pie Chart
-document.addEventListener('DOMContentLoaded', function() {
+// MRWI Pie Chart
+let mrwiChart = null;
+
+function initDashboardChart() {
     const ctx = document.getElementById('mrwiPieChart');
     if (ctx) {
+        // Destroy existing chart if it exists
+        if (mrwiChart) {
+            mrwiChart.destroy();
+            mrwiChart = null;
+        }
+
         const standby = {{ $material_saving_config->standby }};
         const garansi = {{ $material_saving_config->garansi }};
         const perbaikan = {{ $material_saving_config->perbaikan }};
         const usulHapus = {{ $material_saving_config->usul_hapus }};
         const total = standby + garansi + perbaikan + usulHapus;
         
-        new Chart(ctx, {
+        mrwiChart = new Chart(ctx, {
             type: 'pie',
             data: {
                 labels: ['Standby', 'Garansi', 'Perbaikan', 'Usul Hapus'],
@@ -905,6 +914,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-});
+}
+
+// Initialize on first load
+document.addEventListener('DOMContentLoaded', initDashboardChart);
+
+// Initialize on Livewire navigation
+document.addEventListener('livewire:navigated', initDashboardChart);
 </script>
 @endpush

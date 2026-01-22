@@ -165,7 +165,7 @@
         <main class="main-content">
             <!-- Header -->
             <header class="page-header">
-                <div class="header-actions">
+                <div class="header-actions ml-auto">
 
                     @auth
                     <div class="user-dropdown" id="userDropdown">
@@ -238,8 +238,8 @@
     @livewireScripts
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // CSRF Token Setup
+    function initAppScripts() {
+        // CSRF Token Setup (JQuery)
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
@@ -251,16 +251,31 @@
         const userDropdownMenu = document.getElementById('userDropdownMenu');
 
         if (userDropdown && userDropdownMenu) {
-            userDropdown.addEventListener('click', function(e) {
+            // Remove any existing click listeners to prevent duplicates (though element replacement usually handles this, onclick is safer)
+            userDropdown.onclick = function(e) {
+                e.preventDefault();
                 e.stopPropagation();
-                const rect = userDropdown.getBoundingClientRect();
-                userDropdownMenu.style.top = (rect.bottom + 8) + 'px';
-                userDropdownMenu.style.right = (window.innerWidth - rect.right) + 'px';
-                userDropdownMenu.classList.toggle('hidden');
-            });
+                
+                // Toggle hidden class
+                if (userDropdownMenu.classList.contains('hidden')) {
+                    // Show menu
+                    userDropdownMenu.classList.remove('hidden');
+                    
+                    // Position it
+                    const rect = userDropdown.getBoundingClientRect();
+                    userDropdownMenu.style.top = (rect.bottom + 8) + 'px';
+                    userDropdownMenu.style.right = (window.innerWidth - rect.right) + 'px';
+                } else {
+                    // Hide menu
+                    userDropdownMenu.classList.add('hidden');
+                }
+            };
 
-            document.addEventListener('click', function() {
-                userDropdownMenu.classList.add('hidden');
+            // Close when clicking anywhere else
+            document.addEventListener('click', function(e) {
+                if (!userDropdown.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                    userDropdownMenu.classList.add('hidden');
+                }
             });
         }
 
@@ -269,7 +284,7 @@
         const logoutForm = document.getElementById('logout-form');
 
         if (logoutLink && logoutForm) {
-            logoutLink.addEventListener('click', function(e) {
+            logoutLink.onclick = function(e) {
                 e.preventDefault();
                 Swal.fire({
                     title: 'Logout?',
@@ -285,7 +300,7 @@
                         logoutForm.submit();
                     }
                 });
-            });
+            };
         }
 
         // Mobile Sidebar Toggle
@@ -293,10 +308,19 @@
         const sidebar = document.querySelector('.sidebar');
 
         if (mobileMenuBtn && sidebar) {
-            mobileMenuBtn.addEventListener('click', function() {
+            mobileMenuBtn.onclick = function() {
                 sidebar.classList.toggle('open');
-            });
+            };
         }
+    }
+
+    // Initialize on first load
+    document.addEventListener('DOMContentLoaded', initAppScripts);
+    
+    // Initialize after every Livewire navigation
+    document.addEventListener('livewire:navigated', function() {
+        console.log('Livewire Navigated - Re-initializing Scripts');
+        initAppScripts();
     });
     </script>
 

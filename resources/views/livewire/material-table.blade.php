@@ -154,9 +154,7 @@
                                     <a href="{{ route('material.show', $material) }}" wire:navigate class="action-btn view" title="Detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{{ route('material.edit', $material) }}" wire:navigate class="action-btn edit" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
+                                    {{-- Edit button removed --}}
                                     <a href="{{ route('material.generate-barcode', $material) }}" class="action-btn barcode" title="Generate Barcode">
                                         <i class="fas fa-qrcode"></i>
                                     </a>

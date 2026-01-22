@@ -104,10 +104,10 @@
                     <div class="space-y-2">
                         <label class="text-sm font-medium text-gray-700">Plant</label>
                         <div class="grid grid-cols-3 gap-2">
-                            <input type="text" name="plant" value="{{ old('plant', '5319') }}" required
+                            <input type="text" name="plant" value="{{ old('plant', '53xx') }}" required
                                    class="col-span-1 px-3 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none bg-white font-mono text-sm font-bold text-center"
                                    placeholder="Code">
-                            <input type="text" name="plant_description" value="{{ old('plant_description', 'PLN UP3 Cimahi') }}" required
+                            <input type="text" name="plant_description" value="{{ old('plant_description', 'PLN UP3 ...') }}" required
                                    class="col-span-2 px-3 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none bg-white text-sm"
                                    placeholder="Description">
                         </div>
@@ -117,10 +117,10 @@
                     <div class="space-y-2">
                         <label class="text-sm font-medium text-gray-700">Storage Location</label>
                         <div class="grid grid-cols-3 gap-2">
-                            <input type="text" name="storage_location" value="{{ old('storage_location', '2080') }}" required
+                            <input type="text" name="storage_location" value="{{ old('storage_location', '20xx') }}" required
                                    class="col-span-1 px-3 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none bg-white font-mono text-sm font-bold text-center"
                                    placeholder="Code">
-                            <input type="text" name="storage_location_description" value="{{ old('storage_location_description', 'APJ Cimahi') }}" required
+                            <input type="text" name="storage_location_description" value="{{ old('storage_location_description', 'Gudang ...') }}" required
                                    class="col-span-2 px-3 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none bg-white text-sm"
                                    placeholder="Description">
                         </div>

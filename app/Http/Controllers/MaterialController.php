@@ -74,6 +74,12 @@ class MaterialController extends Controller
         'method' => $request->method(),
         'data' => $request->all()
     ]);
+        if ($request->has('material_code')) {
+            $request->merge([
+                'material_code' => str_pad($request->material_code, 15, '0', STR_PAD_LEFT)
+            ]);
+        }
+
         $validator = Validator::make($request->all(), [
             'company_code' => 'required|string|max:10',
             'company_code_description' => 'required|string|max:100',
@@ -270,39 +276,8 @@ class MaterialController extends Controller
         $material = Material::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'company_code' => 'required|string|max:10',
-            'company_code_description' => 'required|string|max:100',
-            'plant' => 'required|string|max:10',
-            'plant_description' => 'required|string|max:100',
-            'storage_location' => 'required|string|max:10',
-            'storage_location_description' => 'required|string|max:100',
-            'material_type' => 'required|string|max:10',
-            'material_type_description' => 'required|string|max:100',
-            'material_code' => 'required|string|max:50|unique:materials,material_code,' . $id,
-            'material_description' => 'required|string|max:255',
-            'material_group' => 'required|string|max:20',
-            'base_unit_of_measure' => 'required|string|max:10',
-            // 'valuation_type' => 'required|string|max:20',
-            'unrestricted_use_stock' => 'required|numeric|min:0',
-            // 'quality_inspection_stock' => 'nullable|numeric|min:0',
-            // 'blocked_stock' => 'nullable|numeric|min:0',
-            // 'in_transit_stock' => 'nullable|numeric|min:0',
-            'project_stock' => 'nullable|numeric|min:0',
-            // 'valuation_class' => 'required|string|max:10',
-            // 'valuation_description' => 'required|string|max:100',
-            // 'harga_satuan' => 'required|numeric|min:0',
-            // 'total_harga' => 'required|numeric|min:0',
-            // 'currency' => 'required|string|max:3',
-            // 'pabrikan' => 'required|string|max:100',
-            // 'qty' => 'required|integer|min:1',
-            // 'tanggal_terima' => 'required|date',
-            // 'keterangan' => 'nullable|string|max:255',
             'rak' => 'nullable|string|max:50',
-            // 'status' => 'required|in:' . implode(',', [
-            //     Material::STATUS_BAIK,
-            //     Material::STATUS_RUSAK,
-            //     Material::STATUS_DALAM_PERBAIKAN
-            // ]),
+            'keterangan' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -310,12 +285,13 @@ class MaterialController extends Controller
         }
 
         try {
-            $materialData = $request->all();
-            // $materialData['tanggal_terima'] = Carbon::parse($request->tanggal_terima);
+            // Strict update: Only allow rak and keterangan to be updated
+            $material->update([
+                'rak' => $request->rak,
+                'keterangan' => $request->keterangan,
+            ]);
 
-            $material->update($materialData);
-
-            return redirect()->route('dashboard')->with('success', 'Material berhasil diperbarui!');
+            return redirect()->route('dashboard')->with('success', 'Lokasi Rak Material berhasil diperbarui!');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Gagal memperbarui material: ' . $e->getMessage()])->withInput();
         }
@@ -560,7 +536,7 @@ public function getMaterialById($id)
             ->addColumn('action', function($row) {
                 $actions = '<div class="btn-group" role="group">';
                 $actions .= '<a href="' . route('material.show', $row->id) . '" class="btn btn-sm btn-info" title="Detail"><i class="fa fa-eye"></i></a>';
-                $actions .= '<a href="' . route('material.edit', $row->id) . '" class="btn btn-sm btn-primary" title="Edit"><i class="fa fa-edit"></i></a>';
+                // Edit button removed manually
                 $actions .= '<button class="btn btn-sm btn-danger" onclick="deleteMaterial(' . $row->id . ')" title="Hapus"><i class="fa fa-trash"></i></button>';
                 $actions .= '</div>';
                 return $actions;

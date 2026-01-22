@@ -108,17 +108,18 @@
                             <td class="px-4 py-3 text-gray-600">{{ $h->tanggal ? \Carbon\Carbon::parse($h->tanggal)->format('Y-m-d') : '-' }}</td>
 
                             <td class="px-4 py-3">
-                                @if($h->tipe === 'MASUK')
+                                @php $tipe = strtoupper($h->tipe); @endphp
+                                @if($tipe === 'MASUK' || $tipe === 'IN')
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                         MASUK
                                     </span>
-                                @elseif($h->tipe === 'KELUAR')
+                                @elseif($tipe === 'KELUAR' || $tipe === 'OUT')
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                         KELUAR
                                     </span>
                                 @else
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                        {{ strtoupper($h->tipe) }}
+                                        {{ $tipe }}
                                     </span>
                                 @endif
                             </td>

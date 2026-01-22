@@ -292,7 +292,7 @@
         <table class="info-table">
             <tr>
                 <td class="info-label">Dibuat oleh</td>
-                <td>{{ $suratJalan->creator->nama }}</td>
+                <td>{{ optional($suratJalan->creator)->name ?? '-' }}</td>
                 <td class="info-label">Disetujui oleh</td>
                 <td>{{ $suratJalan->approver->nama ?? '-' }}</td>
             </tr>

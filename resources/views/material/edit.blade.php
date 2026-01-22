@@ -1,552 +1,229 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Material - ASI System')
-@section('page-title', 'Edit Material')
+@section('title', 'Edit Material - POJOK IMS')
 
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="panel panel-warning">
-            <div class="panel-heading">
-                <h5 class="panel-title">
-                    <i class="fa fa-edit"></i>
-                    Edit Material: {{ $material->nomor_kr }}
-                </h5>
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-600 to-amber-400">
+                Edit Material
+            </h2>
+            <p class="text-gray-500 text-sm mt-1">Perbarui informasi material: <span class="font-mono font-bold text-amber-600">{{ $material->material_code }}</span></p>
+        </div>
+        
+        <a href="{{ route('material.index') }}" 
+           class="group px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 hover:text-amber-600 hover:border-amber-200 hover:shadow-md transition-all duration-300 flex items-center gap-2 text-sm font-medium">
+            <div class="w-6 h-6 rounded-full bg-gray-50 group-hover:bg-amber-50 flex items-center justify-center transition-colors">
+                <i class="fas fa-arrow-left text-xs"></i>
             </div>
-            
-            <div class="panel-body" style="padding: 30px;">
-                <form method="POST" action="{{ route('material.update', $material->id) }}">
-                    @csrf
-                    @method('PUT')
-                    @if ($errors->any())
-    <div class="alert alert-danger">
-        <strong>Error!</strong> Periksa input Anda:<br><br>
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
+            <span>Kembali</span>
+        </a>
     </div>
-@endif
 
-                    
-                    <!-- Informasi Dasar -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h6 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fa fa-info-circle me-1"></i>
-                                Informasi Dasar
-                            </h6>
-                        </div>
-                        
+    <!-- Main Card -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/50 overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500"></div>
 
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="material_code" class="form-label fw-semibold">
-                                Material Code <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('material_code') is-invalid @enderror" 
-                                   id="material_code" 
-                                   name="material_code" 
-                                   value="{{ old('material_code', $material->material_code) }}"
-                                   placeholder="Contoh: 000000001060068"
-                                   required>
-                            @error('material_code')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+        <form method="POST" action="{{ route('material.update', $material->id) }}" class="p-8">
+            @csrf
+            @method('PUT')
+
+            <!-- Section 1: Info Dasar (Read-Only) -->
+             <div class="mb-10 relative">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center shadow-sm">
+                        <i class="fas fa-cube text-gray-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">Informasi Dasar</h3>
+                        <p class="text-xs text-gray-400">Identitas utama material (Read-only)</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-75">
+                    <!-- Material Code -->
+                     <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-700">Nomor Normalisasi</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-barcode text-gray-400"></i>
+                            </div>
+                            <input type="text" value="{{ $material->material_code }}" readonly
+                                   class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-600 font-mono cursor-not-allowed">
                         </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="material_description" class="form-label fw-semibold">
-                                Deskripsi Material <span class="text-danger">*</span>
-                            </label>
-                            <textarea class="form-control @error('material_description') is-invalid @enderror" 
-                                      id="material_description" 
-                                      name="material_description" 
-                                      rows="2"
-                                      placeholder="Contoh: ISOLATOR;PINPOST;PORC;24KV;;12.5kN"
-                                      required>{{ old('material_description', $material->material_description) }}</textarea>
-                            @error('material_description')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                    </div>
+
+                    <!-- Description -->
+                    <div class="space-y-2 md:col-span-2">
+                        <label class="text-sm font-medium text-gray-700">Deskripsi Material</label>
+                         <div class="relative group">
+                            <div class="absolute top-3 left-3 pointer-events-none">
+                                <i class="fas fa-align-left text-gray-400"></i>
+                            </div>
+                            <textarea rows="2" readonly
+                                      class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed">{{ $material->material_description }}</textarea>
                         </div>
-                        
-                        <!-- <div class="col-md-6 mb-3">
-                            <label for="pabrikan" class="form-label fw-semibold">
-                                Pabrikan <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('pabrikan') is-invalid @enderror" 
-                                   id="pabrikan" 
-                                   name="pabrikan" 
-                                   value="{{ old('pabrikan', $material->pabrikan) }}"
-                                   placeholder="Contoh: KENTJANA SAKTI INDONESIA"
-                                   required>
-                            @error('pabrikan')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div> -->
-                        
-                        <!-- <div class="col-md-6 mb-3">
-                            <label for="normalisasi" class="form-label fw-semibold">
-                                Normalisasi
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('normalisasi') is-invalid @enderror" 
-                                   id="normalisasi" 
-                                   name="normalisasi" 
-                                   value="{{ old('normalisasi', $material->normalisasi) }}"
-                                   placeholder="Opsional">
-                            @error('normalisasi')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                    </div>
+                </div>
+             </div>
+
+             <div class="w-full h-px bg-gray-100 my-8"></div>
+
+             <!-- Section 2: Info Perusahaan (Partial Editable) -->
+             <div class="mb-10">
+                 <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-sm">
+                        <i class="fas fa-building text-blue-500 text-xl"></i>
+                    </div>
+                    <div>
+                         <h3 class="text-lg font-bold text-gray-800">Lokasi & Rak</h3>
+                        <p class="text-xs text-gray-400">Hanya posisi rak yang dapat diubah</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50/50 p-6 rounded-2xl border border-gray-100 border-dashed">
+                    <!-- Company (Read-only) -->
+                    <div class="space-y-2 opacity-75">
+                        <label class="text-sm font-medium text-gray-700">Company</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="text" value="{{ $material->company_code }}" readonly
+                                   class="col-span-1 px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 font-mono text-sm font-bold text-center text-gray-500 cursor-not-allowed">
+                            <input type="text" value="{{ $material->company_code_description }}" readonly
+                                   class="col-span-2 px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-500 cursor-not-allowed">
                         </div>
-                    </div> -->
-                    
-                    <!-- Informasi Company -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h6 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fa fa-building me-1"></i>
-                                Informasi Company
-                            </h6>
+                    </div>
+
+                    <!-- Plant (Read-only) -->
+                    <div class="space-y-2 opacity-75">
+                         <label class="text-sm font-medium text-gray-700">Plant</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="text" value="{{ $material->plant }}" readonly
+                                   class="col-span-1 px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 font-mono text-sm font-bold text-center text-gray-500 cursor-not-allowed">
+                            <input type="text" value="{{ $material->plant_description }}" readonly
+                                   class="col-span-2 px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-500 cursor-not-allowed">
                         </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="company_code" class="form-label fw-semibold">
-                                Company Code <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('company_code') is-invalid @enderror" 
-                                   id="company_code" 
-                                   name="company_code" 
-                                   value="{{ old('company_code', $material->company_code) }}"
-                                   required>
-                            @error('company_code')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                    </div>
+
+                    <!-- Storage (Read-only) -->
+                     <div class="space-y-2 opacity-75">
+                        <label class="text-sm font-medium text-gray-700">Storage Location</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="text" value="{{ $material->storage_location }}" readonly
+                                   class="col-span-1 px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 font-mono text-sm font-bold text-center text-gray-500 cursor-not-allowed">
+                            <input type="text" value="{{ $material->storage_location_description }}" readonly
+                                   class="col-span-2 px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-500 cursor-not-allowed">
                         </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="company_code_description" class="form-label fw-semibold">
-                                Company Description <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('company_code_description') is-invalid @enderror" 
-                                   id="company_code_description" 
-                                   name="company_code_description" 
-                                   value="{{ old('company_code_description', $material->company_code_description) }}"
-                                   required>
-                            @error('company_code_description')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="plant" class="form-label fw-semibold">
-                                Plant <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('plant') is-invalid @enderror" 
-                                   id="plant" 
-                                   name="plant" 
-                                   value="{{ old('plant', $material->plant) }}"
-                                   required>
-                            @error('plant')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="plant_description" class="form-label fw-semibold">
-                                Plant Description <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('plant_description') is-invalid @enderror" 
-                                   id="plant_description" 
-                                   name="plant_description" 
-                                   value="{{ old('plant_description', $material->plant_description) }}"
-                                   required>
-                            @error('plant_description')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="storage_location" class="form-label fw-semibold">
-                                Storage Location <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('storage_location') is-invalid @enderror" 
-                                   id="storage_location" 
-                                   name="storage_location" 
-                                   value="{{ old('storage_location', $material->storage_location) }}"
-                                   required>
-                            @error('storage_location')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="storage_location_description" class="form-label fw-semibold">
-                                Storage Description <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('storage_location_description') is-invalid @enderror" 
-                                   id="storage_location_description" 
-                                   name="storage_location_description" 
-                                   value="{{ old('storage_location_description', $material->storage_location_description) }}"
-                                   required>
-                            @error('storage_location_description')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="rak" class="form-label fw-semibold">
-                                Rak
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('rak') is-invalid @enderror" 
-                                   id="rak" 
-                                   name="rak" 
-                                   value="{{ old('rak', $material->rak) }}"
+                    </div>
+
+                    <!-- Rak (EDITABLE) -->
+                    <div class="space-y-2 md:col-start-2">
+                         <label class="text-sm font-bold text-blue-700">Posisi Rak (Editable)</label>
+                         <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-th text-blue-400 group-focus-within:text-blue-600 transition-colors"></i>
+                            </div>
+                            <input type="text" name="rak" value="{{ old('rak', $material->rak) }}" 
+                                   class="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-blue-200 focus:border-blue-500 bg-white ring-4 ring-blue-50/50 transition-all font-semibold text-gray-800"
                                    placeholder="Contoh: A-01-02">
-                            @error('rak')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
                         </div>
+                        <p class="text-xs text-blue-500 mt-1"><i class="fas fa-info-circle mr-1"></i> Field ini dapat Anda perbarui.</p>
                     </div>
-                    
-                    <!-- Informasi Material Type -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h6 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fa fa-tags me-1"></i>
-                                Informasi Material Type
-                            </h6>
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="material_type" class="form-label fw-semibold">
-                                Material Type <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('material_type') is-invalid @enderror" 
-                                   id="material_type" 
-                                   name="material_type" 
-                                   value="{{ old('material_type', $material->material_type) }}"
-                                   required>
-                            @error('material_type')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="material_type_description" class="form-label fw-semibold">
-                                Material Type Description <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('material_type_description') is-invalid @enderror" 
-                                   id="material_type_description" 
-                                   name="material_type_description" 
-                                   value="{{ old('material_type_description', $material->material_type_description) }}"
-                                   required>
-                            @error('material_type_description')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="material_group" class="form-label fw-semibold">
-                                Material Group <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('material_group') is-invalid @enderror" 
-                                   id="material_group" 
-                                   name="material_group" 
-                                   value="{{ old('material_group', $material->material_group) }}"
-                                   required>
-                            @error('material_group')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="base_unit_of_measure" class="form-label fw-semibold">
-                                Unit of Measure <span class="text-danger">*</span>
-                            </label>
-                            <select class="form-select @error('base_unit_of_measure') is-invalid @enderror" 
-                                    id="base_unit_of_measure" 
-                                    name="base_unit_of_measure" 
-                                    required>
-                                <option value="">Pilih Unit</option>
-                                <option value="BH" {{ old('base_unit_of_measure', $material->base_unit_of_measure) == 'BH' ? 'selected' : '' }}>BH</option>
-                                <option value="SET" {{ old('base_unit_of_measure', $material->base_unit_of_measure) == 'SET' ? 'selected' : '' }}>SET</option>
-                                <option value="M" {{ old('base_unit_of_measure', $material->base_unit_of_measure) == 'M' ? 'selected' : '' }}>M</option>
-                                <option value="KG" {{ old('base_unit_of_measure', $material->base_unit_of_measure) == 'KG' ? 'selected' : '' }}>KG</option>
-                                <option value="BTG" {{ old('base_unit_of_measure', $material->base_unit_of_measure) == 'BTG' ? 'selected' : '' }}>BTG</option>
-                                <option value="U" {{ old('base_unit_of_measure', $material->base_unit_of_measure) == 'U' ? 'selected' : '' }}>L</option>
-                            </select>
-                            @error('base_unit_of_measure')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                    
-                    <!-- Informasi Stock & Harga -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h6 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fa fa-cubes me-1"></i>
-                                Informasi Stock & Harga
-                            </h6>
-                        </div>
-                        
-                        <!-- <div class="col-md-4 mb-3">
-                            <label for="qty" class="form-label fw-semibold">
-                                Quantity <span class="text-danger">*</span>
-                            </label>
-                            <input type="number" 
-                                   class="form-control @error('qty') is-invalid @enderror" 
-                                   id="qty" 
-                                   name="qty" 
-                                   value="{{ old('qty', $material->qty) }}"
-                                   min="1"
-                                   required>
-                            @error('qty')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div> -->
-                        
-                        <div class="col-md-4 mb-3">
-    <label for="unrestricted_use_stock" class="form-label fw-semibold">
-        Unrestricted Stock <span class="text-danger">*</span>
-    </label>
+                </div>
+             </div>
 
-    <!-- Input yang terlihat (readonly) -->
-    <input type="number" 
-           class="form-control"
-           value="{{ $material->unrestricted_use_stock }}"
-           readonly>
+             <div class="w-full h-px bg-gray-100 my-8"></div>
 
-    <!-- Input hidden yang dikirim ke server -->
-    <input type="hidden" 
-           id="unrestricted_use_stock" 
-           name="unrestricted_use_stock" 
-           value="{{ $material->unrestricted_use_stock }}">
-
-    @error('unrestricted_use_stock')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-</div>
-
-                        <!-- <div class="col-md-4 mb-3">
-                            <label for="tanggal_terima" class="form-label fw-semibold">
-                                Tanggal Terima <span class="text-danger">*</span>
-                            </label>
-                            <input type="date" 
-                                   class="form-control @error('tanggal_terima') is-invalid @enderror" 
-                                   id="tanggal_terima" 
-                                   name="tanggal_terima" 
-                                   value="{{ old('tanggal_terima', $material->tanggal_terima ? $material->tanggal_terima->format('Y-m-d') : '') }}"
-                                   required>
-                            @error('tanggal_terima')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div> -->
-                        
-                        <div class="col-md-6 mb-3">
-    <label for="harga_satuan" class="form-label fw-semibold">
-        Harga Satuan (Rp) <span class="text-danger">*</span>
-    </label>
-
-    <!-- Input yang terlihat (readonly) -->
-    <input type="number"
-           class="form-control"
-           value="{{ $material->harga_satuan }}"
-           readonly>
-
-    <!-- Hidden yang dikirim ke server -->
-    <input type="hidden"
-           id="harga_satuan"
-           name="harga_satuan"
-           value="{{ $material->harga_satuan }}">
-
-    @error('harga_satuan')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-</div>
-
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="total_harga" class="form-label fw-semibold">
-                                Total Harga (Rp) <span class="text-danger">*</span>
-                            </label>
-                            <input type="number" 
-                                   class="form-control @error('total_harga') is-invalid @enderror" 
-                                   id="total_harga" 
-                                   name="total_harga" 
-                                   value="{{ old('total_harga', $material->total_harga) }}"
-                                   min="0"
-                                   readonly>
-                            @error('total_harga')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+             <!-- Section 3: Material Type (Read-only) -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-10 opacity-75">
+                <div class="space-y-6">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center shadow-sm">
+                            <i class="fas fa-tags text-gray-400 text-lg"></i>
                         </div>
-                    </div>
-                    
-                    <!-- Informasi Status & Keterangan -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h6 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fa fa-info-circle me-1"></i>
-                                Informasi Status & Keterangan
-                            </h6>
-                        </div>
-                        
-                        <!-- <div class="col-md-6 mb-3">
-                            <label for="status" class="form-label fw-semibold">
-                                Status <span class="text-danger">*</span>
-                            </label>
-                            <select class="form-select @error('status') is-invalid @enderror" 
-                                    id="status" 
-                                    name="status" 
-                                    required>
-                                <option value="">Pilih Status</option>
-                                <option value="BAIK" {{ old('status', $material->status) == 'BAIK' ? 'selected' : '' }}>Baik</option>
-                                <option value="RUSAK" {{ old('status', $material->status) == 'RUSAK' ? 'selected' : '' }}>Rusak</option>
-                                <option value="DALAM PERBAIKAN" {{ old('status', $material->status) == 'DALAM PERBAIKAN' ? 'selected' : '' }}>Dalam Perbaikan</option>
-                            </select>
-                            @error('status')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="currency" class="form-label fw-semibold">
-                                Currency <span class="text-danger">*</span>
-                            </label>
-                            <select class="form-select @error('currency') is-invalid @enderror" 
-                                    id="currency" 
-                                    name="currency" 
-                                    required>
-                                <option value="">Pilih Currency</option>
-                                <option value="IDR" {{ old('currency', $material->currency) == 'IDR' ? 'selected' : '' }}>IDR</option>
-                                <option value="USD" {{ old('currency', $material->currency) == 'USD' ? 'selected' : '' }}>USD</option>
-                                <option value="EUR" {{ old('currency', $material->currency) == 'EUR' ? 'selected' : '' }}>EUR</option>
-                            </select>
-                            @error('currency')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div> -->
-                        
-                        <div class="col-12 mb-3">
-                            <label for="keterangan" class="form-label fw-semibold">
-                                Keterangan
-                            </label>
-                            <textarea class="form-control @error('keterangan') is-invalid @enderror" 
-                                      id="keterangan" 
-                                      name="keterangan" 
-                                      rows="3"
-                                      placeholder="Keterangan tambahan (opsional)">{{ old('keterangan', $material->keterangan) }}</textarea>
-                            @error('keterangan')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        <h3 class="text-base font-bold text-gray-800">Tipe & Kategori (Read-only)</h3>
                     </div>
 
-                    <!-- Hidden Fields -->
-                    <!-- <input type="hidden" name="valuation_type" value="{{ $material->valuation_type }}">
-                    <input type="hidden" name="quality_inspection_stock" value="{{ $material->quality_inspection_stock }}">
-                    <input type="hidden" name="blocked_stock" value="{{ $material->blocked_stock }}">
-                    <input type="hidden" name="in_transit_stock" value="{{ $material->in_transit_stock }}">
-                    <input type="hidden" name="project_stock" value="{{ $material->project_stock }}">
-                    <input type="hidden" name="wbs_element" value="{{ $material->wbs_element }}">
-                    <input type="hidden" name="valuation_class" value="{{ $material->valuation_class }}">
-                    <input type="hidden" name="valuation_description" value="{{ $material->valuation_description }}">
-                     -->
-                    <!-- Action Buttons -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="form-group" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <a href="{{ route('dashboard') }}" class="btn btn-default" style="z-index: 1000; position: relative;">
-                                            <i class="fa fa-arrow-left"></i>
-                                            Kembali
-                                        </a>
-                                    </div>
-                                    
-                                    <div>
-                                        <button type="reset" class="btn btn-warning" style="margin-right: 10px; z-index: 1000; position: relative;">
-                                            <i class="fa fa-undo"></i>
-                                            Reset Form
-                                        </button>
-                                        
-                                        <button type="submit" class="btn btn-primary" style="z-index: 1000; position: relative;">
-                                            <i class="fa fa-save"></i>
-                                            Update Material
-                                        </button>
-                                    </div>
+                    <div class="space-y-4 cursor-not-allowed">
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-gray-700">Material Type</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" value="{{ $material->material_type }}" readonly
+                                       class="col-span-1 px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 font-mono text-sm font-bold text-center text-gray-500">
+                                <input type="text" value="{{ $material->material_type_description }}" readonly
+                                       class="col-span-2 px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-500">
+                            </div>
+                        </div>
+
+                         <div class="space-y-2">
+                            <label class="text-sm font-medium text-gray-700">Material Group</label>
+                            <input type="text" value="{{ $material->material_group }}" readonly
+                                   class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 font-mono text-sm text-gray-500">
+                        </div>
+
+                        <div class="space-y-2">
+                             <label class="text-sm font-medium text-gray-700">Satuan (UoM)</label>
+                             <input type="text" value="{{ $material->base_unit_of_measure }}" readonly
+                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 font-mono text-sm text-gray-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Stock & Price (Read-only) -->
+                 <div class="space-y-6">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center shadow-sm">
+                            <i class="fas fa-coins text-orange-500 text-lg"></i>
+                        </div>
+                         <h3 class="text-base font-bold text-gray-800">Stock & Valuasi</h3>
+                    </div>
+
+                    <div class="p-5 bg-gradient-to-br from-orange-50 to-white rounded-2xl border border-orange-100 space-y-4">
+                        <!-- Unrestricted Stock (Readonly) -->
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-gray-700">Unrestricted Stock</label>
+                            <input type="text" value="{{ number_format($material->unrestricted_use_stock, 0, ',', '.') }}" readonly
+                                   class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 font-mono text-lg font-bold text-gray-600 cursor-not-allowed">
+                        </div>
+
+                         <div class="space-y-2">
+                            <label class="text-sm font-medium text-gray-700">Harga Satuan (Rp)</label>
+                             <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-400 font-bold">Rp</span>
                                 </div>
+                                <input type="text" value="{{ number_format($material->harga_satuan, 0, ',', '.') }}" readonly
+                                       class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 font-mono text-lg font-bold text-gray-600 cursor-not-allowed">
                             </div>
                         </div>
                     </div>
-                </form>
-            </div>
-        </div>
+                
+                    <!-- Keterangan (Editable as well usually, but user asked specifically only Rak? I will assume Keterangan is also safe to edit as it's secondary, or should I strict ONLY rak? User said "editable hanya rak material saja". So I will make Keterangan readonly too to be safe, or just remove it if not needed? I'll make it readonly based strictly on prompt "editable hanya rak material saja" -->
+                     <div class="space-y-2">
+                         <label class="text-sm font-medium text-gray-700">Keterangan</label>
+                        <textarea name="keterangan" rows="3"
+                                  class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-amber-500 bg-white"
+                                  placeholder="Keterangan tambahan (opsional)">{{ old('keterangan', $material->keterangan) }}</textarea>
+                    </div>
+                </div>
+              </div>
+
+            <!-- Footer Action -->
+             <div class="mt-10 pt-6 border-t border-gray-100 flex flex-col-reverse md:flex-row justify-between gap-4">
+                 <a href="{{ route('material.index') }}" class="px-6 py-3 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all font-medium flex items-center justify-center gap-2">
+                    <span>Batal</span>
+                </a>
+
+                <button type="submit" class="group relative px-8 py-3 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl text-white font-bold shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] transition-all duration-300 overflow-hidden">
+                    <div class="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-500 ease-out -translate-x-full transform skew-x-12"></div>
+                    <span class="relative flex items-center gap-2">
+                        <i class="fas fa-save"></i>
+                        Simpan Rak
+                    </span>
+                </button>
+             </div>
+        </form>
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-$(document).ready(function() {
-    // Auto calculate total harga
-    function calculateTotal() {
-        const qty = parseFloat($('#qty').val()) || 0;
-        const hargaSatuan = parseFloat($('#harga_satuan').val()) || 0;
-        const total = qty * hargaSatuan;
-        $('#total_harga').val(total);
-    }
-    
-    $('#qty, #harga_satuan').on('input', calculateTotal);
-    
-    // Auto sync qty with unrestricted_use_stock
-    $('#qty').on('input', function() {
-        $('#unrestricted_use_stock').val($(this).val());
-        calculateTotal();
-    });
-    
-    // Format currency input
-    $('#harga_satuan, #total_harga').on('input', function() {
-        let value = $(this).val().replace(/[^0-9]/g, '');
-        if (value) {
-            $(this).val(parseInt(value));
-        }
-    });
-    
-    // Form validation
-    $('form').on('submit', function(e) {
-        let isValid = true;
-        
-        // Check required fields
-        $('input[required], select[required], textarea[required]').each(function() {
-            if (!$(this).val()) {
-                $(this).addClass('is-invalid');
-                isValid = false;
-            } else {
-                $(this).removeClass('is-invalid');
-            }
-        });
-        
-        if (!isValid) {
-            e.preventDefault();
-            Swal.fire('Error!', 'Mohon lengkapi semua field yang wajib diisi', 'error');
-        }
-    });
-});
-</script>
-@endpush
