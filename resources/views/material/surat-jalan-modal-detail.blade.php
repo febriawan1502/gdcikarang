@@ -3,193 +3,236 @@
     $hasUnchecked = $suratJalan->details->where('is_checked', false)->count() > 0;
 @endphp
 
-{{-- ================= DETAIL SURAT JALAN ================= --}}
-<div class="row">
-    <div class="col-md-6">
-        <table class="table table-borderless table-sm">
-            <tr><td><strong>Nomor Surat Jalan:</strong></td><td>{{ $suratJalan->nomor_surat ?? '-' }}</td></tr>
-            <tr><td><strong>Tanggal Surat Jalan:</strong></td><td>{{ optional($suratJalan->tanggal)->format('d/m/Y') ?? '-' }}</td></tr>
-            <tr><td><strong>Jenis Surat Jalan:</strong></td><td>{{ $suratJalan->jenis_surat_jalan ?? '-' }}</td></tr>
-            <tr><td><strong>Kepada:</strong></td><td>{{ $suratJalan->kepada ?? '-' }}</td></tr>
-            <tr><td><strong>Berdasarkan:</strong></td><td>{{ $suratJalan->berdasarkan ?? '-' }}</td></tr>
-            <tr><td><strong>Nomor Slip SAP:</strong></td><td>{{ $suratJalan->nomor_slip ?? '-' }}</td></tr>
-            <tr><td><strong>Status:</strong></td><td>{{ $suratJalan->status ?? '-' }}</td></tr>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <!-- Kolom Kiri: Info Utama -->
+    <div class="bg-white rounded-xl">
+        <table class="w-full text-sm">
+            <tbody class="divide-y divide-gray-100">
+                <tr>
+                    <td class="py-2 text-gray-500 font-medium w-32">No. Surat</td>
+                    <td class="py-2 font-semibold text-gray-900">: {{ $suratJalan->nomor_surat ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="py-2 text-gray-500 font-medium">Tanggal</td>
+                    <td class="py-2 text-gray-900">: {{ optional($suratJalan->tanggal)->format('d/m/Y') ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="py-2 text-gray-500 font-medium">Jenis</td>
+                    <td class="py-2 text-gray-900">: {{ $suratJalan->jenis_surat_jalan ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="py-2 text-gray-500 font-medium">Kepada</td>
+                    <td class="py-2 text-gray-900">: {{ $suratJalan->kepada ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="py-2 text-gray-500 font-medium">Berdasarkan</td>
+                    <td class="py-2 text-gray-900">: {{ $suratJalan->berdasarkan ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="py-2 text-gray-500 font-medium">No Slip SAP</td>
+                    <td class="py-2 text-gray-900">: {{ $suratJalan->nomor_slip ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="py-2 text-gray-500 font-medium">Status</td>
+                    <td class="py-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                            {{ $suratJalan->status == 'APPROVED' ? 'bg-green-100 text-green-800' : 
+                               ($suratJalan->status == 'SELESAI' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800') }}">
+                            : {{ $suratJalan->status ?? '-' }}
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
         </table>
     </div>
 
-    <div class="col-md-6">
+    <!-- Kolom Kanan: Info Kendaraan -->
+    <div class="bg-white rounded-xl">
         @if($isSecurity)
-        {{-- Form untuk edit kendaraan oleh Security --}}
-        <form id="formUpdateKendaraan" method="POST">
-            @csrf
-            @method('PUT')
-            <input type="hidden" name="surat_jalan_id" value="{{ $suratJalan->id }}">
-            <table class="table table-borderless table-sm">
-                <tr>
-                    <td width="120"><strong>Kendaraan:</strong></td>
-                    <td>
-                        <input type="text" name="kendaraan" class="form-control form-control-sm" 
+            <form id="formUpdateKendaraan" class="bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm">
+                <input type="hidden" name="surat_jalan_id" value="{{ $suratJalan->id }}">
+                <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 border-b border-gray-200 pb-2">
+                    <i class="fas fa-truck mr-1"></i> Update Info Kendaraan
+                </h4>
+                
+                <div class="space-y-3">
+                    <div class="grid grid-cols-1 gap-1">
+                        <label class="text-xs font-medium text-gray-600">Kendaraan</label>
+                        <input type="text" name="kendaraan" class="form-input text-sm w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
                                value="{{ $suratJalan->kendaraan }}" placeholder="Jenis kendaraan">
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>No Polisi:</strong></td>
-                    <td>
-                        <input type="text" name="no_polisi" class="form-control form-control-sm" 
+                    </div>
+                    <div class="grid grid-cols-1 gap-1">
+                        <label class="text-xs font-medium text-gray-600">No Polisi</label>
+                        <input type="text" name="no_polisi" class="form-input text-sm w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
                                value="{{ $suratJalan->no_polisi }}" placeholder="Nomor polisi">
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>Pengemudi:</strong></td>
-                    <td>
-                        <input type="text" name="pengemudi" class="form-control form-control-sm" 
+                    </div>
+                    <div class="grid grid-cols-1 gap-1">
+                        <label class="text-xs font-medium text-gray-600">Pengemudi</label>
+                        <input type="text" name="pengemudi" class="form-input text-sm w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
                                value="{{ $suratJalan->pengemudi }}" placeholder="Nama pengemudi">
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2" class="text-right pt-2">
-                        <button type="button" id="btnSaveKendaraan" class="btn btn-sm btn-primary">
-                            <i class="fa fa-save"></i> Simpan Info Kendaraan
-                        </button>
-                    </td>
-                </tr>
-            </table>
-        </form>
-        <table class="table table-borderless table-sm">
-            <tr><td><strong>Dibuat Oleh:</strong></td><td>{{ $suratJalan->creator->nama ?? '-' }}</td></tr>
-            <tr><td><strong>Disetujui Oleh:</strong></td><td>{{ $suratJalan->approver->nama ?? '-' }}</td></tr>
-            <tr><td><strong>Keterangan:</strong></td><td>{{ $suratJalan->keterangan ?? '-' }}</td></tr>
-        </table>
+                    </div>
+                    <button type="button" id="btnSaveKendaraan" class="w-full mt-2 bg-blue-600 text-white text-xs font-bold py-2 rounded-lg hover:bg-blue-700 transition shadow-md">
+                        SIMPAN
+                    </button>
+                </div>
+            </form>
+            
+            <div class="mt-4 text-xs text-gray-500 space-y-1 pl-1">
+                <p>Dibuat: <span class="font-medium text-gray-700">{{ $suratJalan->creator->nama ?? '-' }}</span></p>
+                <p>Approved: <span class="font-medium text-gray-700">{{ $suratJalan->approver->nama ?? '-' }}</span></p>
+            </div>
         @else
-        {{-- Tampilan biasa untuk non-security --}}
-        <table class="table table-borderless table-sm">
-            <tr><td><strong>Kendaraan:</strong></td><td>{{ $suratJalan->kendaraan ?? '-' }}</td></tr>
-            <tr><td><strong>No Polisi:</strong></td><td>{{ $suratJalan->no_polisi ?? '-' }}</td></tr>
-            <tr><td><strong>Pengemudi:</strong></td><td>{{ $suratJalan->pengemudi ?? '-' }}</td></tr>
-            <tr><td><strong>Dibuat Oleh:</strong></td><td>{{ $suratJalan->creator->nama ?? '-' }}</td></tr>
-            <tr><td><strong>Disetujui Oleh:</strong></td><td>{{ $suratJalan->approver->nama ?? '-' }}</td></tr>
-            <tr><td><strong>Keterangan:</strong></td><td>{{ $suratJalan->keterangan ?? '-' }}</td></tr>
-        </table>
+            <table class="w-full text-sm">
+                <tbody class="divide-y divide-gray-100">
+                    <tr><td class="py-2 text-gray-500 font-medium w-32">Kendaraan</td><td class="py-2 text-gray-900">: {{ $suratJalan->kendaraan ?? '-' }}</td></tr>
+                    <tr><td class="py-2 text-gray-500 font-medium">No Polisi</td><td class="py-2 text-gray-900">: {{ $suratJalan->no_polisi ?? '-' }}</td></tr>
+                    <tr><td class="py-2 text-gray-500 font-medium">Pengemudi</td><td class="py-2 text-gray-900">: {{ $suratJalan->pengemudi ?? '-' }}</td></tr>
+                    <tr><td class="py-2 text-gray-500 font-medium">Dibuat Oleh</td><td class="py-2 text-gray-900">: {{ $suratJalan->creator->nama ?? '-' }}</td></tr>
+                    <tr><td class="py-2 text-gray-500 font-medium">Disetujui Oleh</td><td class="py-2 text-gray-900">: {{ $suratJalan->approver->nama ?? '-' }}</td></tr>
+                    <tr><td class="py-2 text-gray-500 font-medium">Keterangan</td><td class="py-2 text-gray-900">: {{ $suratJalan->keterangan ?? '-' }}</td></tr>
+                </tbody>
+            </table>
         @endif
     </div>
 </div>
 
-{{-- ================= FOTO PENERIMA ================= --}}
 @if($suratJalan->foto_penerima)
-<div class="row mb-3">
-    <div class="col-12">
-        <h6 class="text-info border-bottom pb-2">
-            <i class="fa fa-camera me-1"></i>
-            Foto Dokumentasi
-        </h6>
-        <div class="text-center">
-            <a href="{{ asset('storage/' . $suratJalan->foto_penerima) }}" target="_blank" title="Klik untuk melihat foto ukuran penuh">
-                <img src="{{ asset('storage/' . $suratJalan->foto_penerima) }}" 
-                     alt="Foto Penerima" 
-                     class="img-thumbnail" 
-                     style="max-width: 300px; max-height: 200px; object-fit: cover; cursor: pointer;">
-            </a>
-            <p class="text-muted small mt-2">Klik gambar untuk melihat ukuran penuh</p>
-        </div>
+<div class="mb-6 bg-gray-50 rounded-xl p-4 border border-gray-100">
+    <h6 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+        <i class="fas fa-camera text-blue-500"></i> Dokumentasi Penerimaan
+    </h6>
+    <div class="flex flex-col items-center">
+        <a href="{{ asset('storage/' . $suratJalan->foto_penerima) }}" target="_blank" class="block overflow-hidden rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition">
+            <img src="{{ asset('storage/' . $suratJalan->foto_penerima) }}" 
+                 alt="Foto Penerima" 
+                 class="max-w-xs object-cover hover:scale-105 transition duration-300"
+                 style="max-height: 200px;">
+        </a>
+        <p class="text-xs text-gray-400 mt-2">Klik foto untuk memperbesar</p>
     </div>
 </div>
 @endif
 
-<hr>
+<div class="flex items-center justify-between mb-3">
+    <h4 class="text-sm font-bold text-gray-800">Detail Material</h4>
+    @if($isSecurity && $hasUnchecked)
+        <div class="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-200">
+            <i class="fas fa-info-circle mr-1"></i> Silakan cek fisik barang
+        </div>
+    @endif
+</div>
 
-{{-- ================= FORM CHECKING ================= --}}
 @if($isSecurity && $hasUnchecked)
-<form id="formCheckedMaterial"
-      action="{{ route('surat-jalan.submit-checked') }}"
-      method="POST">
+<form id="formCheckedMaterial" action="{{ route('surat-jalan.submit-checked') }}" method="POST">
     @csrf
     <input type="hidden" name="surat_jalan_id" value="{{ $suratJalan->id }}">
 @endif
 
-<div class="table-responsive">
-    <table class="table table-bordered table-sm">
-        <thead class="thead-light">
-            <tr>
-                <th>Kode Material</th>
-                <th>Deskripsi Material</th>
-                <th>Quantity</th>
-                <th>Satuan</th>
-                <th>Keterangan</th>
-            </tr>
-        </thead>
-
-        <tbody>
-        @foreach($suratJalan->details as $detail)
+<div class="border rounded-xl overflow-hidden shadow-sm">
+    <table class="w-full text-sm text-left">
+        <thead class="bg-gray-50 border-b border-gray-200">
             <tr>
                 @if($isSecurity && $hasUnchecked)
-                    <td class="text-center">
-                        @if(!$detail->is_checked)
-                            <input type="checkbox"
-                                   name="detail_ids[]"
-                                   value="{{ $detail->id }}"
-                                   class="check-item">
+                <th class="px-4 py-3 text-center w-12 text-xs font-bold text-gray-500 uppercase">
+                    <input type="checkbox" id="checkAll" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer">
+                </th>
+                @endif
+                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Kode</th>
+                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Deskripsi</th>
+                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Qty</th>
+                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Satuan</th>
+                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Ket</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 bg-white">
+            @foreach($suratJalan->details as $detail)
+            <tr class="hover:bg-gray-50 transition-colors">
+                @if($isSecurity && $hasUnchecked)
+                    <td class="px-4 py-3 text-center">
+                         @if(!$detail->is_checked)
+                            <input type="checkbox" name="detail_ids[]" value="{{ $detail->id }}" class="check-item w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer">
                         @else
-                            <i class="fa fa-check-circle text-success"></i>
+                            <i class="fas fa-check-circle text-green-500 text-lg"></i>
                         @endif
                     </td>
                 @endif
 
                 @if($detail->is_manual)
-                    <td>-</td>
-                    <td>{{ $detail->nama_barang_manual }}</td>
-                    <td>{{ $detail->quantity }}</td>
-                    <td>{{ $detail->satuan_manual }}</td>
-                    <td>{{ $detail->keterangan }}</td>
+                    <td class="px-4 py-3 text-gray-400 italic text-xs">MANUAL</td>
+                    <td class="px-4 py-3 font-medium text-gray-900">{{ $detail->nama_barang_manual }}</td>
+                    <td class="px-4 py-3 text-gray-900 font-bold">{{ $detail->quantity }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ $detail->satuan_manual }}</td>
                 @else
-                    <td>{{ $detail->material->material_code }}</td>
-                    <td>{{ $detail->material->material_description }}</td>
-                    <td>{{ $detail->quantity }}</td>
-                    <td>{{ $detail->satuan }}</td>
-                    <td>{{ $detail->keterangan }}</td>
+                    <td class="px-4 py-3 font-mono text-xs text-blue-600">{{ $detail->material->material_code ?? '-' }}</td>
+                    <td class="px-4 py-3 font-medium text-gray-900">{{ $detail->material->material_description ?? '-' }}</td>
+                    <td class="px-4 py-3 text-gray-900 font-bold">{{ $detail->quantity }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ $detail->satuan }}</td>
                 @endif
+                <td class="px-4 py-3 text-gray-500 italic text-xs">{{ $detail->keterangan ?? '-' }}</td>
             </tr>
-        @endforeach
+            @endforeach
         </tbody>
     </table>
 </div>
 
 @if($isSecurity && $hasUnchecked)
-<div class="text-right mt-3">
-    <button type="button" id="btnChecked" class="btn btn-success">
-        <i class="fa fa-check"></i> Checked
-    </button>
-</div>
+    <div class="mt-4 flex justify-end">
+        <button type="button" id="btnChecked" class="btn-primary flex items-center gap-2 shadow-lg shadow-blue-500/30 px-6 py-2 rounded-xl">
+            <i class="fas fa-check-double"></i>
+            <span>Konfirmasi Checked</span>
+        </button>
+    </div>
 </form>
 @endif
 
-{{-- ================= VALIDASI CHECKBOX ================= --}}
+<!-- Script Handler -->
 <script>
+// Validasi Checkbox sebelum submit
 $(document).off('click', '#btnChecked').on('click', '#btnChecked', function () {
-
     const totalCheckbox = $('.check-item').length;
     const checkedCheckbox = $('.check-item:checked').length;
 
     if (checkedCheckbox < totalCheckbox) {
         Swal.fire({
             title: 'Belum Lengkap',
-            text: 'Semua material harus dicentang sebelum melakukan Checked.',
+            text: 'Semua material harus dicentang sebelum melakukan konfirmasi checked.',
             icon: 'warning',
-            confirmButtonText: 'Mengerti'
+            confirmButtonText: 'Mengerti',
+            confirmButtonColor: '#F59E0B'
         });
         return;
     }
 
-    $('#formCheckedMaterial').submit();
+    Swal.fire({
+        title: 'Konfirmasi',
+        text: "Apakah Anda yakin semua material fisik sudah sesuai?",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10B981',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, Konfirmasi!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $('#formCheckedMaterial').submit();
+        }
+    });
 });
 
-// CHECK ALL
+// Check All
 $(document).off('change', '#checkAll').on('change', '#checkAll', function () {
     $('.check-item').prop('checked', this.checked);
 });
 
-// SAVE KENDARAAN INFO (Security Only)
+// Save Kendaraan
 $(document).off('click', '#btnSaveKendaraan').on('click', '#btnSaveKendaraan', function () {
     const form = $('#formUpdateKendaraan');
+    const btn = $(this);
+    const originalText = btn.html();
+    
+    // Loading state
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+
     const suratJalanId = form.find('input[name="surat_jalan_id"]').val();
     const kendaraan = form.find('input[name="kendaraan"]').val();
     const noPolisi = form.find('input[name="no_polisi"]').val();
@@ -205,29 +248,22 @@ $(document).off('click', '#btnSaveKendaraan').on('click', '#btnSaveKendaraan', f
             pengemudi: pengemudi
         },
         success: function(response) {
+            btn.prop('disabled', false).html(originalText);
             if (response.success) {
                 Swal.fire({
                     title: 'Berhasil!',
                     text: 'Informasi kendaraan berhasil diupdate.',
                     icon: 'success',
-                    confirmButtonText: 'OK'
+                    timer: 2000,
+                    showConfirmButton: false
                 });
             } else {
-                Swal.fire({
-                    title: 'Gagal!',
-                    text: response.message || 'Terjadi kesalahan.',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
+                Swal.fire('Gagal!', response.message || 'Terjadi kesalahan.', 'error');
             }
         },
         error: function(xhr) {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Gagal menyimpan data: ' + (xhr.responseJSON?.message || 'Unknown error'),
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
+            btn.prop('disabled', false).html(originalText);
+            Swal.fire('Error!', 'Gagal menyimpan data: ' + (xhr.responseJSON?.message || 'Unknown error'), 'error');
         }
     });
 });

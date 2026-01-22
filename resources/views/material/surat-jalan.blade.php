@@ -77,26 +77,36 @@
 
 <!-- Modal Detail Surat Jalan -->
 <!-- Modal Detail Surat Jalan (Tailwind) -->
-<div id="detailModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+<div id="detailModal" class="fixed inset-0 z-[9999] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
   <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-    <!-- Background overlay -->
-    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeDetailModal()"></div>
+    <!-- Background overlay with blur -->
+    <div class="fixed inset-0 transition-opacity" style="background-color: rgba(17, 24, 39, 0.6); backdrop-filter: blur(4px);" aria-hidden="true" onclick="closeDetailModal()"></div>
 
     <!-- Modal panel -->
     <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <div class="sm:flex sm:items-start">
-                <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">Detail Surat Jalan</h3>
-                    <div id="detailModalBody">
-                        <!-- Content via AJAX -->
+    <div class="relative z-10 inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-gray-100">
+        
+        <!-- Premium Header -->
+        <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold text-white flex items-center gap-3">
+                    <div class="bg-white/20 p-2 rounded-lg">
+                        <i class="fas fa-file-invoice"></i> 
                     </div>
-                </div>
+                    Detail Surat Jalan
+                </h3>
+                <button type="button" class="text-white/80 hover:text-white transition-colors p-1" onclick="closeDetailModal()">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
             </div>
         </div>
-        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            <button type="button" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm" onclick="closeDetailModal()">
+
+        <div class="px-6 py-6 max-h-[80vh] overflow-y-auto" id="detailModalBody">
+            <!-- Content via AJAX -->
+        </div>
+
+        <div class="bg-gray-50/80 backdrop-blur px-6 py-4 flex flex-row-reverse border-t border-gray-100">
+            <button type="button" class="inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-5 py-2.5 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-teal-600 focus:outline-none transition-all" onclick="closeDetailModal()">
                 Tutup
             </button>
         </div>

@@ -71,14 +71,14 @@
 </div>
 
 <!-- Modal Detail Material Masuk (Tailwind) -->
-<div id="detailModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+<div id="detailModal" class="fixed inset-0 z-[9999] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <!-- Background overlay -->
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeDetailModal()"></div>
+        <div class="fixed inset-0 transition-opacity" style="background-color: rgba(17, 24, 39, 0.6); backdrop-filter: blur(4px);" aria-hidden="true" onclick="closeDetailModal()"></div>
 
         <!-- Modal panel -->
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+        <div class="relative z-10 inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-gray-100">
             <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-4">
                 <div class="flex items-center justify-between">
                     <h3 class="text-lg font-semibold text-white flex items-center gap-2">
@@ -90,7 +90,7 @@
                     </button>
                 </div>
             </div>
-            <div class="p-6" id="detailModalBody">
+            <div class="p-6 max-h-[80vh] overflow-y-auto" id="detailModalBody">
                 <!-- Content will be loaded here -->
             </div>
             <div class="bg-gray-50 px-6 py-4 flex justify-end">
@@ -146,90 +146,8 @@ $(document).ready(function() {
     });
 });
 
-// function showDetail(id) {
-//     $.ajax({
-//         url: '{{ route("material-masuk.index") }}/' + id,
-//         type: 'GET',
-//         success: function(response) {
-//             if (response.success) {
-//                 let data = response.data;
-//                 let detailHtml = `
-//                     <div class="row">
-//                         <div class="col-md-6">
-//                             <table class="table table-borderless">
-//                                 <tr>
-//                                     <td><strong>Nomor KR:</strong></td>
-//                                     <td>${data.nomor_kr || '-'}</td>
-//                                 </tr>
-//                                 <tr>
-//                                     <td><strong>Pabrikan:</strong></td>
-//                                     <td>${data.pabrikan || '-'}</td>
-//                                 </tr>
-//                                 <tr>
-//                                     <td><strong>Tanggal Masuk:</strong></td>
-//                                     <td>${data.tanggal_masuk}</td>
-//                                 </tr>
-//                             </table>
-//                         </div>
-//                         <div class="col-md-6">
-//                             <table class="table table-borderless">
-//                                 <tr>
-//                                     <td><strong>Dibuat Oleh:</strong></td>
-//                                     <td>${data.created_by}</td>
-//                                 </tr>
-//                                 <tr>
-//                                     <td><strong>Tanggal Dibuat:</strong></td>
-//                                     <td>${data.created_at}</td>
-//                                 </tr>
-//                                 <tr>
-//                                     <td><strong>Keterangan:</strong></td>
-//                                     <td>${data.keterangan || '-'}</td>
-//                                 </tr>
-//                             </table>
-//                         </div>
-//                     </div>
-//                     <hr>
-//                     <h6><strong>Detail Material:</strong></h6>
-//                     <div class="table-responsive">
-//                         <table class="table table-bordered table-sm">
-//                             <thead class="thead-light">
-//                                 <tr>
-//                                     <th>Kode Material</th>
-//                                     <th>Deskripsi Material</th>
-//                                     <th>Quantity</th>
-//                                     <th>Satuan</th>
-//                                     <th>Normalisasi</th>
-//                                 </tr>
-//                             </thead>
-//                             <tbody>`;
-                
-//                 data.details.forEach(function(detail) {
-//                     detailHtml += `
-//                         <tr>
-//                             <td>${detail.material_code}</td>
-//                             <td>${detail.material_description}</td>
-//                             <td>${detail.quantity}</td>
-//                             <td>${detail.satuan}</td>
-//                             <td>${detail.normalisasi || '-'}</td>
-//                         </tr>`;
-//                 });
-                
-//                 detailHtml += `
-//                             </tbody>
-//                         </table>
-//                     </div>`;
-                
-//                 $('#detailModalBody').html(detailHtml);
-//                 $('#detailModal').modal('show');
-//             } else {
-//                 Swal.fire('Error!', 'Gagal memuat detail data.', 'error');
-//             }
-//         },
-//         error: function() {
-//             Swal.fire('Error!', 'Terjadi kesalahan saat memuat detail data.', 'error');
-//         }
-//     });
-// }
+// Old commented code removed
+
 function showDetail(id) {
     $.ajax({
         url: '{{ route("material-masuk.index") }}/' + id,
@@ -238,93 +156,137 @@ function showDetail(id) {
             if (response.success) {
                 let data = response.data;
                 let detailHtml = `
-                    <div class="row">
-                        <div class="col-md-6">
-                            <table class="table table-borderless table-sm">
-                                <tr>
-                                    <td><strong>Nomor KR:</strong></td>
-                                    <td>${data.nomor_kr || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Nomor PO:</strong></td>
-                                    <td>${data.nomor_po || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Nomor DOC:</strong></td>
-                                    <td>${data.nomor_doc || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Pabrikan:</strong></td>
-                                    <td>${data.pabrikan || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Jenis:</strong></td>
-                                    <td>${data.jenis || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Status SAP:</strong></td>
-                                    <td>${data.status_sap || '-'}</td>
-                                </tr>
-                            </table>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Left Column -->
+                        <div class="space-y-4">
+                            <div class="bg-gray-50/50 rounded-xl p-5 border border-gray-100">
+                                <h4 class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <i class="fas fa-file-alt"></i> Info Dokumen
+                                </h4>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between items-center text-sm">
+                                        <span class="text-gray-500">Nomor KR</span>
+                                        <span class="font-semibold text-gray-800 font-mono">${data.nomor_kr || '-'}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-sm border-t border-dashed border-gray-200 pt-2">
+                                        <span class="text-gray-500">Nomor PO</span>
+                                        <span class="font-medium text-gray-800">${data.nomor_po || '-'}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-sm border-t border-dashed border-gray-200 pt-2">
+                                        <span class="text-gray-500">Nomor DOC</span>
+                                        <span class="font-medium text-gray-800">${data.nomor_doc || '-'}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-sm border-t border-dashed border-gray-200 pt-2">
+                                        <span class="text-gray-500">Pabrikan</span>
+                                        <span class="font-medium text-gray-800">${data.pabrikan || '-'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-teal-50/50 rounded-xl p-5 border border-teal-100">
+                                <h4 class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <i class="fas fa-tag"></i> Klasifikasi
+                                </h4>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between items-center text-sm">
+                                        <span class="text-gray-500">Jenis Material</span>
+                                        <span class="font-medium text-gray-800 bg-white px-2 py-1 rounded shadow-sm">${data.jenis || '-'}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-sm border-t border-dashed border-teal-200 pt-2">
+                                        <span class="text-gray-500">Status SAP</span>
+                                        <span class="font-bold ${data.status_sap === 'APPROVED' ? 'text-green-600' : 'text-orange-500'}">
+                                            ${data.status_sap || '-'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <table class="table table-borderless table-sm">
-                                <tr>
-                                    <td><strong>Tanggal Masuk:</strong></td>
-                                    <td>${data.tanggal_masuk}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Tanggal Keluar:</strong></td>
-                                    <td>${data.tanggal_keluar || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Tug 4:</strong></td>
-                                    <td>${data.tugas_4 || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Dibuat Oleh:</strong></td>
-                                    <td>${data.created_by}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Tanggal Dibuat:</strong></td>
-                                    <td>${data.created_at}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Keterangan:</strong></td>
-                                    <td>${data.keterangan || '-'}</td>
-                                </tr>
-                            </table>
+
+                        <!-- Right Column -->
+                        <div class="space-y-4">
+                             <div class="bg-gray-50/50 rounded-xl p-5 border border-gray-100 h-full">
+                                <h4 class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <i class="fas fa-clock"></i> Riwayat & Logistik
+                                </h4>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between items-center text-sm">
+                                        <span class="text-gray-500">Tanggal Masuk</span>
+                                        <span class="font-medium text-gray-800">${data.tanggal_masuk}</span>
+                                    </div>
+                                     <div class="flex justify-between items-center text-sm border-t border-dashed border-gray-200 pt-2">
+                                        <span class="text-gray-500">Tanggal Keluar</span>
+                                        <span class="font-medium text-gray-800">${data.tanggal_keluar || '-'}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-sm border-t border-dashed border-gray-200 pt-2">
+                                        <span class="text-gray-500">Tug 4</span>
+                                        <span class="font-medium text-gray-800">${data.tugas_4 || '-'}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-sm border-t border-dashed border-gray-200 pt-2">
+                                        <span class="text-gray-500">Dibuat Oleh</span>
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 text-xs font-bold">
+                                                ${data.created_by.charAt(0)}
+                                            </div>
+                                            <span class="font-medium text-gray-800">${data.created_by}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center text-sm border-t border-dashed border-gray-200 pt-2">
+                                        <span class="text-gray-500">Keterangan</span>
+                                        <span class="font-medium text-gray-800 italic">${data.keterangan || '-'}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <hr>
-                    <h6><strong>Detail Material:</strong></h6>
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-sm">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th>Kode Material</th>
-                                    <th>Deskripsi Material</th>
-                                    <th>Quantity</th>
-                                    <th>Satuan</th>
-                                    <th>Normalisasi</th>
-                                </tr>
-                            </thead>
-                            <tbody>`;
+
+                    <div class="border-t border-gray-100 pt-6">
+                        <h4 class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <div class="p-1.5 bg-teal-100 text-teal-600 rounded-lg">
+                                <i class="fas fa-boxes"></i>
+                            </div>
+                            Detail Item Material
+                        </h4>
+                        <div class="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kode</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Deskripsi</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Qty</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Satuan</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Norm</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">`;
                 
                 data.details.forEach(function(detail) {
                     detailHtml += `
-                        <tr>
-                            <td>${detail.material_code}</td>
-                            <td>${detail.material_description}</td>
-                            <td>${detail.quantity}</td>
-                            <td>${detail.satuan}</td>
-                            <td>${detail.normalisasi || '-'}</td>
+                        <tr class="hover:bg-teal-50/30 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono font-medium text-teal-600 bg-gray-50/50">
+                                ${detail.material_code}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-700">
+                                ${detail.material_description}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-center bg-gray-50/30">
+                                ${detail.quantity}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                ${detail.satuan}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                ${detail.normalisasi || '-'}
+                            </td>
                         </tr>`;
                 });
                 
                 detailHtml += `
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-4 flex justify-end">
+                            <span class="text-xs text-gray-400">Total ${data.details.length} item material</span>
+                        </div>
                     </div>`;
                 
                 $('#detailModalBody').html(detailHtml);

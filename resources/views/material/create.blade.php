@@ -45,7 +45,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Material Code -->
                     <div class="space-y-2">
-                        <label class="text-sm font-medium text-gray-700">Kode Material <span class="text-red-500">*</span></label>
+                        <label class="text-sm font-medium text-gray-700">Nomor Normalisasi <span class="text-red-500">*</span></label>
                         <div class="relative group">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i class="fas fa-barcode text-gray-400 group-focus-within:text-teal-500 transition-colors"></i>
@@ -65,7 +65,7 @@
                             </div>
                             <textarea name="material_description" rows="2" required
                                       class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all outline-none bg-gray-50/50 hover:bg-white"
-                                      placeholder="Jelaskan spesifikasi material secara detail...">{{ old('material_description') }}</textarea>
+                                      placeholder="Contoh : MTR;kWH E-PR;;1P;230V;5-60A;1;;2W">{{ old('material_description') }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -87,35 +87,43 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50/50 p-6 rounded-2xl border border-gray-100 border-dashed">
-                    <!-- Readonly Fields Group with minimalist design -->
-                    <div class="space-y-1">
-                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Company</label>
-                        <div class="flex items-center gap-2">
-                            <span class="font-mono text-sm font-bold text-gray-700 bg-white px-2 py-1 rounded border border-gray-200">5300</span>
-                            <span class="text-sm text-gray-600">UID Jawa Barat</span>
+                    <!-- Editable Field: Company -->
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-700">Company Code & Name</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="text" name="company_code" value="{{ old('company_code', '5300') }}" required
+                                   class="col-span-1 px-3 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none bg-white font-mono text-sm font-bold text-center"
+                                   placeholder="Code">
+                            <input type="text" name="company_code_description" value="{{ old('company_code_description', 'UID Jawa Barat') }}" required
+                                   class="col-span-2 px-3 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none bg-white text-sm"
+                                   placeholder="Description">
                         </div>
-                        <input type="hidden" name="company_code" value="5300">
-                        <input type="hidden" name="company_code_description" value="UID Jawa Barat">
                     </div>
 
-                    <div class="space-y-1">
-                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Plant</label>
-                        <div class="flex items-center gap-2">
-                            <span class="font-mono text-sm font-bold text-gray-700 bg-white px-2 py-1 rounded border border-gray-200">5319</span>
-                            <span class="text-sm text-gray-600">PLN UP3 Cimahi</span>
+                    <!-- Editable Field: Plant -->
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-700">Plant</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="text" name="plant" value="{{ old('plant', '5319') }}" required
+                                   class="col-span-1 px-3 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none bg-white font-mono text-sm font-bold text-center"
+                                   placeholder="Code">
+                            <input type="text" name="plant_description" value="{{ old('plant_description', 'PLN UP3 Cimahi') }}" required
+                                   class="col-span-2 px-3 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none bg-white text-sm"
+                                   placeholder="Description">
                         </div>
-                        <input type="hidden" name="plant" value="5319">
-                        <input type="hidden" name="plant_description" value="PLN UP3 Cimahi">
                     </div>
 
-                    <div class="space-y-1">
-                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Storage Loc</label>
-                        <div class="flex items-center gap-2">
-                            <span class="font-mono text-sm font-bold text-gray-700 bg-white px-2 py-1 rounded border border-gray-200">2080</span>
-                            <span class="text-sm text-gray-600">APJ Cimahi</span>
+                    <!-- Editable Field: Storage Loc -->
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-700">Storage Location</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="text" name="storage_location" value="{{ old('storage_location', '2080') }}" required
+                                   class="col-span-1 px-3 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none bg-white font-mono text-sm font-bold text-center"
+                                   placeholder="Code">
+                            <input type="text" name="storage_location_description" value="{{ old('storage_location_description', 'APJ Cimahi') }}" required
+                                   class="col-span-2 px-3 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none bg-white text-sm"
+                                   placeholder="Description">
                         </div>
-                        <input type="hidden" name="storage_location" value="2080">
-                        <input type="hidden" name="storage_location_description" value="APJ Cimahi">
                     </div>
 
                     <!-- Editable Field: Rak -->

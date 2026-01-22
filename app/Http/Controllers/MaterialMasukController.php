@@ -65,14 +65,16 @@ class MaterialMasukController extends Controller
             ->addColumn('tanggal_keluar_formatted', fn($row) => $row->tanggal_keluar ? Carbon::parse($row->tanggal_keluar)->format('d/m/Y') : '-')
             ->addColumn('status_sap', function ($row) {
                 return $row->status_sap === 'Selesai SAP'
-                    ? '<span class="badge bg-primary">Selesai SAP</span>'
-                    : '<span class="badge bg-warning text-dark">Belum Selesai SAP</span>';
+                    ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">Selesai SAP</span>'
+                    : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">Belum Selesai SAP</span>';
             })
             ->addColumn('action', function ($row) {
                 $user = auth()->user();
 
-                $btn = '<div class="btn-group" role="group">';
-                $btn .= '<button type="button" class="btn btn-sm btn-info"
+                $btn = '<div class="flex justify-end items-center gap-2">';
+                
+                // View Button
+                $btn .= '<button type="button" class="p-2 rounded-lg text-teal-600 hover:bg-teal-50 transition-colors"
                         onclick="showDetail(' . $row->id . ')" title="Detail">
                         <i class="fa fa-eye"></i>
                     </button>';
@@ -83,12 +85,12 @@ class MaterialMasukController extends Controller
                     if (strtolower(trim($row->status_sap)) !== 'selesai sap') {
 
                         $btn .= '<a href="' . route('material-masuk.edit', $row->id) . '"
-                                class="btn btn-sm btn-warning" title="Edit">
+                                class="p-2 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors" title="Edit">
                                 <i class="fa fa-edit"></i>
                             </a>';
 
                         // 🗑️ HAPUS hanya kalau BELUM selesai SAP
-                        $btn .= '<button type="button" class="btn btn-sm btn-danger"
+                        $btn .= '<button type="button" class="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
                                 onclick="deleteMaterialMasuk(' . $row->id . ')" title="Hapus">
                                 <i class="fa fa-trash"></i>
                             </button>';

@@ -7,409 +7,330 @@
 @section('content')
 <!-- <pre>{{ json_encode($suratJalan->details, JSON_PRETTY_PRINT) }}</pre> -->
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fa fa-edit me-2"></i>
-                        Edit Surat Jalan: {{ $suratJalan->nomor_surat }}
-                    </h5>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header with Back Button -->
+    <div class="mb-6 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <a href="{{ route('surat-jalan.index') }}" class="p-2 bg-white rounded-xl shadow-sm border border-gray-200 text-gray-600 hover:text-teal-600 hover:border-teal-200 transition-all">
+                <i class="fas fa-arrow-left text-lg"></i>
+            </a>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Edit Surat Jalan</h1>
+                <p class="text-gray-500 text-sm">Perbarui data dan detail pengiriman material.</p>
+            </div>
+        </div>
+        <div class="hidden md:block">
+            <span class="px-4 py-2 rounded-lg bg-teal-50 text-teal-700 text-sm font-semibold border border-teal-100">
+                {{ $suratJalan->nomor_surat }}
+            </span>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <!-- Form Content -->
+        <div class="p-8 md:p-10">
+            <form action="{{ route('surat-jalan.update', $suratJalan->id) }}" method="POST" id="suratJalanForm" class="space-y-12">
+                @csrf
+                @method('PUT')
+                
+                <!-- Section 1: Informasi Dasar -->
+                <div>
+                    <h3 class="flex items-center text-lg font-bold text-gray-800 mb-6 pb-2 border-b border-gray-100">
+                        <i class="fas fa-file-alt text-teal-600 mr-3 text-xl"></i>
+                        Informasi Surat Jalan
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Nomor Surat (Readonly) -->
+                        <div>
+                            <label for="nomor_surat" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Nomor Surat Jalan <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="nomor_surat" name="nomor_surat" value="{{ $suratJalan->nomor_surat }}" readonly
+                                class="w-full rounded-lg bg-gray-50 border-gray-300 text-gray-500 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 cursor-not-allowed">
+                        </div>
+
+                         <!-- Jenis Surat -->
+                         <div>
+                            <label for="jenis_surat_jalan" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Jenis Surat Jalan <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" value="{{ $suratJalan->jenis_surat_jalan }}" readonly
+                                class="w-full rounded-lg bg-gray-50 border-gray-300 text-gray-500 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 cursor-not-allowed">
+                            <input type="hidden" name="jenis_surat_jalan" value="{{ $suratJalan->jenis_surat_jalan }}">
+                        </div>
+
+                         <!-- Tanggal -->
+                         <div>
+                            <label for="tanggal" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Tanggal <span class="text-red-500">*</span>
+                            </label>
+                            <input type="date" id="tanggal" name="tanggal" 
+                                value="{{ old('tanggal', \Carbon\Carbon::parse($suratJalan->tanggal)->format('Y-m-d')) }}"
+                                class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form action="{{ route('surat-jalan.update', $suratJalan->id) }}" method="POST" id="suratJalanForm">
-                        @csrf
-                        @method('PUT')
-                        
-                        <!-- Informasi Surat Jalan -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h6 class="text-info border-bottom pb-2">
-                                    <i class="fa fa-file-alt me-1"></i>
-                                    Informasi Surat Jalan
-                                </h6>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="nomor_surat" class="form-label fw-semibold">
-                                    Nomor Surat Jalan <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="nomor_surat" 
-                                       name="nomor_surat" 
-                                       value="{{ $suratJalan->nomor_surat }}"
-                                       readonly>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="jenis_surat_jalan" class="form-label fw-semibold">
-                                    Jenis Surat Jalan <span class="text-danger">*</span>
-                                </label>
-                                <input type="text"
-                                    class="form-control"
-                                    value="{{ $suratJalan->jenis_surat_jalan }}"
-                                    readonly>
 
-                                <input type="hidden"
-                                    name="jenis_surat_jalan"
-                                    value="{{ $suratJalan->jenis_surat_jalan }}">
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="tanggal" class="form-label fw-semibold">
-                                    Tanggal Surat Jalan <span class="text-danger">*</span>
-                                </label>
-                                
-                                    <input type="date" class="form-control" id="tanggal" name="tanggal" 
-                                           value="{{ old('tanggal', \Carbon\Carbon::parse($suratJalan->tanggal)->format('Y-m-d')) }}">
-                                <!-- <input type="date" 
-                                       class="form-control" 
-                                       id="tanggal" 
-                                       name="tanggal" 
-                                       value="{{ $suratJalan->tanggal }}"
-                                       required> -->
-                            </div>
+                <!-- Section 2: Informasi Penerima -->
+                <div>
+                    <h3 class="flex items-center text-lg font-bold text-gray-800 mb-6 pb-2 border-b border-gray-100">
+                        <i class="fas fa-user-check text-blue-600 mr-3 text-xl"></i>
+                        Informasi Penerima & Tujuan
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Kepada -->
+                        <div>
+                            <label for="kepada" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Diberikan Kepada <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="kepada" name="kepada" value="{{ $suratJalan->kepada }}" required placeholder="Vendor / Unit PLN"
+                                class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">
                         </div>
-                        
-                        <!-- Informasi Penerima -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h6 class="text-info border-bottom pb-2">
-                                    <i class="fa fa-user-check me-1"></i>
-                                    Informasi Penerima
-                                </h6>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="kepada" class="form-label fw-semibold">
-                                    Diberikan Kepada <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="kepada" 
-                                       name="kepada" 
-                                       value="{{ $suratJalan->kepada }}"
-                                       placeholder="Vendor / Unit PLN"
-                                       required>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="berdasarkan" class="form-label fw-semibold">
-                                    Berdasarkan <span class="text-danger">*</span>
-                                </label>
-                                <textarea class="form-control" 
-                                          id="berdasarkan" 
-                                          name="berdasarkan" 
-                                          rows="2"
-                                          placeholder="Reservasi/Permintaan"
-                                          required>{{ $suratJalan->berdasarkan }}</textarea>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="keterangan" class="form-label fw-semibold">
-                                    Untuk Pekerjaan
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="keterangan" 
-                                       name="keterangan" 
-                                       value="{{ $suratJalan->keterangan }}"
-                                       placeholder="Pekerjaan / PB PD Rutin / STO">
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="nomor_slip" class="form-label fw-semibold">
-                                    Nomor Slip
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="nomor_slip" 
-                                       name="nomor_slip" 
-                                       value="{{ $suratJalan->nomor_slip }}"
-                                       placeholder="No SAP : TUG8 / TUG9">
-                            </div>
-                        </div>
-                        
-                        <!-- Daftar Material -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h6 class="text-info border-bottom pb-2">
-                                    <i class="fa fa-boxes me-1"></i>
-                                    Daftar Material
-                                </h6>
-                            </div>
-                            
-                            <div class="col-12 mb-3">
-                                <div class="table-responsive">
-                                    <table class="table table-bordered" id="materialTable">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th width="5%">No</th>
-                                                <th width="35%">Material</th>
-                                                <th width="10%">Stock</th>
-                                                <th width="15%">Qty</th>
-                                                <th width="15%">Satuan</th>
-                                                <th width="20%">Keterangan</th>
-                                                <th width="10%">Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($suratJalan->details as $index => $detail)
-                                        <tr>
-                                            <td>{{ $index + 1 }}</td>
 
-                                            {{-- Kolom Material --}}
-                                        <td>
+                         <!-- Berdasarkan -->
+                         <div class="md:row-span-2">
+                            <label for="berdasarkan" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Berdasarkan <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="berdasarkan" name="berdasarkan" rows="5" required placeholder="Dasar permintaan / referensi..."
+                                class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">{{ $suratJalan->berdasarkan }}</textarea>
+                        </div>
+
+                        <!-- Keterangan -->
+                        <div>
+                            <label for="keterangan" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Untuk Pekerjaan
+                            </label>
+                            <input type="text" id="keterangan" name="keterangan" value="{{ $suratJalan->keterangan }}" placeholder="Deskripsi pekerjaan..."
+                                class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">
+                        </div>
+
+                        <!-- Nomor Slip -->
+                        <div>
+                            <label for="nomor_slip" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Nomor Slip SAP
+                            </label>
+                            <input type="text" id="nomor_slip" name="nomor_slip" value="{{ $suratJalan->nomor_slip }}" placeholder="Contoh: TUG8 / TUG9"
+                                class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">
+                        </div>
+                    </div>
+                </div>
+                        
+                <!-- Section 3: Daftar Material -->
+                <div>
+                    <div class="flex items-center justify-between mb-6 pb-3 border-b border-gray-100">
+                        <h3 class="flex items-center text-lg font-bold text-gray-800">
+                            <i class="fas fa-boxes text-indigo-600 mr-3 text-xl"></i>
+                            Daftar Material
+                        </h3>
+                        <button type="button" onclick="addRow()" 
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 shadow-lg shadow-teal-500/30 transition-all">
+                            <i class="fas fa-plus mr-2"></i> Tambah Material
+                        </button>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200" id="materialTable">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-12">No</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Material / Barang</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Stock</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Qty</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Satuan</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Keterangan</th>
+                                        <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-16">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @foreach($suratJalan->details as $index => $detail)
+                                    <tr>
+                                        <td class="px-4 py-3 text-sm text-gray-500 text-center">{{ $index + 1 }}</td>
+
+                                        {{-- Kolom Material --}}
+                                        <td class="px-4 py-3">
                                             @if(in_array($suratJalan->jenis_surat_jalan, ['Manual', 'Peminjaman']))
                                                 @if($suratJalan->status === 'APPROVED')
-                                                    <input type="text" class="form-control form-control-sm"
-                                                        value="{{ $detail->nama_barang_manual }}"
-                                                        readonly>
-                                                    <input type="hidden" name="materials[{{ $index }}][nama_barang]"
-                                                        value="{{ $detail->nama_barang_manual }}">
+                                                    <input type="text" value="{{ $detail->nama_barang_manual }}" readonly
+                                                        class="block w-full rounded-md bg-gray-50 border-gray-300 text-gray-500 shadow-sm sm:text-sm">
+                                                    <input type="hidden" name="materials[{{ $index }}][nama_barang]" value="{{ $detail->nama_barang_manual }}">
                                                 @else
-                                                    <input type="text" class="form-control form-control-sm"
-                                                        name="materials[{{ $index }}][nama_barang]"
-                                                        value="{{ $detail->nama_barang_manual }}"
-                                                        placeholder="Nama barang manual..."
-                                                        required>
+                                                    <input type="text" name="materials[{{ $index }}][nama_barang]" value="{{ $detail->nama_barang_manual }}" placeholder="Nama barang manual..." required
+                                                        class="block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
                                                 @endif
                                             @else
                                                 {{-- yang normal tetap pakai master/autocomplete --}}
                                                 @if($suratJalan->status === 'APPROVED')
-                                                    <input type="text" class="form-control form-control-sm"
-                                                        value="{{ $detail->material->material_code ?? '' }} - {{ $detail->material->material_description ?? '' }}"
-                                                        readonly>
-                                                    <input type="hidden" name="materials[{{ $index }}][material_id]"
-                                                        value="{{ $detail->material_id }}">
-                                                    <input type="hidden" name="materials[{{ $index }}][material_search]"
-                                                        value="{{ $detail->material->material_code ?? '' }} - {{ $detail->material->material_description ?? '' }}">
+                                                    <input type="text" value="{{ $detail->material->material_code ?? '' }} - {{ $detail->material->material_description ?? '' }}" readonly
+                                                        class="block w-full rounded-md bg-gray-50 border-gray-300 text-gray-500 shadow-sm sm:text-sm">
+                                                    <input type="hidden" name="materials[{{ $index }}][material_id]" value="{{ $detail->material_id }}">
+                                                    <input type="hidden" name="materials[{{ $index }}][material_search]" value="{{ $detail->material->material_code ?? '' }} - {{ $detail->material->material_description ?? '' }}">
                                                 @else
-                                                    <input type="text"
-                                                        class="form-control form-control-sm material-autocomplete"
-                                                        name="materials[{{ $index }}][material_search]"
-                                                        value="{{ $detail->material->material_code ?? '' }} - {{ $detail->material->material_description ?? '' }}"
-                                                        autocomplete="off"
-                                                        required>
-
-                                                    <input type="hidden"
-                                                        name="materials[{{ $index }}][material_id]"
-                                                        value="{{ $detail->material_id }}"
-                                                        class="material-id-input">
-
-                                                    <div class="autocomplete-results" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ddd;max-height:400px;overflow-y:auto;width:200%;"></div>
+                                                    <div class="relative">
+                                                        <input type="text" name="materials[{{ $index }}][material_search]" 
+                                                               value="{{ $detail->material->material_code ?? '' }} - {{ $detail->material->material_description ?? '' }}"
+                                                               autocomplete="off" required
+                                                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm material-autocomplete placeholder-gray-400">
+                                                        
+                                                        <input type="hidden" name="materials[{{ $index }}][material_id]" value="{{ $detail->material_id }}" class="material-id-input">
+                                                        <div class="autocomplete-results absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto hidden"></div>
+                                                    </div>
                                                 @endif
                                             @endif
                                         </td>
-                                            {{-- Kolom Stock --}}
-                                            <td>
+
+                                        {{-- Kolom Stock --}}
+                                        <td class="px-4 py-3">
                                             @if(in_array($suratJalan->jenis_surat_jalan, ['Manual', 'Peminjaman']))
-                                                <input type="text" class="form-control form-control-sm" value="-" readonly>
+                                                <input type="text" value="-" readonly class="block w-full rounded-md bg-gray-50 border-gray-300 text-center text-gray-500 shadow-sm sm:text-sm">
                                             @else
-                                                <input type="number" class="form-control form-control-sm"
-                                                    name="materials[{{ $index }}][stock]"
-                                                    value="{{ $detail->material->unrestricted_use_stock ?? 0 }}"
-                                                    readonly>
+                                                <input type="number" name="materials[{{ $index }}][stock]" value="{{ $detail->material->unrestricted_use_stock ?? 0 }}" readonly
+                                                    class="block w-full rounded-md bg-gray-50 border-gray-300 text-center text-gray-500 shadow-sm sm:text-sm font-mono">
                                             @endif
                                         </td>
 
+                                        {{-- Kolom Qty --}}
+                                        <td class="px-4 py-3">
+                                            <input type="number" name="materials[{{ $index }}][quantity]" value="{{ $detail->quantity }}" min="1" required
+                                                {{ $suratJalan->status === 'APPROVED' ? 'readonly' : '' }}
+                                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm text-center font-bold {{ $suratJalan->status === 'APPROVED' ? 'bg-gray-50 text-gray-500' : 'text-gray-900' }}">
+                                        </td>
 
-                                            {{-- Kolom Qty --}}
-                                            <td>
-                                                <input type="number" 
-                                                    class="form-control form-control-sm" 
-                                                    name="materials[{{ $index }}][quantity]" 
-                                                    value="{{ $detail->quantity }}"
-                                                    min="1"
-                                                    @if($suratJalan->status === 'APPROVED') readonly @endif
-                                                    required>
-                                            </td>
+                                        {{-- Kolom Satuan --}}
+                                        <td class="px-4 py-3">
+                                            <input type="text" name="materials[{{ $index }}][satuan]" value="{{ $detail->satuan }}" readonly
+                                                class="block w-full rounded-md bg-gray-50 border-gray-300 text-gray-500 shadow-sm sm:text-sm text-center">
+                                        </td>
 
-                                            {{-- Kolom Satuan --}}
-                                            <td>
-                                                <input type="text" 
-                                                    class="form-control form-control-sm" 
-                                                    name="materials[{{ $index }}][satuan]" 
-                                                    value="{{ $detail->satuan }}"
-                                                    readonly>
-                                            </td>
+                                        {{-- Kolom Keterangan --}}
+                                        <td class="px-4 py-3">
+                                            <input type="text" name="materials[{{ $index }}][keterangan]" value="{{ $detail->keterangan }}" placeholder="Ket..."
+                                                {{ $suratJalan->status === 'APPROVED' ? 'readonly' : '' }}
+                                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm {{ $suratJalan->status === 'APPROVED' ? 'bg-gray-50 text-gray-500' : '' }}">
+                                        </td>
 
-                                            {{-- Kolom Keterangan --}}
-                                            <td>
-                                                <input type="text" 
-                                                    class="form-control form-control-sm" 
-                                                    name="materials[{{ $index }}][keterangan]" 
-                                                    value="{{ $detail->keterangan }}"
-                                                    placeholder="Keterangan"
-                                                    @if($suratJalan->status === 'APPROVED') readonly @endif>
-                                            </td>
-
-                                            {{-- Kolom Aksi --}}
-                                            <td>
-                                                @if($suratJalan->status !== 'APPROVED')
-                                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
-                                                        <i class="fa fa-trash"></i>
-                                                    </button>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        @endforeach
-
-                                        </tbody>
-                                    </table>
-                                </div>
-                                
-                                <div class="mt-2" style="display: flex !important; justify-content: flex-end !important; width: 100%;">
-                                    <button type="button" class="btn btn-success btn-sm" onclick="addRow()">
-                                        <i class="fa fa-plus me-1"></i>
-                                        Tambah Material
-                                    </button>
-                                </div>
-                            </div>
+                                        {{-- Kolom Aksi --}}
+                                        <td class="px-4 py-3 text-center">
+                                            @if($suratJalan->status !== 'APPROVED')
+                                                <button type="button" onclick="removeRow(this)" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full transition-colors">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
+                    </div>
+                </div>
                         
-                        <!-- Keterangan -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h6 class="text-info border-bottom pb-2">
-                                    <i class="fa fa-sticky-note me-1"></i>
-                                    Keterangan
-                                </h6>
-                            </div>
-                            
-                            <div class="col-12 mb-3">
-                                <label for="keterangan" class="form-label fw-semibold">
-                                    Keterangan Tambahan
-                                </label>
-                                <textarea class="form-control" 
-                                          id="keterangan" 
-                                          name="keterangan" 
-                                          rows="3"
-                                          placeholder="Keterangan tambahan untuk surat jalan (opsional)">{{ $suratJalan->keterangan }}</textarea>
-                            </div>
+                <!-- Section 4: Keterangan Tambahan -->
+                <div>
+                    <h3 class="flex items-center text-lg font-bold text-gray-800 mb-6 pb-2 border-b border-gray-100">
+                        <i class="fas fa-sticky-note text-yellow-600 mr-3 text-xl"></i>
+                        Keterangan Tambahan
+                    </h3>
+                    
+                    <div>
+                        <textarea id="keterangan" name="keterangan" rows="3" placeholder="Catatan tambahan (opsional)..."
+                            class="w-full rounded-lg border-gray-300 px-4 py-3 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">{{ $suratJalan->keterangan }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Section 5: Informasi Kendaraan -->
+                <div>
+                    <h3 class="flex items-center text-lg font-bold text-gray-800 mb-6 pb-2 border-b border-gray-100">
+                        <i class="fas fa-truck text-slate-600 mr-3 text-xl"></i>
+                        Informasi Kendaraan & Pengangkut
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Kendaraan -->
+                        <div>
+                            <label for="kendaraan" class="block text-sm font-medium text-gray-700 mb-1">Kendaraan</label>
+                            <input type="text" id="kendaraan" name="kendaraan" value="{{ $suratJalan->kendaraan }}" placeholder="Jenis/Merk"
+                                class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">
                         </div>
-                        
-                        <!-- Informasi Kendaraan -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h6 class="text-info border-bottom pb-2">
-                                    <i class="fa fa-truck me-1"></i>
-                                    Informasi Kendaraan
-                                </h6>
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="kendaraan" class="form-label fw-semibold">
-                                    Kendaraan
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="kendaraan" 
-                                       name="kendaraan" 
-                                       value="{{ $suratJalan->kendaraan }}"
-                                       placeholder="Jenis/Merk kendaraan">
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="no_polisi" class="form-label fw-semibold">
-                                    No. Polisi
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="no_polisi" 
-                                       name="no_polisi" 
-                                       value="{{ $suratJalan->no_polisi }}"
-                                       placeholder="Nomor polisi kendaraan">
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="pengemudi" class="form-label fw-semibold">
-                                    Pengemudi
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="pengemudi" 
-                                       name="pengemudi" 
-                                       value="{{ $suratJalan->pengemudi }}"
-                                       placeholder="Nama pengemudi">
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="security" class="form-label fw-semibold">
-                                    Security
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="security" 
-                                       name="security" 
-                                       value="{{ $suratJalan->security }}"
-                                       placeholder="Nama security">
-                            </div>
+
+                         <!-- No Polisi -->
+                         <div>
+                            <label for="no_polisi" class="block text-sm font-medium text-gray-700 mb-1">No. Polisi</label>
+                            <input type="text" id="no_polisi" name="no_polisi" value="{{ $suratJalan->no_polisi }}" placeholder="Plat Nomor"
+                                class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400 uppercase">
                         </div>
-                        
-                        <!-- Foto Dokumentasi -->
-                        @if($suratJalan->foto_penerima)
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h6 class="text-info border-bottom pb-2">
-                                    <i class="fa fa-camera me-1"></i>
-                                    Foto Dokumentasi
-                                </h6>
-                            </div>
-                            <div class="col-12">
-                                <div class="text-center">
-                                    <a href="{{ asset('storage/' . $suratJalan->foto_penerima) }}" target="_blank" title="Klik untuk melihat foto ukuran penuh">
-                                        <img src="{{ asset('storage/' . $suratJalan->foto_penerima) }}" 
-                                             alt="Foto Penerima" 
-                                             class="img-thumbnail" 
-                                             style="max-width: 400px; max-height: 300px; object-fit: cover; cursor: pointer;">
-                                    </a>
-                                    <p class="text-muted small mt-2">
-                                        <i class="fa fa-info-circle me-1"></i>
-                                        Klik gambar untuk melihat ukuran penuh
-                                    </p>
-                                </div>
-                            </div>
+
+                        <!-- Pengemudi -->
+                        <div>
+                            <label for="pengemudi" class="block text-sm font-medium text-gray-700 mb-1">Pengemudi</label>
+                            <input type="text" id="pengemudi" name="pengemudi" value="{{ $suratJalan->pengemudi }}" placeholder="Nama Supir"
+                                class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">
                         </div>
+
+                        <!-- Security -->
+                        <div>
+                            <label for="security" class="block text-sm font-medium text-gray-700 mb-1">Security</label>
+                            <input type="text" id="security" name="security" value="{{ $suratJalan->security }}" placeholder="Petugas Jaga"
+                                class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 6: Foto Dokumentasi -->
+                @if($suratJalan->foto_penerima)
+                <div>
+                    <h3 class="flex items-center text-lg font-bold text-gray-800 mb-6 pb-2 border-b border-gray-100">
+                        <i class="fas fa-camera text-purple-600 mr-3 text-xl"></i>
+                        Foto Dokumentasi
+                    </h3>
+                    
+                    <div class="bg-gray-50 rounded-xl border border-dashed border-gray-300 p-6 flex flex-col items-center justify-center">
+                         <a href="{{ asset('storage/' . $suratJalan->foto_penerima) }}" target="_blank" class="group relative block overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300">
+                            <img src="{{ asset('storage/' . $suratJalan->foto_penerima) }}" alt="Foto Penerima" class="max-w-full h-auto max-h-80 object-cover transform group-hover:scale-105 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+                                <i class="fas fa-search-plus text-white opacity-0 group-hover:opacity-100 text-3xl transform scale-0 group-hover:scale-100 transition-all duration-300"></i>
+                            </div>
+                        </a>
+                        <p class="text-gray-500 text-sm mt-3">
+                            <i class="fas fa-info-circle mr-1"></i> Klik gambar untuk memperbesar
+                        </p>
+                    </div>
+                </div>
+                @endif
+
+                <!-- Action Buttons -->
+                <div class="mt-10 pt-6 border-t border-gray-100 flex flex-col-reverse md:flex-row md:items-center justify-between gap-4">
+                    <a href="{{ route('surat-jalan.index') }}" class="w-full md:w-auto px-6 py-3 bg-white border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 hover:text-gray-900 shadow-sm transition-all text-center">
+                        <i class="fas fa-arrow-left mr-2"></i> Kembali
+                    </a>
+
+                    <div class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                        <button type="reset" class="w-full md:w-auto px-6 py-3 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl font-medium hover:bg-amber-100 transition-all shadow-sm">
+                            <i class="fas fa-undo mr-2"></i> Reset
+                        </button>
+
+                        @if($suratJalan->status === 'BUTUH_PERSETUJUAN')
+                        <button type="button" onclick="approveSuratJalan({{ $suratJalan->id }})" class="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:from-blue-700 hover:to-blue-800 transition-all transform hover:-translate-y-0.5">
+                            <i class="fas fa-check-circle mr-2"></i> Approve Surat Jalan
+                        </button>
                         @endif
-                        
-                        <!-- Action Buttons -->
-                        <div class="row mt-4">
-    <div class="col-12 d-flex justify-content-between align-items-center">
-        <a href="{{ route('surat-jalan.index') }}" class="btn btn-secondary">
-            <i class="fa fa-arrow-left me-1"></i> Kembali
-        </a>
 
-        <div class="d-flex gap-2">
-            <button type="reset" class="btn btn-warning">
-                <i class="fa fa-undo me-1"></i> Reset Form
-            </button>
+                        <button type="submit" name="action" value="update" class="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-xl font-bold shadow-lg shadow-teal-500/30 hover:shadow-teal-500/50 hover:from-teal-700 hover:to-teal-800 transition-all transform hover:-translate-y-0.5">
+                            <i class="fas fa-save mr-2"></i> Simpan Perubahan
+                        </button>
 
-            @if($suratJalan->status === 'BUTUH_PERSETUJUAN')
-<button type="button" class="btn btn-primary" onclick="approveSuratJalan({{ $suratJalan->id }})">
-    <i class="fa fa-check me-1"></i> Approve Surat Jalan
-</button>
-@endif
+                        @if($suratJalan->status === 'APPROVED')
+                        <button type="submit" name="action" value="selesai" class="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-bold shadow-lg shadow-green-500/30 hover:shadow-green-500/50 hover:from-green-700 hover:to-green-800 transition-all transform hover:-translate-y-0.5">
+                            <i class="fas fa-check-double mr-2"></i> Tandai Selesai
+                        </button>
+                        @endif
+                    </div>
+                </div>
 
-
-{{-- 🔰 Tombol Update sekarang tampil lebih dulu --}}
-<button type="submit" name="action" value="update" class="btn btn-success">
-    <i class="fa fa-save me-1"></i> Update Surat Jalan
-</button>
-
-{{-- ✅ Tombol Tandai Selesai setelah Update --}}
-@if($suratJalan->status === 'APPROVED')
-    <button type="submit" name="action" value="selesai" class="btn btn-primary">
-        <i class="fa fa-check-double me-1"></i> Tandai Selesai
-    </button>
-@endif
-
-        </div>
-    </div>
-</div>
-
+            </form>
         </div>
     </div>
 </div>
@@ -520,47 +441,63 @@ function addRow() {
 
     if (isManual) {
         tr.innerHTML = `
-            <td>${index + 1}</td>
-            <td>
+            <td class="px-4 py-3 text-sm text-gray-500 text-center">${index + 1}</td>
+            <td class="px-4 py-3">
                 <input type="text" name="materials[${index}][nama_barang]"
-                       class="form-control form-control-sm" required>
+                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" required placeholder="Nama barang manual...">
             </td>
-            <td style="display:none;">-</td>
-            <td><input type="number" name="materials[${index}][quantity]"
-                       class="form-control form-control-sm" required></td>
-            <td><input type="text" name="materials[${index}][satuan]"
-                       class="form-control form-control-sm" required></td>
-            <td><input type="text" name="materials[${index}][keterangan]"
-                       class="form-control form-control-sm"></td>
-            <td>
-                <button type="button" class="btn btn-danger btn-sm"
-                        onclick="removeRow(this)">🗑</button>
+            <td class="px-4 py-3" style="display:none;">
+                <input type="text" value="-" readonly class="block w-full rounded-md bg-gray-50 border-gray-300 text-center text-gray-500 shadow-sm sm:text-sm">
+            </td>
+            <td class="px-4 py-3">
+                <input type="number" name="materials[${index}][quantity]"
+                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm text-center font-bold text-gray-900" required min="1">
+            </td>
+            <td class="px-4 py-3">
+                <input type="text" name="materials[${index}][satuan]"
+                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm text-center" required>
+            </td>
+            <td class="px-4 py-3">
+                <input type="text" name="materials[${index}][keterangan]" placeholder="Ket..."
+                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+            </td>
+            <td class="px-4 py-3 text-center">
+                <button type="button" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full transition-colors"
+                        onclick="removeRow(this)"><i class="fas fa-trash"></i></button>
             </td>
         `;
     } else {
         tr.innerHTML = `
-            <td>${index + 1}</td>
-            <td>
-                <input type="text" name="materials[${index}][material_search]"
-                       class="form-control form-control-sm material-autocomplete"
-                       autocomplete="off" required>
-                <input type="hidden" name="materials[${index}][material_id]"
-                       class="material-id">
-                <div class="autocomplete-results"></div>
+            <td class="px-4 py-3 text-sm text-gray-500 text-center">${index + 1}</td>
+            <td class="px-4 py-3">
+                <div class="relative">
+                    <input type="text" name="materials[${index}][material_search]"
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm material-autocomplete placeholder-gray-400"
+                           autocomplete="off" required placeholder="Cari material...">
+                    <input type="hidden" name="materials[${index}][material_id]"
+                           class="material-id">
+                    <div class="autocomplete-results absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto hidden"></div>
+                </div>
             </td>
-            <td style="${isNonStock ? 'display:none;' : ''}">
+            <td class="px-4 py-3" style="${isNonStock ? 'display:none;' : ''}">
                 <input type="number" name="materials[${index}][stock]"
-                       class="form-control form-control-sm" readonly>
+                       class="block w-full rounded-md bg-gray-50 border-gray-300 text-center text-gray-500 shadow-sm sm:text-sm font-mono" readonly>
             </td>
-            <td><input type="number" name="materials[${index}][quantity]"
-                       class="form-control form-control-sm" required></td>
-            <td><input type="text" name="materials[${index}][satuan]"
-                       class="form-control form-control-sm" readonly></td>
-            <td><input type="text" name="materials[${index}][keterangan]"
-                       class="form-control form-control-sm"></td>
-            <td>
-                <button type="button" class="btn btn-danger btn-sm"
-                        onclick="removeRow(this)">🗑</button>
+            <td class="px-4 py-3">
+                <input type="number" name="materials[${index}][quantity]"
+                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm text-center font-bold text-gray-900" required min="1">
+            </td>
+            <td class="px-4 py-3">
+                <input type="text" name="materials[${index}][satuan]"
+                       class="block w-full rounded-md bg-gray-50 border-gray-300 text-gray-500 shadow-sm sm:text-sm text-center" readonly>
+            </td>
+            <td class="px-4 py-3">
+                <input type="text" name="materials[${index}][keterangan]" placeholder="Ket..."
+                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+            </td>
+            <td class="px-4 py-3 text-center">
+                <button type="button" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full transition-colors"
+                        onclick="removeRow(this)"><i class="fas fa-trash"></i></button>
             </td>
         `;
     }

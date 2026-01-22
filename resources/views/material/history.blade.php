@@ -171,7 +171,16 @@ $(document).ready(function () {
     $("#searchMaterial").autocomplete({
         minLength: 1,
         source: function (request, response) {
-            $.get("{{ route('material.autocomplete') }}", { q: request.term }, response);
+            $.get("{{ route('material.autocomplete') }}", { q: request.term }, function(data) {
+                response($.map(data, function(item) {
+                    return {
+                        label: `${item.material_code} - ${item.material_description}`,
+                        value: `${item.material_code} - ${item.material_description}`,
+                        id: item.id,
+                        description: item.material_description
+                    };
+                }));
+            });
         },
         select: function (event, ui) {
 
@@ -180,7 +189,7 @@ $(document).ready(function () {
             $("#searchMaterial").val(ui.item.value);
 
             // filter tabel (kolom material index = 3)
-            table.column(3).search(ui.item.value).draw();
+            table.column(3).search(ui.item.description).draw();
 
             // AKTIFKAN EXPORT PDF
             const exportPdfBtn = document.getElementById('exportPdfBtn');
