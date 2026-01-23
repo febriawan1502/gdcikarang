@@ -131,10 +131,10 @@ namespace App\Http\Controllers;
 
                 ->addColumn('action', function($row) {
                     $user = auth()->user();
-                    $actions = '<div class="flex justify-end items-center gap-2">';
+                    $actions = '<div class="action-buttons">';
 
                     // Semua role bisa View detail (pakai modal AJAX)
-                    $actions .= '<button type="button" class="p-2 rounded-lg text-teal-600 hover:bg-teal-50 transition-colors" title="View"
+                    $actions .= '<button type="button" class="action-btn view" title="View"
                                     onclick="showDetailSuratJalan(' . $row->id . ')">
                                     <i class="fa fa-eye"></i>
                                 </button>';
@@ -146,11 +146,11 @@ namespace App\Http\Controllers;
 
                     // Petugas & Admin: bisa full action
                     if (in_array($row->status, ['BUTUH_PERSETUJUAN', 'APPROVED'])) {
-                        $actions .= '<a href="' . route('surat-jalan.edit', $row->id) . '" class="p-2 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors" title="Edit"><i class="fa fa-edit"></i></a>';
+                        $actions .= '<a href="' . route('surat-jalan.edit', $row->id) . '" class="action-btn edit" title="Edit"><i class="fa fa-edit"></i></a>';
                     }
 
                     if (in_array($row->status, ['APPROVED', 'SELESAI'])) {
-                        $actions .= '<button class="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+                        $actions .= '<button class="action-btn barcode"
                             onclick="printSuratJalan(' . $row->id . ')" title="Print">
                             <i class="fa fa-print"></i>
                         </button>';
@@ -158,7 +158,7 @@ namespace App\Http\Controllers;
 
                     // ❌ Jangan tampilkan delete kalau APPROVED atau SELESAI
                     if (!in_array($row->status, ['APPROVED', 'SELESAI'])) {
-                        $actions .= '<button class="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                        $actions .= '<button class="action-btn delete"
                             onclick="deleteSuratJalan(' . $row->id . ')"
                             title="Delete">
                             <i class="fa fa-trash"></i>

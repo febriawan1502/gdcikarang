@@ -71,10 +71,10 @@ class MaterialMasukController extends Controller
             ->addColumn('action', function ($row) {
                 $user = auth()->user();
 
-                $btn = '<div class="flex justify-end items-center gap-2">';
+                $btn = '<div class="action-buttons">';
                 
                 // View Button
-                $btn .= '<button type="button" class="p-2 rounded-lg text-teal-600 hover:bg-teal-50 transition-colors"
+                $btn .= '<button type="button" class="action-btn view"
                         onclick="showDetail(' . $row->id . ')" title="Detail">
                         <i class="fa fa-eye"></i>
                     </button>';
@@ -85,12 +85,12 @@ class MaterialMasukController extends Controller
                     if (strtolower(trim($row->status_sap)) !== 'selesai sap') {
 
                         $btn .= '<a href="' . route('material-masuk.edit', $row->id) . '"
-                                class="p-2 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors" title="Edit">
+                                class="action-btn edit" title="Edit">
                                 <i class="fa fa-edit"></i>
                             </a>';
 
                         // 🗑️ HAPUS hanya kalau BELUM selesai SAP
-                        $btn .= '<button type="button" class="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                        $btn .= '<button type="button" class="action-btn delete"
                                 onclick="deleteMaterialMasuk(' . $row->id . ')" title="Hapus">
                                 <i class="fa fa-trash"></i>
                             </button>';

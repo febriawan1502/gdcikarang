@@ -3,159 +3,264 @@
 @section('title', 'Material Masuk')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-800">Daftar Material Masuk</h2>
-            <p class="text-gray-500 text-sm mt-1">Kelola data material yang masuk ke gudang.</p>
+    @push('styles')
+        <style>
+            /* Action Buttons in Table */
+            .action-buttons {
+                display: flex;
+                gap: 6px;
+                justify-content: center;
+                /* Center action buttons */
+            }
+
+            .action-btn {
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 8px;
+                border: none;
+                cursor: pointer;
+                font-size: 12px;
+                transition: all 0.2s;
+                text-decoration: none;
+                /* Ensure links don't have underline */
+            }
+
+            .action-btn:hover {
+                transform: translateY(-1px);
+            }
+
+            .action-btn.view {
+                background: #BEE3F8;
+                color: #2B6CB0;
+            }
+
+            .action-btn.edit {
+                background: #FEFCBF;
+                color: #744210;
+            }
+
+            .action-btn.barcode {
+                background: #C6F6D5;
+                color: #22543D;
+            }
+
+            /* Reuse for Print/Success if needed */
+            .action-btn.delete {
+                background: #FED7D7;
+                color: #742A2A;
+            }
+
+            .action-btn.info {
+                background: #EBF8FF;
+                color: #3182CE;
+            }
+
+            /* Explicit Info style */
+        </style>
+    @endpush
+    <div class="space-y-6">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">Daftar Material Masuk</h2>
+                <p class="text-gray-500 text-sm mt-1">Kelola data material yang masuk ke gudang.</p>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+                @if (auth()->user()->role !== 'guest')
+                    <a href="{{ route('material-masuk.create') }}"
+                        class="btn-teal flex items-center gap-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all duration-300">
+                        <i class="fas fa-plus"></i>
+                        <span>Tambah Material</span>
+                    </a>
+                @endif
+                <a href="{{ route('material-masuk.print') }}" target="_blank"
+                    class="px-4 py-2 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center gap-2">
+                    <i class="fas fa-print"></i>
+                    <span>Print PDF</span>
+                </a>
+                <a href="{{ route('material-masuk.export-excel') }}"
+                    class="px-4 py-2 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors flex items-center gap-2">
+                    <i class="fas fa-file-excel"></i>
+                    <span>Export Excel</span>
+                </a>
+            </div>
         </div>
-        
-        <div class="flex flex-wrap gap-2">
-            @if(auth()->user()->role !== 'guest')
-            <a href="{{ route('material-masuk.create') }}" class="btn-teal flex items-center gap-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all duration-300">
-                <i class="fas fa-plus"></i>
-                <span>Tambah Material</span>
-            </a>
+
+        <!-- Content Card -->
+        <div class="card p-6 border border-gray-100 shadow-xl shadow-gray-200/50">
+            <!-- Alert Messages -->
+            @if (session('success'))
+                <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i>
+                    <span>{{ session('success') }}</span>
+                </div>
             @endif
-            <a href="{{ route('material-masuk.print') }}" target="_blank" class="px-4 py-2 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center gap-2">
-                <i class="fas fa-print"></i>
-                <span>Print PDF</span>
-            </a>
-            <a href="{{ route('material-masuk.export-excel') }}" class="px-4 py-2 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors flex items-center gap-2">
-                <i class="fas fa-file-excel"></i>
-                <span>Export Excel</span>
-            </a>
+
+            @if (session('error'))
+                <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>{{ session('error') }}</span>
+                </div>
+            @endif
+
+            <!-- Table -->
+            <div class="overflow-hidden rounded-xl border border-gray-100">
+                <table id="materialMasukTable" class="table-purity w-full">
+                    <thead>
+                        <tr class="bg-gray-50 text-left">
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">No</th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal Masuk
+                            </th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Nomor KR</th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Pabrikan</th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Material</th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Total Qty</th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Dibuat Oleh</th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status SAP</th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Aksi
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 bg-white">
+                        <!-- Data via AJAX -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <!-- Content Card -->
-    <div class="card p-6 border border-gray-100 shadow-xl shadow-gray-200/50">
-        <!-- Alert Messages -->
-        @if(session('success'))
-            <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 flex items-center gap-2">
-                <i class="fas fa-check-circle"></i>
-                <span>{{ session('success') }}</span>
-            </div>
-        @endif
+    <!-- Modal Detail Material Masuk (Tailwind) -->
+    <div id="detailModal" class="fixed inset-0 z-[9999] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Background overlay -->
+            <div class="fixed inset-0 transition-opacity"
+                style="background-color: rgba(17, 24, 39, 0.6); backdrop-filter: blur(4px);" aria-hidden="true"
+                onclick="closeDetailModal()"></div>
 
-        @if(session('error'))
-            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 flex items-center gap-2">
-                <i class="fas fa-exclamation-circle"></i>
-                <span>{{ session('error') }}</span>
-            </div>
-        @endif
-
-        <!-- Table -->
-        <div class="overflow-hidden rounded-xl border border-gray-100">
-            <table id="materialMasukTable" class="table-purity w-full">
-                <thead>
-                    <tr class="bg-gray-50 text-left">
-                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">No</th>
-                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal Masuk</th>
-                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Nomor KR</th>
-                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Pabrikan</th>
-                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Material</th>
-                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Total Qty</th>
-                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Dibuat Oleh</th>
-                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status SAP</th>
-                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 bg-white">
-                    <!-- Data via AJAX -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Detail Material Masuk (Tailwind) -->
-<div id="detailModal" class="fixed inset-0 z-[9999] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <!-- Background overlay -->
-        <div class="fixed inset-0 transition-opacity" style="background-color: rgba(17, 24, 39, 0.6); backdrop-filter: blur(4px);" aria-hidden="true" onclick="closeDetailModal()"></div>
-
-        <!-- Modal panel -->
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="relative z-10 inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-gray-100">
-            <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                        <i class="fas fa-box-open"></i>
-                        Detail Material Masuk
-                    </h3>
-                    <button type="button" class="text-white hover:text-gray-200 transition-colors" onclick="closeDetailModal()">
-                        <i class="fas fa-times text-xl"></i>
+            <!-- Modal panel -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div
+                class="relative z-10 inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-gray-100">
+                <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-box-open"></i>
+                            Detail Material Masuk
+                        </h3>
+                        <button type="button" class="text-white hover:text-gray-200 transition-colors"
+                            onclick="closeDetailModal()">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6 max-h-[80vh] overflow-y-auto" id="detailModalBody">
+                    <!-- Content will be loaded here -->
+                </div>
+                <div class="bg-gray-50 px-6 py-4 flex justify-end">
+                    <button type="button"
+                        class="px-6 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
+                        onclick="closeDetailModal()">
+                        Tutup
                     </button>
                 </div>
             </div>
-            <div class="p-6 max-h-[80vh] overflow-y-auto" id="detailModalBody">
-                <!-- Content will be loaded here -->
-            </div>
-            <div class="bg-gray-50 px-6 py-4 flex justify-end">
-                <button type="button" class="px-6 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors" onclick="closeDetailModal()">
-                    Tutup
-                </button>
-            </div>
         </div>
     </div>
-</div>
 @endsection
 
 @push('scripts')
-<script>
-$(document).ready(function() {
-    $('#materialMasukTable').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: '{{ route("material-masuk.data") }}',
-        // columns: [
-        //     { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-        //     { data: 'tanggal_masuk_formatted', name: 'tanggal_masuk' },
-        //     { data: 'nomor_kr', name: 'nomor_kr' },
-        //     { data: 'pabrikan', name: 'pabrikan' },
-        //     { data: 'material_info', name: 'material_info', orderable: false, searchable: false },
-        //     { data: 'total_quantity', name: 'total_quantity', orderable: false },
-        //     { data: 'creator_name', name: 'creator.nama' },
-        //     { data: 'action', name: 'action', orderable: false, searchable: false }
-        // ],
-        columns: [
-                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-                { data: 'tanggal_masuk_formatted', name: 'tanggal_masuk' },
-                // { data: 'tanggal_keluar_formatted', name: 'tanggal_keluar' },
-                // { data: 'jenis', name: 'jenis' },
-                { data: 'nomor_kr', name: 'nomor_kr' },
-                // { data: 'nomor_po', name: 'nomor_po' },
-                // { data: 'nomor_doc', name: 'nomor_doc' },
-                // { data: 'tugas_4', name: 'tugas_4' },
-                { data: 'pabrikan', name: 'pabrikan' },
-                { data: 'material_info', name: 'material_info', orderable: false, searchable: true },
-                { data: 'total_quantity', name: 'total_quantity', orderable: false },
-                { data: 'creator_name', name: 'creator.nama' },
-                { data: 'status_sap', name: 'status_sap' },
-                { data: 'action', name: 'action', orderable: false, searchable: false }
-            ],
+    <script>
+        $(document).ready(function() {
+            $('#materialMasukTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: '{{ route('material-masuk.data') }}',
+                // columns: [
+                //     { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+                //     { data: 'tanggal_masuk_formatted', name: 'tanggal_masuk' },
+                //     { data: 'nomor_kr', name: 'nomor_kr' },
+                //     { data: 'pabrikan', name: 'pabrikan' },
+                //     { data: 'material_info', name: 'material_info', orderable: false, searchable: false },
+                //     { data: 'total_quantity', name: 'total_quantity', orderable: false },
+                //     { data: 'creator_name', name: 'creator.nama' },
+                //     { data: 'action', name: 'action', orderable: false, searchable: false }
+                // ],
+                columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'tanggal_masuk_formatted',
+                        name: 'tanggal_masuk'
+                    },
+                    // { data: 'tanggal_keluar_formatted', name: 'tanggal_keluar' },
+                    // { data: 'jenis', name: 'jenis' },
+                    {
+                        data: 'nomor_kr',
+                        name: 'nomor_kr'
+                    },
+                    // { data: 'nomor_po', name: 'nomor_po' },
+                    // { data: 'nomor_doc', name: 'nomor_doc' },
+                    // { data: 'tugas_4', name: 'tugas_4' },
+                    {
+                        data: 'pabrikan',
+                        name: 'pabrikan'
+                    },
+                    {
+                        data: 'material_info',
+                        name: 'material_info',
+                        orderable: false,
+                        searchable: true
+                    },
+                    {
+                        data: 'total_quantity',
+                        name: 'total_quantity',
+                        orderable: false
+                    },
+                    {
+                        data: 'creator_name',
+                        name: 'creator.nama'
+                    },
+                    {
+                        data: 'status_sap',
+                        name: 'status_sap'
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false
+                    }
+                ],
 
-        responsive: true,
-        order: [[1, 'desc']],
-        pageLength: 25,
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Indonesian.json'
-        }
-    });
-});
+                responsive: true,
+                order: [
+                    [1, 'desc']
+                ],
+                pageLength: 25,
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Indonesian.json'
+                }
+            });
+        });
 
-// Old commented code removed
+        // Old commented code removed
 
-function showDetail(id) {
-    $.ajax({
-        url: '{{ route("material-masuk.index") }}/' + id,
-        type: 'GET',
-        success: function(response) {
-            if (response.success) {
-                let data = response.data;
-                let detailHtml = `
+        function showDetail(id) {
+            $.ajax({
+                url: '{{ route('material-masuk.index') }}/' + id,
+                type: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        let data = response.data;
+                        let detailHtml = `
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <!-- Left Column -->
                         <div class="space-y-4">
@@ -258,9 +363,9 @@ function showDetail(id) {
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">`;
-                
-                data.details.forEach(function(detail) {
-                    detailHtml += `
+
+                        data.details.forEach(function(detail) {
+                            detailHtml += `
                         <tr class="hover:bg-teal-50/30 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-mono font-medium text-teal-600 bg-gray-50/50">
                                 ${detail.material_code}
@@ -278,9 +383,9 @@ function showDetail(id) {
                                 ${detail.normalisasi || '-'}
                             </td>
                         </tr>`;
-                });
-                
-                detailHtml += `
+                        });
+
+                        detailHtml += `
                                 </tbody>
                             </table>
                         </div>
@@ -288,55 +393,55 @@ function showDetail(id) {
                             <span class="text-xs text-gray-400">Total ${data.details.length} item material</span>
                         </div>
                     </div>`;
-                
-                $('#detailModalBody').html(detailHtml);
-                $('#detailModal').removeClass('hidden'); // Show Tailwind modal
-            } else {
-                Swal.fire('Error!', 'Gagal memuat detail data.', 'error');
-            }
-        },
-        error: function() {
-            Swal.fire('Error!', 'Terjadi kesalahan saat memuat detail data.', 'error');
-        }
-    });
-}
 
-function closeDetailModal() {
-    $('#detailModal').addClass('hidden');
-}
-
-function deleteMaterialMasuk(id) {
-    Swal.fire({
-        title: 'Apakah Anda yakin?',
-        text: "Data material masuk akan dihapus dan stock akan dikurangi!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Ya, Hapus!',
-        cancelButtonText: 'Batal'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: '{{ route("material-masuk.index") }}/' + id,
-                type: 'DELETE',
-                data: {
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        Swal.fire('Berhasil!', response.message, 'success');
-                        $('#materialMasukTable').DataTable().ajax.reload();
+                        $('#detailModalBody').html(detailHtml);
+                        $('#detailModal').removeClass('hidden'); // Show Tailwind modal
                     } else {
-                        Swal.fire('Error!', response.message, 'error');
+                        Swal.fire('Error!', 'Gagal memuat detail data.', 'error');
                     }
                 },
                 error: function() {
-                    Swal.fire('Error!', 'Terjadi kesalahan saat menghapus data.', 'error');
+                    Swal.fire('Error!', 'Terjadi kesalahan saat memuat detail data.', 'error');
                 }
             });
         }
-    });
-}
-</script>
+
+        function closeDetailModal() {
+            $('#detailModal').addClass('hidden');
+        }
+
+        function deleteMaterialMasuk(id) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Data material masuk akan dihapus dan stock akan dikurangi!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '{{ route('material-masuk.index') }}/' + id,
+                        type: 'DELETE',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire('Berhasil!', response.message, 'success');
+                                $('#materialMasukTable').DataTable().ajax.reload();
+                            } else {
+                                Swal.fire('Error!', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error!', 'Terjadi kesalahan saat menghapus data.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
 @endpush
