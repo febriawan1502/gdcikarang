@@ -8,15 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('units', function (Blueprint $table) {
-            $table->string('kode_surat', 30)->default('F02050000')->after('storage_location');
-        });
+        if (!Schema::hasColumn('units', 'kode_surat')) {
+            Schema::table('units', function (Blueprint $table) {
+                $table->string('kode_surat', 30)->default('F02050000')->after('storage_location');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('units', function (Blueprint $table) {
-            $table->dropColumn('kode_surat');
-        });
+        if (Schema::hasColumn('units', 'kode_surat')) {
+            Schema::table('units', function (Blueprint $table) {
+                $table->dropColumn('kode_surat');
+            });
+        }
     }
 };
