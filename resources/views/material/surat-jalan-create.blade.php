@@ -257,68 +257,68 @@
             </form>
         </div>
     </div>
-@endsection
 
-<!-- Camera Modal (Tailwind) -->
-<div id="cameraModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
-    aria-modal="true">
-    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <!-- Background overlay -->
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
-            onclick="closeCameraModal()"></div>
+    <!-- Camera Modal (Tailwind) -->
+    <div id="cameraModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Background overlay -->
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
+                onclick="closeCameraModal()"></div>
 
-        <!-- Modal panel -->
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div
-            class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                        <i class="fas fa-camera"></i>
-                        Ambil Foto Penerima
-                    </h3>
-                    <button type="button" class="text-white hover:text-gray-200 transition-colors"
+            <!-- Modal panel -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div
+                class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-camera"></i>
+                            Ambil Foto Penerima
+                        </h3>
+                        <button type="button" class="text-white hover:text-gray-200 transition-colors"
+                            onclick="closeCameraModal()">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Body -->
+                <div class="p-6 text-center">
+                    <div id="cameraContainer" class="mb-4">
+                        <video id="cameraVideo" autoplay playsinline
+                            class="w-full max-w-lg mx-auto rounded-xl border border-gray-200"></video>
+                    </div>
+                    <canvas id="cameraCanvas" style="display: none;"></canvas>
+                    <div class="flex justify-center gap-3 mt-4">
+                        <button type="button"
+                            class="px-6 py-3 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center gap-2"
+                            onclick="capturePhoto()">
+                            <i class="fas fa-camera"></i>
+                            <span>Capture</span>
+                        </button>
+                        <button type="button"
+                            class="px-6 py-3 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                            onclick="switchCamera()">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>Ganti Kamera</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="bg-gray-50 px-6 py-4 flex justify-end">
+                    <button type="button"
+                        class="px-6 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
                         onclick="closeCameraModal()">
-                        <i class="fas fa-times text-xl"></i>
+                        Tutup
                     </button>
                 </div>
-            </div>
-
-            <!-- Body -->
-            <div class="p-6 text-center">
-                <div id="cameraContainer" class="mb-4">
-                    <video id="cameraVideo" autoplay playsinline
-                        class="w-full max-w-lg mx-auto rounded-xl border border-gray-200"></video>
-                </div>
-                <canvas id="cameraCanvas" style="display: none;"></canvas>
-                <div class="flex justify-center gap-3 mt-4">
-                    <button type="button"
-                        class="px-6 py-3 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center gap-2"
-                        onclick="capturePhoto()">
-                        <i class="fas fa-camera"></i>
-                        <span>Capture</span>
-                    </button>
-                    <button type="button"
-                        class="px-6 py-3 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors flex items-center gap-2"
-                        onclick="switchCamera()">
-                        <i class="fas fa-sync-alt"></i>
-                        <span>Ganti Kamera</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="bg-gray-50 px-6 py-4 flex justify-end">
-                <button type="button"
-                    class="px-6 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
-                    onclick="closeCameraModal()">
-                    Tutup
-                </button>
             </div>
         </div>
     </div>
-</div>
+@endsection
 
 @push('styles')
     <style>
@@ -1009,7 +1009,7 @@
 
             thumbnail.src = base64;
             hiddenInput.value = base64;
-            preview.classList.remove('d-none');
+            preview.classList.remove('hidden');
         }
 
         // Remove photo
@@ -1020,10 +1020,7 @@
 
             thumbnail.src = '';
             hiddenInput.value = '';
-            preview.classList.add('d-none');
-
-            // Reset gallery input
-            document.getElementById('galleryInput').value = '';
+            preview.classList.add('hidden');
         }
     </script>
 @endpush

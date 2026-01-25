@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Models\Material;
+use App\Models\MaterialHistory;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -92,6 +93,24 @@ class MaterialImport implements ToCollection, WithHeadingRow
                         'updated_at' => Carbon::now()
                     ])
                 );
+
+                if ($materialData['unrestricted_use_stock'] > 0) {
+                    $hasHistory = MaterialHistory::where('material_id', $material->id)->exists();
+
+                    if (!$hasHistory) {
+                        MaterialHistory::create([
+                            'material_id' => $material->id,
+                            'tanggal' => $materialData['tanggal_terima'] ?? Carbon::now(),
+                            'tipe' => 'masuk',
+                            'no_slip' => '-',
+                            'masuk' => (int) $materialData['unrestricted_use_stock'],
+                            'keluar' => 0,
+                            'sisa_persediaan' => (int) $material->unrestricted_use_stock,
+                            'catatan' => 'Data material awal',
+                        ]);
+                    }
+                }
+
                 $this->successCount++;
                 
             } catch (\Exception $e) {
