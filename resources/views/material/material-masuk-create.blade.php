@@ -49,58 +49,77 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="nomor_kr" class="form-label">Nomor KR</label>
-                            <input type="text" class="form-input" id="nomor_kr" name="nomor_kr"
-                                placeholder="Masukkan Nomor KR" value="{{ old('nomor_kr') }}">
-                        </div>
-                        <div>
-                            <label for="pabrikan" class="form-label">Pabrikan</label>
-                            <input type="text" class="form-input" id="pabrikan" name="pabrikan"
-                                placeholder="Masukkan Pabrikan" value="{{ old('pabrikan') }}">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                        <div>
-                            <label for="tanggal_masuk" class="form-label">
-                                Tanggal Masuk <span class="text-red-500">*</span>
+                            <label for="sumber_material" class="form-label">
+                                Dari Mana Sumber Material <span class="text-red-500">*</span>
                             </label>
-                            <input type="date" class="form-input" id="tanggal_masuk" name="tanggal_masuk"
-                                value="{{ old('tanggal_masuk', date('Y-m-d')) }}" required>
-                        </div>
-                        <div>
-                            <label for="jenis" class="form-label">Jenis</label>
-                            <select name="jenis" id="jenis" class="form-input">
-                                <option value="">-- Pilih Jenis --</option>
-                                <option value="B1" {{ old('jenis') == 'B1' ? 'selected' : '' }}>B1</option>
-                                <option value="B2" {{ old('jenis') == 'B2' ? 'selected' : '' }}>B2</option>
-                                <option value="AO" {{ old('jenis') == 'AO' ? 'selected' : '' }}>AO</option>
+                            <select name="sumber_material" id="sumber_material" class="form-input" required>
+                                <option value="">-- Pilih Sumber --</option>
+                                <option value="KR UID">KR UID</option>
+                                <option value="KR UP3">KR UP3</option>
+                                <option value="STO">STO</option>
+                                <option value="Retur Sisa Proyek">Retur Sisa Proyek</option>
+                                <option value="Retur Material Rusak">Retur Material Rusak</option>
                             </select>
+                            <p class="text-xs text-gray-500 mt-2">Pilih sumber material untuk menampilkan form dokumen.</p>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-                        <div>
-                            <label for="nomor_po" class="form-label">Nomor PO</label>
-                            <input type="text" class="form-input" id="nomor_po" name="nomor_po"
-                                placeholder="Masukkan Nomor PO" value="{{ old('nomor_po') }}">
+                    <div id="identitasDokumenFields" class="hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <div>
+                                <label for="nomor_kr" class="form-label">Nomor KR</label>
+                                <input type="text" class="form-input" id="nomor_kr" name="nomor_kr"
+                                    placeholder="Masukkan Nomor KR" value="{{ old('nomor_kr') }}">
+                            </div>
+                            <div>
+                                <label for="pabrikan" class="form-label">Pabrikan</label>
+                                <input type="text" class="form-input" id="pabrikan" name="pabrikan"
+                                    placeholder="Masukkan Pabrikan" value="{{ old('pabrikan') }}">
+                            </div>
                         </div>
-                        <div>
-                            <label for="nomor_doc" class="form-label">Nomor DOC</label>
-                            <input type="text" class="form-input" id="nomor_doc" name="nomor_doc"
-                                placeholder="Masukkan Nomor DOC" value="{{ old('nomor_doc') }}">
-                        </div>
-                        <div>
-                            <label for="tugas_4" class="form-label">Tug 4</label>
-                            <input type="text" class="form-input" id="tugas_4" name="tugas_4"
-                                placeholder="Masukkan Tug 4" value="{{ old('tugas_4') }}">
-                        </div>
-                    </div>
 
-                    <div class="mt-6">
-                        <label for="keterangan" class="form-label">Keterangan</label>
-                        <textarea class="form-input" id="keterangan" name="keterangan" rows="3"
-                            placeholder="Masukkan keterangan (opsional)">{{ old('keterangan') }}</textarea>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <div>
+                                <label for="tanggal_masuk" class="form-label">
+                                    Tanggal Masuk <span class="text-red-500">*</span>
+                                </label>
+                                <input type="date" class="form-input" id="tanggal_masuk" name="tanggal_masuk"
+                                    value="{{ old('tanggal_masuk', date('Y-m-d')) }}" required>
+                            </div>
+                            <div>
+                                <label for="jenis" class="form-label">Jenis</label>
+                                <select name="jenis" id="jenis" class="form-input">
+                                    <option value="">-- Pilih Jenis --</option>
+                                    <option value="B1" {{ old('jenis') == 'B1' ? 'selected' : '' }}>B1</option>
+                                    <option value="B2" {{ old('jenis') == 'B2' ? 'selected' : '' }}>B2</option>
+                                    <option value="AO" {{ old('jenis') == 'AO' ? 'selected' : '' }}>AO</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                            <div>
+                                <label for="nomor_po" class="form-label">Nomor PO</label>
+                                <input type="text" class="form-input" id="nomor_po" name="nomor_po"
+                                    placeholder="Masukkan Nomor PO" value="{{ old('nomor_po') }}">
+                            </div>
+                            <div>
+                                <label for="nomor_doc" class="form-label">Nomor DOC</label>
+                                <input type="text" class="form-input" id="nomor_doc" name="nomor_doc"
+                                    placeholder="Masukkan Nomor DOC" value="{{ old('nomor_doc') }}">
+                            </div>
+                            <div>
+                                <label for="tugas_4" class="form-label">Tug 4</label>
+                                <input type="text" class="form-input" id="tugas_4" name="tugas_4"
+                                    placeholder="Masukkan Tug 4" value="{{ old('tugas_4') }}">
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <label for="keterangan" class="form-label">Keterangan</label>
+                            <textarea class="form-input" id="keterangan" name="keterangan" rows="3"
+                                placeholder="Masukkan keterangan (opsional)">{{ old('keterangan') }}</textarea>
+                        </div>
                     </div>
                 </div>
 
@@ -152,7 +171,7 @@
                                     <td class="px-4 py-3">
                                         <div class="autocomplete-container">
                                             <input type="text" class="form-input text-sm normalisasi-search"
-                                                name="materials[0][normalisasi]" placeholder="Normalisasi">
+                                                name="materials[0][normalisasi]" placeholder="Normalisasi" readonly>
                                             <div class="autocomplete-results"></div>
                                         </div>
                                     </td>
@@ -274,7 +293,7 @@
         <td class="px-4 py-3">
             <div class="autocomplete-container">
                 <input type="text" class="form-input text-sm normalisasi-search" 
-                       name="materials[${rowIndex}][normalisasi]" placeholder="Normalisasi">
+                       name="materials[${rowIndex}][normalisasi]" placeholder="Normalisasi" readonly>
                 <div class="autocomplete-results"></div>
             </div>
         </td>
@@ -300,7 +319,6 @@
             // Update row numbers and enable/disable remove buttons
             updateRowNumbers();
             initializeAutocomplete(newRow.querySelector('.material-search'));
-            initializeNormalisasiAutocomplete(newRow.querySelector('.normalisasi-search'));
         }
 
         function removeRow(button) {
@@ -336,10 +354,22 @@
                 const query = this.value;
                 const resultsDiv = this.parentElement.querySelector('.autocomplete-results');
                 const hiddenInput = this.parentElement.querySelector('.material-id');
+                const nameInput = input.closest('tr').querySelector('.material-name');
+                const normalisasiInput = input.closest('tr').querySelector('input[name*="[normalisasi]"]');
+
+                if (query.trim() === '') {
+                    resultsDiv.style.display = 'none';
+                    hiddenInput.value = '';
+                    if (nameInput) nameInput.value = '';
+                    if (normalisasiInput) normalisasiInput.value = '';
+                    return;
+                }
 
                 if (query.length < 2) {
                     resultsDiv.style.display = 'none';
                     hiddenInput.value = '';
+                    if (nameInput) nameInput.value = '';
+                    if (normalisasiInput) normalisasiInput.value = '';
                     return;
                 }
 
@@ -366,18 +396,15 @@
                                     item.addEventListener('click', () => {
                                         input.value = material.text;
                                         hiddenInput.value = material.id;
-                                        const nameInput = input.closest('tr')
-                                            .querySelector('.material-name');
                                         if (nameInput) nameInput.value = material.text;
 
 
                                         // Auto-fill normalisasi
-                                        const normalisasiInput = input.closest('tr')
-                                            .querySelector(
-                                                'input[name*="[normalisasi]"]');
                                         if (normalisasiInput && material.normalisasi) {
                                             normalisasiInput.value = material
                                                 .normalisasi;
+                                        } else if (normalisasiInput) {
+                                            normalisasiInput.value = '';
                                         }
 
                                         // Auto-fill satuan if available
@@ -406,88 +433,11 @@
                 }, 300);
             });
 
-            // Hide results when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!input.parentElement.contains(e.target)) {
-                    input.parentElement.querySelector('.autocomplete-results').style.display = 'none';
+            input.addEventListener('blur', function() {
+                const hiddenInput = input.parentElement.querySelector('.material-id');
+                if (input.value.trim() !== '' && (!hiddenInput || hiddenInput.value === '')) {
+                    alert('Material dan normalisasi tidak terdaftar. tambahkan material dulu di menu daftar material');
                 }
-            });
-        }
-
-        function initializeNormalisasiAutocomplete(input) {
-            let timeout;
-
-            input.addEventListener('input', function() {
-                clearTimeout(timeout);
-                const query = this.value;
-                const resultsDiv = this.parentElement.querySelector('.autocomplete-results');
-
-                if (query.length < 2) {
-                    resultsDiv.style.display = 'none';
-                    return;
-                }
-
-                timeout = setTimeout(() => {
-                    fetch(
-                            `{{ route('material-masuk.autocomplete.normalisasi') }}?q=${encodeURIComponent(query)}`
-                        )
-                        .then(response => response.json())
-                        .then(data => {
-                            resultsDiv.innerHTML = '';
-
-                            if (data.length > 0) {
-                                data.forEach(material => {
-                                    const item = document.createElement('div');
-                                    item.className = 'autocomplete-item';
-                                    item.innerHTML = `
-                                <strong>${material.text}</strong><br>
-                                <small class="text-muted">
-                                    Material: ${material.material_description || 'N/A'} | 
-                                    Satuan: ${material.satuan || ''}
-                                </small>
-                            `;
-
-                                    item.addEventListener('click', () => {
-                                        input.value = material.text;
-
-                                        // Auto-fill material description
-                                        const materialInput = input.closest('tr')
-                                            .querySelector(
-                                                'input[name*="[material_description]"]'
-                                            );
-                                        const hiddenInput = input.closest('tr')
-                                            .querySelector('.material-id');
-                                        if (materialInput && material
-                                            .material_description) {
-                                            materialInput.value = material
-                                                .material_description;
-                                            hiddenInput.value = material.id;
-                                        }
-
-                                        // Auto-fill satuan if available
-                                        const satuanInput = input.closest('tr')
-                                            .querySelector('input[name*="[satuan]"]');
-                                        if (satuanInput && material.satuan) {
-                                            satuanInput.value = material.satuan;
-                                        }
-
-                                        resultsDiv.style.display = 'none';
-                                    });
-
-                                    resultsDiv.appendChild(item);
-                                });
-                                resultsDiv.style.display = 'block';
-                            } else {
-                                resultsDiv.innerHTML =
-                                    '<div class="autocomplete-item">Tidak ada normalisasi ditemukan</div>';
-                                resultsDiv.style.display = 'block';
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            resultsDiv.style.display = 'none';
-                        });
-                }, 300);
             });
 
             // Hide results when clicking outside
@@ -500,12 +450,26 @@
 
         // Initialize autocomplete for existing inputs
         document.addEventListener('DOMContentLoaded', function() {
+            const sumberSelect = document.getElementById('sumber_material');
+            const identitasFields = document.getElementById('identitasDokumenFields');
+
+            function toggleIdentitasFields() {
+                const hasValue = sumberSelect && sumberSelect.value !== '';
+                if (identitasFields) {
+                    identitasFields.classList.toggle('hidden', !hasValue);
+                    identitasFields.querySelectorAll('input, select, textarea').forEach((el) => {
+                        el.disabled = !hasValue;
+                    });
+                }
+            }
+
+            if (sumberSelect) {
+                sumberSelect.addEventListener('change', toggleIdentitasFields);
+                toggleIdentitasFields();
+            }
+
             document.querySelectorAll('.material-search').forEach(input => {
                 initializeAutocomplete(input);
-            });
-
-            document.querySelectorAll('.normalisasi-search').forEach(input => {
-                initializeNormalisasiAutocomplete(input);
             });
 
             updateRowNumbers();
@@ -514,7 +478,9 @@
         // Form validation
         document.getElementById('materialMasukForm').addEventListener('submit', function(e) {
             const materialInputs = document.querySelectorAll('.material-id');
+            const materialSearchInputs = document.querySelectorAll('.material-search');
             let hasValidMaterial = false;
+            let hasInvalidMaterial = false;
 
             materialInputs.forEach(input => {
                 if (input.value) {
@@ -525,6 +491,18 @@
             if (!hasValidMaterial) {
                 e.preventDefault();
                 alert('Minimal harus ada satu material yang dipilih!');
+                return false;
+            }
+
+            materialSearchInputs.forEach((input, index) => {
+                if (input.value.trim() !== '' && !materialInputs[index].value) {
+                    hasInvalidMaterial = true;
+                }
+            });
+
+            if (hasInvalidMaterial) {
+                e.preventDefault();
+                alert('Material dan normalisasi tidak terdaftar. tambahkan material dulu di menu daftar material');
                 return false;
             }
         });

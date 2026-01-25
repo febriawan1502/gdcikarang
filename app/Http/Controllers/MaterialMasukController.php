@@ -164,6 +164,7 @@ class MaterialMasukController extends Controller
     {
         \Log::info('🟦 MATERIAL DIKIRIM FRONTEND:', $request->materials);
         $request->validate([
+            'sumber_material' => 'required|string|max:100',
             'tanggal_masuk' => 'required|date',
             'materials' => 'required|array|min:1',
             'materials.*.quantity' => 'required|integer|min:1',
@@ -201,6 +202,7 @@ class MaterialMasukController extends Controller
         DB::beginTransaction();
         try {
             $materialMasuk = MaterialMasuk::create([
+                'sumber_material' => $request->sumber_material,
                 'nomor_kr' => $request->nomor_kr,
                 'pabrikan' => $request->pabrikan,
                 'tanggal_masuk' => $request->tanggal_masuk,
@@ -266,7 +268,8 @@ class MaterialMasukController extends Controller
 
     public function update(Request $request, $id)
 {
-    $request->validate([
+        $request->validate([
+            'sumber_material' => 'required|string|max:100',
         'tanggal_masuk' => 'required|date',
         'materials' => 'required|array|min:1',
         'materials.*.material_id' => 'required|exists:materials,id',
@@ -284,7 +287,7 @@ class MaterialMasukController extends Controller
         \Log::info("Ditemukan material_masuk ID: {$id}");
 
         $materialMasuk->update($request->only([
-            'nomor_kr', 'pabrikan', 'tanggal_masuk', 'tanggal_keluar',
+            'sumber_material', 'nomor_kr', 'pabrikan', 'tanggal_masuk', 'tanggal_keluar',
             'jenis', 'nomor_po', 'nomor_doc', 'tugas_4', 'keterangan'
         ]));
 
@@ -410,6 +413,7 @@ if ($diff > 0) {
 public function updateDanSelesaiSAP(Request $request, $id)
 {
     $request->validate([
+        'sumber_material' => 'required|string|max:100',
         'tanggal_masuk' => 'required|date',
         'materials' => 'required|array|min:1',
         'materials.*.quantity' => 'required|integer|min:1',
@@ -423,7 +427,7 @@ public function updateDanSelesaiSAP(Request $request, $id)
         // UPDATE DATA UTAMA
         $materialMasuk->update(array_merge(
             $request->only([
-                'nomor_kr', 'pabrikan', 'tanggal_masuk', 'tanggal_keluar',
+                'sumber_material', 'nomor_kr', 'pabrikan', 'tanggal_masuk', 'tanggal_keluar',
                 'jenis', 'nomor_po', 'nomor_doc', 'tugas_4', 'keterangan'
             ]),
             [

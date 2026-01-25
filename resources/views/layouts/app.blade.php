@@ -45,6 +45,12 @@
 
                 <!-- Navigation -->
                 <nav class="sidebar-nav">
+                    @php
+                        $showInspectionGroup = in_array(auth()->user()->role, ['admin', 'petugas']);
+                        $inspectionGroupOpen = request()->routeIs('material.pemeriksaanFisik')
+                            || request()->routeIs('berita-acara.*')
+                            || request()->routeIs('sap-check.*');
+                    @endphp
                     {{-- Dashboard --}}
                     @if(auth()->user()->role !== 'security')
                     <div class="nav-item">
@@ -100,7 +106,7 @@
                             <span class="nav-icon">
                                 <i class="fas fa-clock"></i>
                             </span>
-                            <span>Masa Pengeluaran</span>
+                            <span>Garansi &amp; Perbaikan</span>
                         </a>
                     </div>
 
@@ -113,48 +119,55 @@
                         </a>
                     </div>
 
-                    <div class="nav-item">
-                        <a href="{{ route('material.pemeriksaanFisik') }}" wire:navigate class="nav-link {{ request()->routeIs('material.pemeriksaanFisik') ? 'active' : '' }}">
+                    @if($showInspectionGroup)
+                    <div class="nav-item nav-group {{ $inspectionGroupOpen ? 'open' : '' }}">
+                        <button type="button"
+                            class="nav-link nav-group-toggle {{ $inspectionGroupOpen ? 'active' : '' }}"
+                            aria-expanded="{{ $inspectionGroupOpen ? 'true' : 'false' }}">
                             <span class="nav-icon">
                                 <i class="fas fa-clipboard-check"></i>
                             </span>
                             <span>Pemeriksaan Fisik</span>
-                        </a>
-                    </div>
-
-                    <div class="nav-item">
-                        <a href="{{ route('berita-acara.index') }}" wire:navigate class="nav-link {{ request()->routeIs('berita-acara.*') ? 'active' : '' }}">
-                            <span class="nav-icon">
-                                <i class="fas fa-file-alt"></i>
+                            <span class="nav-group-caret">
+                                <i class="fas fa-chevron-down"></i>
                             </span>
-                            <span>Berita Acara</span>
-                        </a>
+                        </button>
+                        <div class="nav-submenu">
+                            @if(auth()->user()->role === 'admin')
+                            <a href="{{ route('sap-check.index') }}" wire:navigate class="nav-link nav-sublink {{ request()->routeIs('sap-check.*') ? 'active' : '' }}">
+                                <span class="nav-icon">
+                                    <i class="fas fa-check-double"></i>
+                                </span>
+                                <span>Cek Kesesuaian SAP</span>
+                            </a>
+                            @endif
+                            <a href="{{ route('material.pemeriksaanFisik') }}" wire:navigate class="nav-link nav-sublink {{ request()->routeIs('material.pemeriksaanFisik') ? 'active' : '' }}">
+                                <span class="nav-icon">
+                                    <i class="fas fa-clipboard-check"></i>
+                                </span>
+                                <span>Pemeriksaan Fisik</span>
+                            </a>
+                            <a href="{{ route('berita-acara.index') }}" wire:navigate class="nav-link nav-sublink {{ request()->routeIs('berita-acara.*') ? 'active' : '' }}">
+                                <span class="nav-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </span>
+                                <span>Berita Acara</span>
+                            </a>
+                        </div>
                     </div>
+                    @endif
                     @endif
 
                     {{-- Admin Only --}}
                     @if(auth()->user()->role === 'admin')
-                    <div class="nav-section-title">Admin</div>
-                    
-                    <div class="nav-item">
-                        <a href="{{ route('sap-check.index') }}" wire:navigate class="nav-link {{ request()->routeIs('sap-check.*') ? 'active' : '' }}">
-                            <span class="nav-icon">
-                                <i class="fas fa-check-double"></i>
-                            </span>
-                            <span>Cek Kesesuaian SAP</span>
-                        </a>
-                    </div>
 
-                    <div class="nav-item">
-                        <a href="{{ route('settings.index') }}" wire:navigate class="nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">
-                            <span class="nav-icon">
-                                <i class="fas fa-cog"></i>
-                            </span>
-                            <span>Pengaturan</span>
-                        </a>
-                    </div>
                     @endif
                 </nav>
+                <div class="sidebar-footer">
+                    <button type="button" id="sidebarToggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </div>
             </div>
         </aside>
         <!--/ SIDEBAR -->
@@ -166,7 +179,6 @@
             <!-- Header -->
             <header class="page-header">
                 <div class="header-actions ml-auto">
-
                     @auth
                     <div class="user-dropdown" id="userDropdown">
                         <i class="fas fa-user"></i>
@@ -223,6 +235,11 @@
         <a href="{{ route('auth.change-password') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
             <i class="fas fa-key mr-2"></i> Ganti Password
         </a>
+        @if(auth()->user()->role === 'admin')
+        <a href="{{ route('settings.index') }}" wire:navigate class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+            <i class="fas fa-cog mr-2"></i> Pengaturan
+        </a>
+        @endif
         <a href="#" id="logout-link" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
             <i class="fas fa-sign-out-alt mr-2"></i> Logout
         </a>
@@ -239,6 +256,13 @@
 
     <script>
     function initAppScripts() {
+        const appWrapper = document.querySelector('.app-wrapper');
+
+        if (appWrapper) {
+            const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+            appWrapper.classList.toggle('sidebar-collapsed', isCollapsed);
+        }
+
         // CSRF Token Setup (JQuery)
         $.ajaxSetup({
             headers: {
@@ -312,6 +336,33 @@
                 sidebar.classList.toggle('open');
             };
         }
+
+        // Sidebar collapse toggle
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        if (sidebarToggle && appWrapper) {
+            sidebarToggle.onclick = function() {
+                appWrapper.classList.toggle('sidebar-collapsed');
+                localStorage.setItem('sidebar-collapsed', appWrapper.classList.contains('sidebar-collapsed'));
+            };
+        }
+
+        // Sidebar group toggle
+        document.querySelectorAll('.nav-group-toggle').forEach((toggle) => {
+            if (toggle.dataset.bound === 'true') {
+                return;
+            }
+
+            toggle.dataset.bound = 'true';
+            toggle.onclick = function() {
+                const group = toggle.closest('.nav-group');
+                if (!group) {
+                    return;
+                }
+
+                group.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', group.classList.contains('open') ? 'true' : 'false');
+            };
+        });
     }
 
     // Initialize on first load

@@ -21,6 +21,7 @@ class MaterialMasuk extends Model
     protected $table = 'material_masuk';
 
     protected $fillable = [
+        'sumber_material',
         'nomor_kr',
         'pabrikan',
         'tanggal_masuk',

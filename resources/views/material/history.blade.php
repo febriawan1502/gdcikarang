@@ -65,7 +65,7 @@
     <div class="card p-6 border border-gray-100 shadow-xl shadow-gray-200/50">
         <!-- Filter Section -->
         <form id="filterForm" class="mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 <div class="md:col-span-2">
                     <label for="searchMaterial" class="form-label">Cari Material</label>
                     <input type="text" id="searchMaterial"
@@ -74,6 +74,16 @@
                 </div>
 
                 <input type="hidden" id="materialId">
+
+                <div>
+                    <label for="tanggal_awal" class="form-label">Tanggal Awal</label>
+                    <input type="date" id="tanggal_awal" class="form-input">
+                </div>
+
+                <div>
+                    <label for="tanggal_akhir" class="form-label">Tanggal Akhir</label>
+                    <input type="date" id="tanggal_akhir" class="form-input">
+                </div>
 
                 <div>
                     <label for="tipe" class="form-label">Jenis Transaksi</label>
@@ -217,6 +227,44 @@ $(document).ready(function () {
             exportPdfBtn.classList.add('disabled', 'opacity-50', 'cursor-not-allowed');
             exportPdfBtn.removeAttribute('href');
         }
+    });
+
+    function parseDateInput(value) {
+        if (!value) {
+            return null;
+        }
+        return new Date(`${value}T00:00:00`);
+    }
+
+    $.fn.dataTable.ext.search.push(function(settings, data) {
+        if (settings.nTable.id !== 'materialHistoryTable') {
+            return true;
+        }
+
+        const startVal = $('#tanggal_awal').val();
+        const endVal = $('#tanggal_akhir').val();
+        const rowDateStr = data[0] || '';
+
+        if (!rowDateStr) {
+            return true;
+        }
+
+        const rowDate = new Date(`${rowDateStr}T00:00:00`);
+        const startDate = parseDateInput(startVal);
+        const endDate = parseDateInput(endVal);
+
+        if (startDate && rowDate < startDate) {
+            return false;
+        }
+        if (endDate && rowDate > endDate) {
+            return false;
+        }
+
+        return true;
+    });
+
+    $('#tanggal_awal, #tanggal_akhir').on('change', function() {
+        table.draw();
     });
 
     // FILTER TIPE

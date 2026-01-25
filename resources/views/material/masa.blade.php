@@ -23,8 +23,9 @@
 
     <!-- Content Card -->
     <div class="card p-6 border border-gray-100 shadow-xl shadow-gray-200/50">
-        <div class="overflow-x-auto rounded-xl border border-gray-100">
-            <table id="masaTable" class="table-purity w-full">
+        <div class="rounded-xl border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table id="masaTable" class="table-purity w-full">
                 <thead>
                     <tr class="bg-gray-50">
                         <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">No</th>
@@ -116,7 +117,8 @@
                         @endforeach
                     @endforeach
                 </tbody>
-            </table>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -166,26 +168,54 @@
                             <td>${h.keterangan}</td>
                         </tr>
                     `).join('')
-                    : `<tr><td colspan="5" class="text-center text-muted">Belum ada pengembalian</td></tr>`;
+                    : `<tr><td colspan="5" class="swal-masa-empty">Belum ada pengembalian</td></tr>`;
 
                 Swal.fire({
-                    title: `<strong>📦 Detail Pengembalian</strong>`,
-                    width: '800px',
+                    title: 'Detail Pengembalian',
+                    width: 860,
+                    buttonsStyling: false,
+                    customClass: {
+                        popup: 'swal-masa-popup',
+                        title: 'swal-masa-title',
+                        htmlContainer: 'swal-masa-body',
+                        actions: 'swal-masa-actions',
+                        confirmButton: 'swal-masa-confirm'
+                    },
                     html: `
-                        <div class="text-start mb-3">
-                            <table class="table table-sm table-bordered">
-                                <tr><th>Nomor Surat</th><td>${d.nomor_surat}</td></tr>
-                                <tr><th>Tanggal Keluar</th><td>${d.tanggal_keluar}</td></tr>
-                                <tr><th>Material</th><td>${d.material}</td></tr>
-                                <tr><th>Keluar</th><td>${d.keluar}</td></tr>
-                                <tr><th>Kembali</th><td>${d.kembali}</td></tr>
-                                <tr><th>Sisa</th><td>${d.sisa}</td></tr>
-                            </table>
+                        <div class="swal-masa-summary">
+                            <div class="swal-masa-grid">
+                                <div class="swal-masa-row">
+                                    <span class="swal-masa-label">Nomor Surat</span>
+                                    <span class="swal-masa-value">${d.nomor_surat}</span>
+                                </div>
+                                <div class="swal-masa-row">
+                                    <span class="swal-masa-label">Tanggal Keluar</span>
+                                    <span class="swal-masa-value">${d.tanggal_keluar}</span>
+                                </div>
+                                <div class="swal-masa-row swal-masa-row-full">
+                                    <span class="swal-masa-label">Material</span>
+                                    <span class="swal-masa-value">${d.material}</span>
+                                </div>
+                            </div>
+                            <div class="swal-masa-stats">
+                                <div class="swal-masa-stat swal-masa-stat-out">
+                                    <div class="swal-masa-stat-label">Keluar</div>
+                                    <div class="swal-masa-stat-value">${d.keluar}</div>
+                                </div>
+                                <div class="swal-masa-stat swal-masa-stat-in">
+                                    <div class="swal-masa-stat-label">Kembali</div>
+                                    <div class="swal-masa-stat-value">${d.kembali}</div>
+                                </div>
+                                <div class="swal-masa-stat swal-masa-stat-left">
+                                    <div class="swal-masa-stat-label">Sisa</div>
+                                    <div class="swal-masa-stat-value">${d.sisa}</div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <h6 class="fw-semibold mb-2">Riwayat Pengembalian</h6>
-                            <table class="table table-sm table-bordered text-center">
-                                <thead class="table-light">
+                        <div class="swal-masa-history">
+                            <div class="swal-masa-subtitle">Riwayat Pengembalian</div>
+                            <table class="swal-masa-table">
+                                <thead>
                                     <tr>
                                         <th>No</th>
                                         <th>No Surat Masuk</th>
@@ -229,3 +259,185 @@
 </script>
 @endpush
 @endsection
+
+@push('styles')
+<style>
+    .swal-masa-popup {
+        border-radius: 18px;
+        overflow: hidden;
+        padding: 0;
+        max-width: 900px;
+        width: 92vw;
+    }
+
+    .swal-masa-title {
+        margin: 0;
+        padding: 18px 24px;
+        text-align: left;
+        font-size: 18px;
+        font-weight: 700;
+        color: #ffffff;
+        background: linear-gradient(90deg, #319795, #4FD1C5);
+    }
+
+    .swal-masa-body {
+        text-align: left;
+        padding: 18px 24px 36px;
+        color: #2D3748;
+    }
+
+    .swal-masa-summary {
+        background: #F8F9FA;
+        border: 1px solid #E2E8F0;
+        border-radius: 14px;
+        padding: 16px 18px;
+        margin-bottom: 16px;
+    }
+
+    .swal-masa-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px 16px;
+    }
+
+    .swal-masa-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 13px;
+        color: #4A5568;
+    }
+
+    .swal-masa-row-full {
+        grid-column: 1 / -1;
+    }
+
+    .swal-masa-label {
+        font-weight: 600;
+        color: #718096;
+    }
+
+    .swal-masa-value {
+        font-weight: 600;
+        color: #1A202C;
+        text-align: right;
+    }
+
+    .swal-masa-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .swal-masa-stat {
+        border-radius: 12px;
+        padding: 10px 12px;
+        text-align: center;
+        border: 1px solid #E2E8F0;
+        background: #ffffff;
+    }
+
+    .swal-masa-stat-label {
+        font-size: 11px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #718096;
+        margin-bottom: 4px;
+    }
+
+    .swal-masa-stat-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1A202C;
+    }
+
+    .swal-masa-stat-out .swal-masa-stat-value {
+        color: #2B6CB0;
+    }
+
+    .swal-masa-stat-in .swal-masa-stat-value {
+        color: #2F855A;
+    }
+
+    .swal-masa-stat-left .swal-masa-stat-value {
+        color: #C53030;
+    }
+
+    .swal-masa-subtitle {
+        font-size: 13px;
+        font-weight: 700;
+        color: #2D3748;
+        margin: 6px 0 10px;
+    }
+
+    .swal-masa-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        background: #ffffff;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .swal-masa-table th,
+    .swal-masa-table td {
+        padding: 8px 10px;
+        border-bottom: 1px solid #E2E8F0;
+        text-align: center;
+    }
+
+    .swal-masa-table th {
+        background: #F7FAFC;
+        color: #4A5568;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .swal-masa-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .swal-masa-empty {
+        text-align: center;
+        color: #A0AEC0;
+        font-weight: 600;
+        padding: 14px 10px;
+    }
+
+    .swal-masa-confirm {
+        background: #319795 !important;
+        color: #ffffff !important;
+        border-radius: 10px !important;
+        padding: 10px 18px !important;
+        font-weight: 600 !important;
+        border: none !important;
+        box-shadow: 0 6px 18px rgba(49, 151, 149, 0.25);
+    }
+
+    .swal-masa-confirm:hover {
+        background: #2C7A7B !important;
+    }
+
+    .swal-masa-actions {
+        margin-top: 0;
+        padding: 0 24px 28px;
+    }
+
+    @media (max-width: 640px) {
+        .swal-masa-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .swal-masa-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .swal-masa-value {
+            text-align: left;
+        }
+    }
+</style>
+@endpush
