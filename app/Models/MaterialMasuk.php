@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\MaterialHistory; 
 use Carbon\Carbon;
+use App\Models\Concerns\HasUnitScope;
 
 class MaterialMasuk extends Model
 {
     use HasFactory;
+    use HasUnitScope;
     protected static function booted()
     {
         static::deleting(function ($materialMasuk) {
@@ -21,6 +23,7 @@ class MaterialMasuk extends Model
     protected $table = 'material_masuk';
 
     protected $fillable = [
+        'unit_id',
         'sumber_material',
         'nomor_kr',
         'pabrikan',

@@ -5,14 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Concerns\HasUnitScope;
 
 class SuratJalanDetail extends Model
 {
     use HasFactory;
+    use HasUnitScope;
 
     protected $table = 'surat_jalan_detail';
 
     protected $fillable = [
+        'unit_id',
         'surat_jalan_id',
         'material_id',
         'quantity',

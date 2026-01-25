@@ -113,7 +113,7 @@
                 </thead>
 
                 <tbody id="dataTableBody" class="divide-y divide-gray-100 bg-white">
-                    @forelse ($histories as $h)
+                    @foreach ($histories as $h)
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="px-4 py-3 text-gray-600">{{ $h->tanggal ? \Carbon\Carbon::parse($h->tanggal)->format('Y-m-d') : '-' }}</td>
 
@@ -141,17 +141,16 @@
                             <td class="px-4 py-3 font-semibold text-blue-600">{{ number_format($h->sisa_persediaan ?? 0) }}</td>
                             <td class="px-4 py-3 text-gray-500">{{ $h->catatan ?? '-' }}</td>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-gray-400">
-                                <i class="fas fa-inbox text-4xl mb-2"></i>
-                                <p>Tidak ada data histori</p>
-                            </td>
-                        </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
         </div>
+        @if($histories->isEmpty())
+            <div class="px-4 py-8 text-center text-gray-400">
+                <i class="fas fa-inbox text-4xl mb-2"></i>
+                <p>Tidak ada data histori</p>
+            </div>
+        @endif
     </div>
 </div>
 
@@ -174,7 +173,8 @@ $(document).ready(function () {
             lengthMenu: "Tampilkan _MENU_ data per halaman",
             info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
             paginate: { previous: "Sebelumnya", next: "Berikutnya" },
-            zeroRecords: "Tidak ada data ditemukan"
+            zeroRecords: "Tidak ada data ditemukan",
+            emptyTable: "Tidak ada data histori"
         }
     });
 

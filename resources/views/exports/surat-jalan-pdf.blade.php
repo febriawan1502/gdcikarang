@@ -211,7 +211,7 @@
     <div class="page-header">
         {{ strtoupper(\App\Models\Setting::get('company_name', 'PT PLN (PERSERO)')) }}<br>
         UID JAWA BARAT<br>
-        {{ strtoupper(\App\Models\Setting::get('up3_name', 'UP3 Cimahi')) }}
+        {{ strtoupper(auth()->user()->unit->name ?? \App\Models\Setting::get('up3_name', 'UP3 Cimahi')) }}
     </div>
 
     @if($pageNum == 1)

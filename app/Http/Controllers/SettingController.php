@@ -5,20 +5,39 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Setting;
 use App\Models\User;
+use App\Models\Unit;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class SettingController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            $user = auth()->user();
+
+            if (!$user) {
+                return redirect()->route('login');
+            }
+
+            if ($user->role !== 'admin' || !$user->unit || !$user->unit->is_induk) {
+                abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+            }
+
+            return $next($request);
+        });
+    }
+
     /**
      * Display settings page
      */
     public function index()
     {
-        $users = User::all();
+        $users = User::with('unit')->get();
+        $units = Unit::orderBy('name')->get();
         $companySettings = Setting::getByGroup('company');
         
-        return view('settings.index', compact('users', 'companySettings'));
+        return view('settings.index', compact('users', 'units', 'companySettings'));
     }
 
     /**
@@ -56,9 +75,11 @@ class SettingController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
+            'nip' => 'nullable|string|max:50',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
             'role' => 'required|in:admin,user,petugas,guest,security',
+            'unit_id' => 'required|exists:units,id',
         ]);
 
         if ($validator->fails()) {
@@ -68,9 +89,11 @@ class SettingController extends Controller
         try {
             User::create([
                 'nama' => $request->name, // Map request 'name' to db 'nama'
+                'nip' => $request->nip,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'role' => $request->role,
+                'unit_id' => $request->unit_id,
             ]);
 
             return back()->with('success', 'User berhasil ditambahkan!');
@@ -91,6 +114,7 @@ class SettingController extends Controller
             'email' => 'required|email|unique:users,email,' . $id,
             'password' => 'nullable|string|min:6|confirmed',
             'role' => 'required|in:admin,user,petugas,guest,security',
+            'unit_id' => 'required|exists:units,id',
         ]);
 
         if ($validator->fails()) {
@@ -102,6 +126,7 @@ class SettingController extends Controller
                 'nama' => $request->name, // Map request 'name' to db 'nama'
                 'email' => $request->email,
                 'role' => $request->role,
+                'unit_id' => $request->unit_id,
             ];
 
             if ($request->filled('password')) {

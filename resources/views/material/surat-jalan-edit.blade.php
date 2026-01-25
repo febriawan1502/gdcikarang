@@ -281,6 +281,13 @@
 
                 <!-- Section 6: Foto Dokumentasi -->
                 @if($suratJalan->foto_penerima)
+                @php
+                    $fotoPath = $suratJalan->foto_penerima;
+                    $normalizedPath = \Illuminate\Support\Str::startsWith($fotoPath, 'storage/')
+                        ? substr($fotoPath, 8)
+                        : ltrim($fotoPath, '/');
+                    $fotoUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($normalizedPath);
+                @endphp
                 <div>
                     <h3 class="flex items-center text-lg font-bold text-gray-800 mb-6 pb-2 border-b border-gray-100">
                         <i class="fas fa-camera text-purple-600 mr-3 text-xl"></i>
@@ -288,8 +295,8 @@
                     </h3>
                     
                     <div class="bg-gray-50 rounded-xl border border-dashed border-gray-300 p-6 flex flex-col items-center justify-center">
-                         <a href="{{ asset('storage/' . $suratJalan->foto_penerima) }}" target="_blank" class="group relative block overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300">
-                            <img src="{{ asset('storage/' . $suratJalan->foto_penerima) }}" alt="Foto Penerima" class="max-w-full h-auto max-h-80 object-cover transform group-hover:scale-105 transition-transform duration-500">
+                         <a href="{{ $fotoUrl }}" target="_blank" class="group relative block overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300">
+                            <img src="{{ $fotoUrl }}" alt="Foto Penerima" class="max-w-full h-auto max-h-80 object-cover transform group-hover:scale-105 transition-transform duration-500">
                             <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
                                 <i class="fas fa-search-plus text-white opacity-0 group-hover:opacity-100 text-3xl transform scale-0 group-hover:scale-100 transition-all duration-300"></i>
                             </div>

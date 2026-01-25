@@ -4,10 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Material;
+use App\Models\Concerns\HasUnitScope;
 
 class MaterialHistory extends Model
 {
+    use HasUnitScope;
+
     protected $fillable = [
+    'unit_id',
     'material_id',
      'source_type',     // ✅ TAMBAHKAN
     'source_id',       // ✅ TAMBAHKAN
@@ -90,12 +94,10 @@ class MaterialHistory extends Model
     $tipe = strtoupper($tipe);
 
     if ($tipe === 'MASUK') {
-        $material->unrestricted_use_stock += $qty;
+        $material->safeIncrement('unrestricted_use_stock', $qty);
     } elseif ($tipe === 'KELUAR') {
-        $material->unrestricted_use_stock -= $qty;
+        $material->safeDecrement('unrestricted_use_stock', $qty);
     }
-
-    $material->save();
 
     $existing = self::where('material_id', $material_id)
         ->whereDate('tanggal', $tanggal ?? now())
@@ -107,7 +109,7 @@ class MaterialHistory extends Model
         $existing->update([
             'masuk' => $tipe === 'MASUK' ? $qty : 0,
             'keluar' => $tipe === 'KELUAR' ? $qty : 0,
-            'sisa_persediaan' => $material->unrestricted_use_stock,
+            'sisa_persediaan' => $material->getStockValue('unrestricted_use_stock'),
             'catatan' => $catatan
         ]);
         return $existing;
@@ -122,7 +124,7 @@ class MaterialHistory extends Model
         'no_slip'         => $no_slip ?: '-',
         'masuk'           => $tipe === 'MASUK' ? $qty : 0,
         'keluar'          => $tipe === 'KELUAR' ? $qty : 0,
-        'sisa_persediaan' => $material->unrestricted_use_stock,
+        'sisa_persediaan' => $material->getStockValue('unrestricted_use_stock'),
         'catatan'         => $catatan,
     ]);
 }
@@ -135,7 +137,7 @@ class MaterialHistory extends Model
         ->value('sisa_persediaan');
 
     if ($stokAwal === null) {
-        $stokAwal = Material::find($materialId)->unrestricted_use_stock ?? 0;
+    $stokAwal = Material::find($materialId)->getStockValue('unrestricted_use_stock') ?? 0;
     }
 
     // 2. Total masuk bulan ini

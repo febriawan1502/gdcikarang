@@ -3,12 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\HasUnitScope;
 
 class PemeriksaanFisik extends Model
 {
+    use HasUnitScope;
+
     protected $table = 'pemeriksaan_fisik';
 
     protected $fillable = [
+        'unit_id',
         'material_id',
         'bulan',
         'sap',

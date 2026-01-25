@@ -5,12 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Concerns\HasUnitScope;
 
 class StockOpname extends Model
 {
     use HasFactory;
+    use HasUnitScope;
 
     protected $fillable = [
+        'unit_id',
         'material_id',
         'material_description',
         'stock_fisik',

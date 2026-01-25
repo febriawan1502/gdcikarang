@@ -738,8 +738,7 @@ foreach ($suratJalan->details as $detail) {
     }
 
     // 🔻 Kurangi stok
-    $materialModel->decrement('qty', $detail->quantity);
-    $materialModel->decrement('unrestricted_use_stock', $detail->quantity);
+    $materialModel->safeDecrement('unrestricted_use_stock', $detail->quantity);
 
     // 🧾 History HANYA UNTUK NORMAL
     MaterialHistory::create([

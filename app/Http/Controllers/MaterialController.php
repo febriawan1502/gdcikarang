@@ -14,6 +14,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\MaterialImport;
 use Illuminate\Validation\Rule;
 use App\Models\MaterialHistory;
+use App\Models\MaterialStock;
 use App\Models\PemeriksaanFisik;
 use App\Imports\PemeriksaanFisikImport;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -32,6 +33,11 @@ class MaterialController extends Controller
         $search = $request->get('search');
         $sortBy = $request->get('sort_by', 'created_at');
         $sortDirection = $request->get('sort_direction', 'desc');
+        $user = auth()->user();
+        $unitId = null;
+        if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
+            $unitId = $user->unit_id;
+        }
         
         // Validate sort column
         $allowedSorts = ['material_code', 'material_description', 'unrestricted_use_stock', 'total_nilai', 'created_at'];
@@ -42,15 +48,29 @@ class MaterialController extends Controller
         // Validate sort direction
         $sortDirection = in_array($sortDirection, ['asc', 'desc']) ? $sortDirection : 'desc';
         
+        $stockSub = MaterialStock::select('material_id', DB::raw('SUM(unrestricted_use_stock) as unrestricted_use_stock'))
+            ->when($unitId, function ($query) use ($unitId) {
+                $query->where('unit_id', $unitId);
+            })
+            ->groupBy('material_id');
+
         $materials = Material::query()
-            ->selectRaw('*, (harga_satuan * unrestricted_use_stock) as total_nilai')
-            ->when($search, function($query, $search) {
-                return $query->where(function($q) use ($search) {
+            ->leftJoinSub($stockSub, 'ms', function ($join) {
+                $join->on('materials.id', '=', 'ms.material_id');
+            })
+            ->select('materials.*', DB::raw('COALESCE(ms.unrestricted_use_stock, 0) as unrestricted_use_stock'))
+            ->selectRaw('(COALESCE(ms.unrestricted_use_stock, 0) * materials.harga_satuan) as total_nilai')
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
                     $q->where('material_code', 'LIKE', "%{$search}%")
                       ->orWhere('material_description', 'LIKE', "%{$search}%");
                 });
             })
-            ->orderBy($sortBy, $sortDirection)
+            ->when($sortBy === 'unrestricted_use_stock', function ($query) use ($sortDirection) {
+                $query->orderBy('ms.unrestricted_use_stock', $sortDirection);
+            }, function ($query) use ($sortBy, $sortDirection) {
+                $query->orderBy($sortBy, $sortDirection);
+            })
             ->paginate($perPage)
             ->withQueryString();
             
@@ -356,9 +376,24 @@ class MaterialController extends Controller
      */
     public function stockOpname()
     {
-        $materials = Material::select('id', 'nomor_kr', 'material_description', 'qty', 'base_unit_of_measure')
-                            ->orderBy('nomor_kr')
-                            ->get();
+        $user = auth()->user();
+        $unitId = null;
+        if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
+            $unitId = $user->unit_id;
+        }
+
+        $stockSub = MaterialStock::select('material_id', DB::raw('SUM(qty) as qty'))
+            ->when($unitId, function ($query) use ($unitId) {
+                $query->where('unit_id', $unitId);
+            })
+            ->groupBy('material_id');
+
+        $materials = Material::leftJoinSub($stockSub, 'ms', function ($join) {
+                $join->on('materials.id', '=', 'ms.material_id');
+            })
+            ->select('materials.id', 'materials.nomor_kr', 'materials.material_description', DB::raw('COALESCE(ms.qty, 0) as qty'), 'materials.base_unit_of_measure')
+            ->orderBy('materials.nomor_kr')
+            ->get();
         
         return view('material.stock-opname', compact('materials'));
     }
@@ -500,21 +535,40 @@ public function getMaterialById($id)
      */
     public function getDataForDataTables(Request $request)
     {
-        $materials = Material::select([
-            'id',
-            'material_code',
-            'material_description',
-            'qty',
-            'base_unit_of_measure',
-            'unrestricted_use_stock',
-            'harga_satuan',
-            'total_harga',
-            'currency',
-            'pabrikan',
-            'rak',
-            'status',
-            'created_at'
-        ]);
+        $user = auth()->user();
+        $unitId = null;
+        if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
+            $unitId = $user->unit_id;
+        }
+
+        $stockSub = MaterialStock::select(
+                'material_id',
+                DB::raw('SUM(unrestricted_use_stock) as unrestricted_use_stock'),
+                DB::raw('SUM(qty) as qty')
+            )
+            ->when($unitId, function ($query) use ($unitId) {
+                $query->where('unit_id', $unitId);
+            })
+            ->groupBy('material_id');
+
+        $materials = Material::leftJoinSub($stockSub, 'ms', function ($join) {
+                $join->on('materials.id', '=', 'ms.material_id');
+            })
+            ->select([
+                'materials.id',
+                'materials.material_code',
+                'materials.material_description',
+                DB::raw('COALESCE(ms.qty, 0) as qty'),
+                'materials.base_unit_of_measure',
+                DB::raw('COALESCE(ms.unrestricted_use_stock, 0) as unrestricted_use_stock'),
+                'materials.harga_satuan',
+                'materials.total_harga',
+                'materials.currency',
+                'materials.pabrikan',
+                'materials.rak',
+                'materials.status',
+                'materials.created_at'
+            ]);
 
         return datatables($materials)
             ->addIndexColumn()
@@ -601,7 +655,7 @@ public function getMaterialById($id)
 
             // Ambil data material
             $material = Material::findOrFail($request->material_id);
-            $stockSystem = $material->unrestricted_use_stock;
+            $stockSystem = $material->getStockValue('unrestricted_use_stock');
             $stockFisik = $request->stock_fisik;
             $selisih = $stockFisik - $stockSystem;
 
@@ -617,9 +671,7 @@ public function getMaterialById($id)
             ]);
 
             // Update unrestricted_stock di tabel materials
-            $material->update([
-                'unrestricted_use_stock' => $stockFisik
-            ]);
+            $material->updateStock($stockFisik);
 
             DB::commit();
 
@@ -713,15 +765,23 @@ public function getMaterialById($id)
             'data' => $material
         ]);
     }
-    public function pemeriksaanFisik(Request $request)
+public function pemeriksaanFisik(Request $request)
 {
     $bulan = $request->bulan;
     $materials = null;
+    $user = auth()->user();
+    $unitId = null;
+    if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
+        $unitId = $user->unit_id;
+    }
 
     if ($bulan) {
-        $materials = Material::leftJoin('pemeriksaan_fisik', function ($join) use ($bulan) {
+        $materials = Material::leftJoin('pemeriksaan_fisik', function ($join) use ($bulan, $unitId) {
                 $join->on('materials.id', '=', 'pemeriksaan_fisik.material_id')
                      ->where('pemeriksaan_fisik.bulan', $bulan);
+                if ($unitId) {
+                    $join->where('pemeriksaan_fisik.unit_id', $unitId);
+                }
             })
             ->select(
                 'materials.*',
@@ -742,17 +802,24 @@ public function getMaterialById($id)
     return view('material.pemeriksaan_fisik', compact('materials', 'bulan'));
 }
 
-    public function storePemeriksaanFisik(Request $request)
+public function storePemeriksaanFisik(Request $request)
 {
     DB::beginTransaction();
 
     try {
+        $user = auth()->user();
+        $unitId = null;
+        if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
+            $unitId = $user->unit_id;
+        }
+
         foreach ($request->data as $row) {
 
             PemeriksaanFisik::updateOrCreate(
                 [
                     'material_id' => $row['material_id'],
                     'bulan'       => $request->bulan,
+                    'unit_id'     => $unitId,
                 ],
                 [
                     'sap'             => $row['sap'] ?? null,
@@ -897,10 +964,18 @@ public function importMims(Request $request)
 public function pemeriksaanFisikPdf(Request $request)
 {
     $bulan = $request->bulan;
+    $user = auth()->user();
+    $unitId = null;
+    if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
+        $unitId = $user->unit_id;
+    }
 
-    $materials = Material::leftJoin('pemeriksaan_fisik', function ($join) use ($bulan) {
+    $materials = Material::leftJoin('pemeriksaan_fisik', function ($join) use ($bulan, $unitId) {
             $join->on('materials.id', '=', 'pemeriksaan_fisik.material_id')
                  ->where('pemeriksaan_fisik.bulan', $bulan);
+            if ($unitId) {
+                $join->where('pemeriksaan_fisik.unit_id', $unitId);
+            }
         })
         ->select(
             'materials.*',

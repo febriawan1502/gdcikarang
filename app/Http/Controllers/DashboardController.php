@@ -7,6 +7,7 @@ use App\Models\Material;
 use App\Models\User;
 use App\Models\MaterialMasuk;
 use App\Models\SuratJalan;
+use App\Models\MaterialStock;
 use Yajra\DataTables\Facades\DataTables;
 use App\Exports\MaterialExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -21,18 +22,38 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        $user = auth()->user();
+        $unitId = null;
+        if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
+            $unitId = $user->unit_id;
+        }
+
+        $totalStock = MaterialStock::withoutGlobalScopes()
+            ->when($unitId, function ($query) use ($unitId) {
+                $query->where('unit_id', $unitId);
+            })
+            ->sum('unrestricted_use_stock');
+
+        $totalSaldo = DB::table('material_stocks as ms')
+            ->join('materials as m', 'ms.material_id', '=', 'm.id')
+            ->when($unitId, function ($query) use ($unitId) {
+                $query->where('ms.unit_id', $unitId);
+            })
+            ->sum(DB::raw('ms.unrestricted_use_stock * m.harga_satuan'));
+
         $stats = [
             'total_materials' => Material::count(),
-            'total_stock' => Material::sum('unrestricted_use_stock'), 
+            'total_stock' => $totalStock, 
             'pemakaian_kumulatif' => \DB::table('surat_jalan_detail')
                 ->join('materials', 'surat_jalan_detail.material_id', '=', 'materials.id')
                 ->join('surat_jalan', 'surat_jalan_detail.surat_jalan_id', '=', 'surat_jalan.id')
                 ->whereYear('surat_jalan.created_at', date('Y'))
                 ->whereNull('materials.deleted_at')
+                ->when($unitId, function ($query) use ($unitId) {
+                    $query->where('surat_jalan.unit_id', $unitId);
+                })
                 ->sum(\DB::raw('surat_jalan_detail.quantity * materials.harga_satuan')),
-            // Calculate total saldo: sum(harga_satuan * stock)
-            // Using DB::raw to be safe if total_harga column isn't perfectly synced or if we want exact calculation
-            'total_saldo' => Material::sum(\DB::raw('harga_satuan * unrestricted_use_stock')),
+            'total_saldo' => $totalSaldo,
         ];
 
         // 10 Surat Jalan Terakhir
@@ -41,14 +62,30 @@ class DashboardController extends Controller
         // 10 Material Masuk Terakhir
         $latest_material_masuk = MaterialMasuk::latest()->take(10)->get();
         
+        $stockSub = DB::table('material_stocks as ms')
+            ->select('ms.material_id', DB::raw('SUM(ms.unrestricted_use_stock) as total_stock'))
+            ->when($unitId, function ($query) use ($unitId) {
+                $query->where('ms.unit_id', $unitId);
+            })
+            ->groupBy('ms.material_id');
+
         // 10 Nilai Material Terbesar (Highest Value)
-        $top_value_materials = Material::select('*', \DB::raw('harga_satuan * unrestricted_use_stock as calculated_total_value'))
+        $top_value_materials = Material::joinSub($stockSub, 'ms', function ($join) {
+                $join->on('materials.id', '=', 'ms.material_id');
+            })
+            ->select('materials.*', DB::raw('(ms.total_stock * materials.harga_satuan) as calculated_total_value'))
             ->orderBy('calculated_total_value', 'desc')
             ->take(10)
             ->get();
         
         // 10 Material dengan volume stock terbesar
-        $top_stock_materials = Material::orderBy('unrestricted_use_stock', 'desc')->take(10)->get();
+        $top_stock_materials = Material::joinSub($stockSub, 'ms', function ($join) {
+                $join->on('materials.id', '=', 'ms.material_id');
+            })
+            ->select('materials.*', DB::raw('ms.total_stock as unrestricted_use_stock'))
+            ->orderBy('ms.total_stock', 'desc')
+            ->take(10)
+            ->get();
 
         // 10 Material Fast Moving (hardcoded list)
         $fast_moving_codes = [
@@ -264,17 +301,53 @@ class DashboardController extends Controller
     public function getStats(Request $request)
     {
         try {
+            $user = auth()->user();
+            $unitId = null;
+            if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
+                $unitId = $user->unit_id;
+            }
+
+            $stockSub = DB::table('material_stocks as ms')
+                ->select('ms.material_id', DB::raw('SUM(ms.qty) as qty'))
+                ->when($unitId, function ($query) use ($unitId) {
+                    $query->where('ms.unit_id', $unitId);
+                })
+                ->groupBy('ms.material_id');
+
             $stats = [
                 'total_materials' => Material::count(),
-                'total_stock' => Material::sum('qty'),
+                'total_stock' => MaterialStock::withoutGlobalScopes()
+                    ->when($unitId, function ($query) use ($unitId) {
+                        $query->where('unit_id', $unitId);
+                    })
+                    ->sum('qty'),
                 'total_material_masuk' => MaterialMasuk::count(),
                 'total_surat_jalan' => SuratJalan::count(),
                 'active_materials' => Material::where('status', Material::STATUS_BAIK)->count(),
-                'low_stock_materials' => Material::where('qty', '<=', 10)->count(),
-                'total_value' => Material::sum('total_harga'),
-                'recent_materials' => Material::latest()->take(5)->get([
-                    'id', 'material_code', 'material_description', 'qty', 'status', 'created_at'
-                ])
+                'low_stock_materials' => Material::whereHas('stocks', function ($query) use ($unitId) {
+                    $query->when($unitId, function ($q) use ($unitId) {
+                        $q->where('unit_id', $unitId);
+                    })->where('qty', '<=', 10);
+                })->count(),
+                'total_value' => DB::table('material_stocks as ms')
+                    ->join('materials as m', 'ms.material_id', '=', 'm.id')
+                    ->when($unitId, function ($query) use ($unitId) {
+                        $query->where('ms.unit_id', $unitId);
+                    })
+                    ->sum(DB::raw('ms.unrestricted_use_stock * m.harga_satuan')),
+                'recent_materials' => Material::leftJoinSub($stockSub, 'ms', function ($join) {
+                        $join->on('materials.id', '=', 'ms.material_id');
+                    })
+                    ->latest('materials.created_at')
+                    ->take(5)
+                    ->get([
+                        'materials.id',
+                        'materials.material_code',
+                        'materials.material_description',
+                        DB::raw('COALESCE(ms.qty, 0) as qty'),
+                        'materials.status',
+                        'materials.created_at'
+                    ])
             ];
 
             return response()->json([

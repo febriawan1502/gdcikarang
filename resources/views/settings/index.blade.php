@@ -99,6 +99,7 @@
                                 <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-12">No</th>
                                 <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama</th>
                                 <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Email</th>
+                                <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Unit</th>
                                 <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Role</th>
                                 <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Bergabung</th>
                                 <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Aksi</th>
@@ -110,6 +111,9 @@
                                 <td class="px-4 py-3 text-center text-gray-600">{{ $loop->iteration }}</td>
                                 <td class="px-4 py-3 text-gray-800 font-medium">{{ $user->nama }}</td>
                                 <td class="px-4 py-3 text-gray-600">{{ $user->email }}</td>
+                                <td class="px-4 py-3 text-gray-600">
+                                    {{ $user->unit->name ?? '-' }}
+                                </td>
                                 <td class="px-4 py-3">
                                     @if($user->role == 'admin')
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Admin</span>
@@ -131,6 +135,7 @@
                                                 data-name="{{ $user->nama }}"
                                                 data-email="{{ $user->email }}"
                                                 data-role="{{ $user->role }}"
+                                                data-unit-id="{{ $user->unit_id }}"
                                                 title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </button>
@@ -161,7 +166,7 @@
 <!-- Modal Add User -->
 <div id="modalAddUser" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-modal="true">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeModal('modalAddUser')"></div>
+        <div class="fixed inset-0 bg-gray-800 bg-opacity-40 transition-opacity" onclick="closeModal('modalAddUser')"></div>
         
         <div class="inline-block bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full relative">
             <form action="{{ route('settings.users.store') }}" method="POST">
@@ -182,6 +187,10 @@
                     <div>
                         <label class="form-label">Nama Lengkap</label>
                         <input type="text" name="name" class="form-input" required>
+                    </div>
+                    <div>
+                        <label class="form-label">NIP</label>
+                        <input type="text" name="nip" class="form-input">
                     </div>
                     <div>
                         <label class="form-label">Email</label>
@@ -205,6 +214,14 @@
                             <option value="petugas">Petugas</option>
                         </select>
                     </div>
+                    <div>
+                        <label class="form-label">Unit</label>
+                        <select name="unit_id" class="form-input" required>
+                            @foreach($units as $unit)
+                                <option value="{{ $unit->id }}">{{ $unit->name }} ({{ $unit->plant }} / {{ $unit->storage_location }})</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
                 <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
@@ -223,7 +240,7 @@
 <!-- Modal Edit User -->
 <div id="modalEditUser" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-modal="true">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeModal('modalEditUser')"></div>
+        <div class="fixed inset-0 bg-gray-800 bg-opacity-40 transition-opacity" onclick="closeModal('modalEditUser')"></div>
         
         <div class="inline-block bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full relative">
             <form id="formEditUser" action="" method="POST">
@@ -258,6 +275,14 @@
                             <option value="security">Security</option>
                             <option value="guest">Guest</option>
                             <option value="petugas">Petugas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Unit</label>
+                        <select name="unit_id" id="edit_unit_id" class="form-input" required>
+                            @foreach($units as $unit)
+                                <option value="{{ $unit->id }}">{{ $unit->name }} ({{ $unit->plant }} / {{ $unit->storage_location }})</option>
+                            @endforeach
                         </select>
                     </div>
                     
@@ -346,6 +371,7 @@
             $('#edit_name').val(name);
             $('#edit_email').val(email);
             $('#edit_role').val(role);
+            $('#edit_unit_id').val($(this).data('unit-id'));
             
             openModal('modalEditUser');
         });

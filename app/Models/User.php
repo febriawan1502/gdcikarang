@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'unit_id',
         'is_active',
         'last_login_at',
         'created_by',
@@ -132,6 +133,11 @@ class User extends Authenticatable
     public function updater()
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class, 'unit_id');
     }
 
     /**

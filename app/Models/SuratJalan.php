@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\MaterialHistory;
+use App\Models\Concerns\HasUnitScope;
 
 
 class SuratJalan extends Model
 {
     use HasFactory;
+    use HasUnitScope;
     protected static function booted()
 {
     static::deleting(function ($suratJalan) {
@@ -25,6 +27,7 @@ class SuratJalan extends Model
     protected $table = 'surat_jalan';
 
     protected $fillable = [
+        'unit_id',
         'nomor_surat',
         'jenis_surat_jalan',
         'tanggal',
@@ -99,7 +102,7 @@ class SuratJalan extends Model
 
     $kode = $jenisKode[$jenisSuratJalan] ?? 'SJ';
     $kodeLog = 'LOG.00.02';
-    $kodeFungsi = 'F02050000';
+    $kodeFungsi = auth()->user()->unit->kode_surat ?? 'F02050000';
 
     // 🔹 Ambil surat terakhir dari semua jenis (global numbering)
     $lastSurat = self::whereYear('created_at', $year)

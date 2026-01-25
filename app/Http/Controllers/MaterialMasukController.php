@@ -458,10 +458,8 @@ public function updateDanSelesaiSAP(Request $request, $id)
 
                 // update stok
                 if ($diff > 0) {
-                    $material->safeIncrement('qty', $diff);
                     $material->safeIncrement('unrestricted_use_stock', $diff);
                 } elseif ($diff < 0) {
-                    $material->safeDecrement('qty', abs($diff));
                     $material->safeDecrement('unrestricted_use_stock', abs($diff));
                 }
 
@@ -488,7 +486,6 @@ public function updateDanSelesaiSAP(Request $request, $id)
                     'normalisasi' => $item['normalisasi'] ?? null,
                 ]);
 
-                $material->safeIncrement('qty', $item['quantity']);
                 $material->safeIncrement('unrestricted_use_stock', $item['quantity']);
 
                 // HISTORY BARU

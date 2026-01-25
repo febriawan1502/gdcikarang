@@ -460,7 +460,7 @@
         <i class="fas fa-upload" style="color: #4FD1C5;"></i>
     </x-slot:icon>
 
-    <form action="{{ route('material.import') }}" method="POST" enctype="multipart/form-data">
+    <form id="importMaterialForm" action="{{ route('material.import') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div class="form-group">
             <label class="form-label">Pilih File Excel (.xlsx, .xls, .csv)</label>
@@ -485,5 +485,83 @@ function confirmDelete(materialId, materialName) {
     document.getElementById('deleteForm').action = '/material/' + materialId;
     window.dispatchEvent(new CustomEvent('open-modal', { detail: 'deleteModal' }));
 }
+
+document.getElementById('importMaterialForm')?.addEventListener('submit', function (event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    Swal.fire({
+        title: 'Mengimpor data...',
+        text: 'Mohon tunggu, proses sedang berjalan.',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    fetch(form.action, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+    })
+    .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            const message = data.message || 'Gagal mengimpor data.';
+            throw new Error(message);
+        }
+        return data;
+    })
+    .then((data) => {
+        const details = data.details || {};
+        const successCount = details.success_count ?? 0;
+        const errorCount = details.error_count ?? 0;
+        const errors = Array.isArray(details.errors) ? details.errors : [];
+
+        const errorPreview = errors.slice(0, 6).map((err) => {
+            const code = err.material_code || '-';
+            const desc = err.material_description || '-';
+            const msg = err.error || 'Gagal diimpor';
+            return `<li><strong>${code}</strong> — ${desc}<br><span style="color:#9B2C2C;">${msg}</span></li>`;
+        }).join('');
+
+        const html = `
+            <div style="text-align:left;">
+                <p><strong>${successCount}</strong> data berhasil diimpor.</p>
+                <p><strong>${errorCount}</strong> data gagal diimpor.</p>
+                ${errorCount > 0 ? `
+                    <details style="margin-top:12px;">
+                        <summary style="cursor:pointer;">Lihat sebagian error</summary>
+                        <ul style="margin:10px 0 0 18px; padding:0; list-style:disc;">
+                            ${errorPreview}
+                        </ul>
+                        ${errors.length > 6 ? '<div style="margin-top:8px;color:#718096;">...dan error lainnya</div>' : ''}
+                    </details>
+                ` : ''}
+            </div>
+        `;
+
+        Swal.fire({
+            icon: errorCount > 0 ? 'warning' : 'success',
+            title: errorCount > 0 ? 'Import selesai dengan catatan' : 'Import berhasil',
+            html,
+            confirmButtonText: 'OK'
+        });
+
+        window.dispatchEvent(new CustomEvent('close-modal', { detail: 'importModal' }));
+        form.reset();
+    })
+    .catch((error) => {
+        Swal.fire({
+            icon: 'error',
+            title: 'Import gagal',
+            text: error.message || 'Terjadi kesalahan saat impor.',
+            confirmButtonText: 'OK'
+        });
+    });
+});
 </script>
 @endpush

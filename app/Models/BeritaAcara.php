@@ -3,10 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\HasUnitScope;
 
 class BeritaAcara extends Model
 {
+    use HasUnitScope;
+
     protected $fillable = [
+        'unit_id',
         'hari',
         'tanggal',
         'tanggal_teks',

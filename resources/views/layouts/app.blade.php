@@ -235,7 +235,7 @@
         <a href="{{ route('auth.change-password') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
             <i class="fas fa-key mr-2"></i> Ganti Password
         </a>
-        @if(auth()->user()->role === 'admin')
+        @if(auth()->user()->role === 'admin' && auth()->user()->unit && auth()->user()->unit->is_induk)
         <a href="{{ route('settings.index') }}" wire:navigate class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
             <i class="fas fa-cog mr-2"></i> Pengaturan
         </a>

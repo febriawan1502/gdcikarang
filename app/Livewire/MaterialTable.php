@@ -3,8 +3,10 @@
 namespace App\Livewire;
 
 use App\Models\Material;
+use App\Models\MaterialStock;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\DB;
 
 class MaterialTable extends Component
 {
@@ -44,7 +46,23 @@ class MaterialTable extends Component
 
     public function render()
     {
+        $user = auth()->user();
+        $unitId = null;
+        if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
+            $unitId = $user->unit_id;
+        }
+
+        $stockSub = MaterialStock::select('material_id', DB::raw('SUM(unrestricted_use_stock) as unrestricted_use_stock'))
+            ->when($unitId, function ($query) use ($unitId) {
+                $query->where('unit_id', $unitId);
+            })
+            ->groupBy('material_id');
+
         $materials = Material::query()
+            ->leftJoinSub($stockSub, 'ms', function ($join) {
+                $join->on('materials.id', '=', 'ms.material_id');
+            })
+            ->select('materials.*', DB::raw('COALESCE(ms.unrestricted_use_stock, 0) as unrestricted_use_stock'))
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('material_code', 'like', '%' . $this->search . '%')
@@ -52,7 +70,7 @@ class MaterialTable extends Component
                 });
             })
             ->when($this->sortBy === 'total_nilai', function ($query) {
-                $query->orderByRaw('(harga_satuan * unrestricted_use_stock) ' . $this->sortDirection);
+                $query->orderByRaw('(harga_satuan * COALESCE(ms.unrestricted_use_stock, 0)) ' . $this->sortDirection);
             }, function ($query) {
                 $query->orderBy($this->sortBy, $this->sortDirection);
             })

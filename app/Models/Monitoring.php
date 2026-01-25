@@ -4,13 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\HasUnitScope;
 
 class Monitoring extends Model
 {
     use HasFactory;
+    use HasUnitScope;
 
     protected $fillable = [
         'unit',
+        'unit_id',
         'target_harian',
         'lm1_1b1_eff',
         'lm2_b1_dal',

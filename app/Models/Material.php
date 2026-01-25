@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\MaterialStock;
 
 class Material extends Model
 {
@@ -12,59 +13,37 @@ class Material extends Model
     protected $table = 'materials';
 
     protected $fillable = [
-    'nomor',
-    'company_code',
-    'company_code_description',
-    'plant',
-    'plant_description',
-    'storage_location',
-    'storage_location_description',
-    'material_type',
-    'material_type_description',
-    'material_code',
-    'material_description',
-    'material_group',
-    'base_unit_of_measure',
-    'valuation_type',
-    'unrestricted_use_stock',
-    'quality_inspection_stock',
-    'blocked_stock',
-    'in_transit_stock',
-    'project_stock',
-    'valuation_class',
-    'valuation_description',
-    'harga_satuan',
-    'currency',
-    'rak',
-    'keterangan',
-    'min_stock',
-    'created_by',
-    'updated_by',
-];
+        'nomor',
+        'company_code',
+        'company_code_description',
+        'plant',
+        'plant_description',
+        'storage_location',
+        'storage_location_description',
+        'material_type',
+        'material_type_description',
+        'material_code',
+        'material_description',
+        'material_group',
+        'base_unit_of_measure',
+        'valuation_type',
+        'valuation_class',
+        'valuation_description',
+        'harga_satuan',
+        'currency',
+        'rak',
+        'keterangan',
+        'created_by',
+        'updated_by',
+    ];
 
-protected $attributes = [
-    'unrestricted_use_stock' => 0,
-    'quality_inspection_stock' => 0,
-    'blocked_stock' => 0,
-    'in_transit_stock' => 0,
-    'project_stock' => 0,
-    'qty' => 0,
-    // 'total_harga' => 0,
-    'status' => self::STATUS_BAIK,
-];
-
-
+    protected $attributes = [
+        'status' => self::STATUS_BAIK,
+    ];
 
     protected $casts = [
         'tanggal_terima' => 'date',
         'harga_satuan' => 'decimal:2',
-        // 'total_harga' => 'decimal:2',
-        'qty' => 'integer',
-        'unrestricted_use_stock' => 'decimal:0',
-        'quality_inspection_stock' => 'decimal:0',
-        'blocked_stock' => 'decimal:0',
-        'in_transit_stock' => 'decimal:0',
-        'project_stock' => 'decimal:0',
         'is_active' => 'boolean',
     ];
 
@@ -96,6 +75,11 @@ protected $attributes = [
         return $this->hasMany(MaterialHistory::class, 'material_id');
     }
 
+    public function stocks()
+    {
+        return $this->hasMany(MaterialStock::class, 'material_id');
+    }
+
     public function scopeSearch($query, $search)
     {
         return $query->where(function ($q) use ($search) {
@@ -119,7 +103,9 @@ protected $attributes = [
 
     public function scopeLowStock($query, $threshold = 10)
     {
-        return $query->where('qty', '<=', $threshold);
+        return $query->whereHas('stocks', function ($q) use ($threshold) {
+            $q->where('qty', '<=', $threshold);
+        });
     }
 
     public function getFormattedHargaSatuanAttribute()
@@ -153,20 +139,20 @@ protected $attributes = [
 
     public function getTotalStockAttribute()
     {
-        return $this->unrestricted_use_stock
-            + $this->quality_inspection_stock
-            + $this->blocked_stock
-            + $this->in_transit_stock
-            + $this->project_stock;
+        return $this->getStockValue('unrestricted_use_stock')
+            + $this->getStockValue('quality_inspection_stock')
+            + $this->getStockValue('blocked_stock')
+            + $this->getStockValue('in_transit_stock')
+            + $this->getStockValue('project_stock');
     }
+
     public function getTotalHargaAttribute()
-{
-    $stok = $this->unrestricted_use_stock ?? 0;
-    $harga = $this->harga_satuan ?? 0;
+    {
+        $stok = $this->getStockValue('unrestricted_use_stock');
+        $harga = $this->harga_satuan ?? 0;
 
-    return $stok * $harga;
-}
-
+        return $stok * $harga;
+    }
 
     public static function generateNomor()
     {
@@ -207,29 +193,187 @@ protected $attributes = [
 
     public function updateStock($newQty, $reason = null)
     {
-        $oldQty = $this->qty;
-        $this->update(['qty' => $newQty]);
+        $this->setStockValue('qty', (int) $newQty);
+        $this->setStockValue('unrestricted_use_stock', (float) $newQty);
         return $this;
     }
 
     // === START FIX: Anti Stok Negatif ===
     public function safeIncrement($column, $amount)
     {
+        if ($this->isStockColumn($column)) {
+            $this->adjustStock($column, $amount);
+            if ($column === 'unrestricted_use_stock') {
+                $this->adjustStock('qty', $amount);
+            }
+            return;
+        }
+
         $this->$column = ($this->$column ?? 0) + $amount;
         $this->save();
     }
 
     public function safeDecrement($column, $amount)
     {
+        if ($this->isStockColumn($column)) {
+            $current = $this->getStockValue($column);
+
+            if ($current < $amount) {
+                throw new \Exception("Stok material '{$this->material_description}' tidak mencukupi! (tersedia: {$current}, dibutuhkan: {$amount})");
+            }
+
+            $this->adjustStock($column, -$amount);
+            if ($column === 'unrestricted_use_stock') {
+                $this->adjustStock('qty', -$amount);
+            }
+            return;
+        }
+
         $current = $this->$column ?? 0;
 
         if ($current < $amount) {
-            throw new \Exception("❌ Stok material '{$this->material_description}' tidak mencukupi! 
-            (tersedia: {$current}, dibutuhkan: {$amount})");
+            throw new \Exception("Stok material '{$this->material_description}' tidak mencukupi! (tersedia: {$current}, dibutuhkan: {$amount})");
         }
 
         $this->$column = $current - $amount;
         $this->save();
     }
     // === END FIX ===
+
+    public function getUnrestrictedUseStockAttribute($value)
+    {
+        return $this->getStockValue('unrestricted_use_stock');
+    }
+
+    public function getQualityInspectionStockAttribute($value)
+    {
+        return $this->getStockValue('quality_inspection_stock');
+    }
+
+    public function getBlockedStockAttribute($value)
+    {
+        return $this->getStockValue('blocked_stock');
+    }
+
+    public function getInTransitStockAttribute($value)
+    {
+        return $this->getStockValue('in_transit_stock');
+    }
+
+    public function getProjectStockAttribute($value)
+    {
+        return $this->getStockValue('project_stock');
+    }
+
+    public function getQtyAttribute($value)
+    {
+        return (int) $this->getStockValue('qty');
+    }
+
+    public function getMinStockAttribute($value)
+    {
+        return (int) $this->getStockValue('min_stock');
+    }
+
+    private function isStockColumn(string $column): bool
+    {
+        return in_array($column, [
+            'unrestricted_use_stock',
+            'quality_inspection_stock',
+            'blocked_stock',
+            'in_transit_stock',
+            'project_stock',
+            'qty',
+            'min_stock',
+        ], true);
+    }
+
+    private function resolveUnitId(?int $unitId = null): ?int
+    {
+        if ($unitId !== null) {
+            return $unitId;
+        }
+
+        $user = auth()->user();
+        if (!$user || !$user->unit_id) {
+            return null;
+        }
+
+        if ($user->unit && $user->unit->is_induk) {
+            return null;
+        }
+
+        return $user->unit_id;
+    }
+
+    public function getStockValue(string $column, ?int $unitId = null): float
+    {
+        $unitId = $this->resolveUnitId($unitId);
+
+        if ($unitId) {
+            return (float) MaterialStock::withoutGlobalScopes()
+                ->where('material_id', $this->id)
+                ->where('unit_id', $unitId)
+                ->value($column) ?? 0;
+        }
+
+        return (float) MaterialStock::withoutGlobalScopes()
+            ->where('material_id', $this->id)
+            ->sum($column);
+    }
+
+    public function setStockValue(string $column, $value, ?int $unitId = null): void
+    {
+        $unitId = $this->resolveUnitId($unitId);
+        if (!$unitId) {
+            return;
+        }
+
+        $stock = MaterialStock::withoutGlobalScopes()->firstOrCreate(
+            [
+                'material_id' => $this->id,
+                'unit_id' => $unitId,
+            ],
+            [
+                'unrestricted_use_stock' => 0,
+                'quality_inspection_stock' => 0,
+                'blocked_stock' => 0,
+                'in_transit_stock' => 0,
+                'project_stock' => 0,
+                'qty' => 0,
+                'min_stock' => 0,
+            ]
+        );
+
+        $stock->{$column} = $value;
+        $stock->save();
+    }
+
+    private function adjustStock(string $column, $amount, ?int $unitId = null): void
+    {
+        $unitId = $this->resolveUnitId($unitId);
+        if (!$unitId) {
+            return;
+        }
+
+        $stock = MaterialStock::withoutGlobalScopes()->firstOrCreate(
+            [
+                'material_id' => $this->id,
+                'unit_id' => $unitId,
+            ],
+            [
+                'unrestricted_use_stock' => 0,
+                'quality_inspection_stock' => 0,
+                'blocked_stock' => 0,
+                'in_transit_stock' => 0,
+                'project_stock' => 0,
+                'qty' => 0,
+                'min_stock' => 0,
+            ]
+        );
+
+        $current = $stock->{$column} ?? 0;
+        $stock->{$column} = $current + $amount;
+        $stock->save();
+    }
 }
