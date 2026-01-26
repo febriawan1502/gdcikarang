@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Pojok IMS - Login</title>
+    <title>Si Eneng - Login</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
@@ -152,7 +152,7 @@
 
                 <div class="mt-8 pt-6 border-t border-gray-200">
                     <p class="text-center text-gray-500 text-xs">
-                        &copy; {{ date('Y') }} POJOK IMS - PT PLN (Persero)
+                        &copy; {{ date('Y') }} Si Eneng - PT PLN (Persero)
                     </p>
                 </div>
             </div>

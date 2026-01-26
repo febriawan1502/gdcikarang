@@ -13,7 +13,7 @@ class UnitsSeeder extends Seeder
             ['code' => 'UP3-PWK', 'name' => 'UP3 Purwakarta', 'plant' => '5318', 'storage_location' => '2070', 'is_induk' => false],
             ['code' => 'UP3-DPK', 'name' => 'UP3 Depok', 'plant' => '5323', 'storage_location' => '2120', 'is_induk' => false],
             ['code' => 'UP3-SMD', 'name' => 'UP3 Sumedang', 'plant' => '5325', 'storage_location' => '2140', 'is_induk' => false],
-            ['code' => 'UP3-CKR', 'name' => 'UP3 Cikarang', 'plant' => '5328', 'storage_location' => '2011', 'is_induk' => false],
+            ['code' => 'UP3-CKR', 'name' => 'UP3 Cikarang', 'plant' => '5328', 'storage_location' => '2011', 'is_induk' => false, 'kode_surat' => 'F0218000'],
             ['code' => 'UP3-KRW', 'name' => 'UP3 Karawang', 'plant' => '5324', 'storage_location' => '2130', 'is_induk' => false],
             ['code' => 'UP3-BGR', 'name' => 'UP3 Bogor', 'plant' => '5316', 'storage_location' => '2050', 'is_induk' => false],
             ['code' => 'UP3-TSM', 'name' => 'UP3 Tasikmalaya', 'plant' => '5312', 'storage_location' => '2010', 'is_induk' => false],

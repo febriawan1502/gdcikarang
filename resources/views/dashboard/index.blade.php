@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard - Pojok IMS')
+@section('title', 'Dashboard - Si Eneng')
 @section('breadcrumb', 'Dashboard')
 
 @section('content')

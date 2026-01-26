@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>@yield('title', 'POJOK IMS')</title>
+    <title>@yield('title', 'Si Eneng')</title>
     <link rel="icon" type="image/ico" href="{{ asset('assets/images/favicon.ico') }}" />
     <meta name="description" content="POJOK Inventory Management System">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -40,7 +40,7 @@
                     <div class="sidebar-logo-icon">
                         <i class="fas fa-warehouse text-teal-500"></i>
                     </div>
-                    <span class="sidebar-logo-text">POJOK IMS</span>
+                    <span class="sidebar-logo-text">Si Eneng</span>
                 </div>
 
                 <!-- Navigation -->

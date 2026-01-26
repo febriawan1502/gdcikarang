@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Material - POJOK IMS')
+@section('title', 'Edit Material - Si Eneng')
 
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6">
