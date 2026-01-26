@@ -299,8 +299,8 @@
                                     </div>
                                     <div class="flex justify-between items-center text-sm border-t border-dashed border-teal-200 pt-2">
                                         <span class="text-gray-500">Status SAP</span>
-                                        <span class="font-bold ${data.status_sap === 'APPROVED' ? 'text-green-600' : 'text-orange-500'}">
-                                            ${data.status_sap || '-'}
+                                        <span class="font-bold text-orange-500">
+                                            ${data.status_sap && data.status_sap !== 'Selesai SAP' ? data.status_sap : '-'}
                                         </span>
                                     </div>
                                 </div>

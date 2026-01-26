@@ -36,12 +36,9 @@
         <aside class="sidebar">
             <div class="sidebar-inner">
                 <!-- Logo -->
-                <div class="sidebar-logo">
-                    <div class="sidebar-logo-icon">
-                        <i class="fas fa-warehouse text-teal-500"></i>
-                    </div>
-                    <span class="sidebar-logo-text">Si Eneng</span>
-                </div>
+                <a href="{{ route('dashboard') }}" class="sidebar-logo">
+                    <img src="{{ asset('assets/images/logo-teal.png') }}" alt="Logo" class="sidebar-logo-text" />
+                </a>
 
                 <!-- Navigation -->
                 <nav class="sidebar-nav">

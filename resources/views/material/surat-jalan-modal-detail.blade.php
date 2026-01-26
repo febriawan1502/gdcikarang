@@ -33,14 +33,16 @@
                     <td class="py-2 text-gray-500 font-medium">No Slip SAP</td>
                     <td class="py-2 text-gray-900">: {{ $suratJalan->nomor_slip ?? '-' }}</td>
                 </tr>
+                @if(!$isSapDone)
                 <tr>
                     <td class="py-2 text-gray-500 font-medium">Status SAP</td>
                     <td class="py-2">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $isSapDone ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800' }}">
-                            : {{ $isSapDone ? 'Selesai SAP' : 'Belum Selesai SAP' }}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                            : Belum Selesai SAP
                         </span>
                     </td>
                 </tr>
+                @endif
                 <tr>
                     <td class="py-2 text-gray-500 font-medium">Status</td>
                     <td class="py-2">

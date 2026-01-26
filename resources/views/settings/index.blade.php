@@ -117,8 +117,6 @@
                                 <td class="px-4 py-3">
                                     @if($user->role == 'admin')
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Admin</span>
-                                    @elseif($user->role == 'user')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">User</span>
                                     @elseif($user->role == 'security')
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Security</span>
                                     @elseif($user->role == 'petugas')
@@ -207,7 +205,6 @@
                     <div>
                         <label class="form-label">Role</label>
                         <select name="role" class="form-input" required>
-                            <option value="user">User</option>
                             <option value="admin">Administrator</option>
                             <option value="security">Security</option>
                             <option value="guest">Guest</option>
@@ -270,7 +267,6 @@
                     <div>
                         <label class="form-label">Role</label>
                         <select name="role" id="edit_role" class="form-input" required>
-                            <option value="user">User</option>
                             <option value="admin">Administrator</option>
                             <option value="security">Security</option>
                             <option value="guest">Guest</option>

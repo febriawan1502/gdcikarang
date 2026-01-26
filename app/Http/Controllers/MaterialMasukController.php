@@ -65,7 +65,7 @@ class MaterialMasukController extends Controller
             ->addColumn('tanggal_keluar_formatted', fn($row) => $row->tanggal_keluar ? Carbon::parse($row->tanggal_keluar)->format('d/m/Y') : '-')
             ->addColumn('status_sap', function ($row) {
                 return $row->status_sap === 'Selesai SAP'
-                    ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">Selesai SAP</span>'
+                    ? ''
                     : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">Belum Selesai SAP</span>';
             })
             ->addColumn('action', function ($row) {

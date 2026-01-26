@@ -78,7 +78,7 @@ class SettingController extends Controller
             'nip' => 'nullable|string|max:50',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|in:admin,user,petugas,guest,security',
+            'role' => 'required|in:admin,petugas,guest,security',
             'unit_id' => 'required|exists:units,id',
         ]);
 
@@ -113,7 +113,7 @@ class SettingController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
             'password' => 'nullable|string|min:6|confirmed',
-            'role' => 'required|in:admin,user,petugas,guest,security',
+            'role' => 'required|in:admin,petugas,guest,security',
             'unit_id' => 'required|exists:units,id',
         ]);
 
