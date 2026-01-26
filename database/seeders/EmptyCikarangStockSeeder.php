@@ -11,9 +11,9 @@ class EmptyCimahiStockSeeder extends Seeder
 {
     public function run(): void
     {
-        $unit = Unit::where('code', 'UP3-CMH')->first();
+        $unit = Unit::where('code', 'UP3-CKR')->first();
         if (!$unit) {
-            $this->command?->error('Unit UP3-CMH tidak ditemukan.');
+            $this->command?->error('Unit UP3-CKR tidak ditemukan.');
             return;
         }
 
