@@ -50,9 +50,12 @@
                         $inspectionGroupOpen = request()->routeIs('material.pemeriksaanFisik')
                             || request()->routeIs('berita-acara.*')
                             || request()->routeIs('sap-check.*');
+                        $isSecurityCikarang = auth()->user()->role === 'security'
+                            && auth()->user()->unit
+                            && auth()->user()->unit->code === 'UP3-CKR';
                     @endphp
                     {{-- Dashboard --}}
-                    @if(auth()->user()->role !== 'security')
+                    @if(auth()->user()->role !== 'security' && !$isSecurityCikarang)
                     <div class="nav-item">
                         <a href="{{ route('dashboard') }}" wire:navigate class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                             <span class="nav-icon">
@@ -64,7 +67,7 @@
                     @endif
 
                     {{-- Data Material --}}
-                    @if(auth()->user()->role !== 'security')
+                    @if(auth()->user()->role !== 'security' && !$isSecurityCikarang)
                     <div class="nav-item">
                         <a href="{{ route('material.index') }}" wire:navigate class="nav-link {{ request()->routeIs('material.index') ? 'active' : '' }}">
                             <span class="nav-icon">
@@ -76,7 +79,7 @@
                     @endif
 
                     {{-- Material Masuk --}}
-                    @if(in_array(auth()->user()->role, ['admin', 'petugas', 'guest']))
+                    @if(in_array(auth()->user()->role, ['admin', 'petugas', 'guest']) && !$isSecurityCikarang)
                     <div class="nav-item">
                         <a href="{{ route('material-masuk.index') }}" wire:navigate class="nav-link {{ request()->routeIs('material-masuk.*') ? 'active' : '' }}">
                             <span class="nav-icon">
