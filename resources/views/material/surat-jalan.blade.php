@@ -57,6 +57,11 @@
                 background: #EBF8FF;
                 color: #3182CE;
             }
+
+            /* Ensure SweetAlert is above the detail modal */
+            .swal2-container {
+                z-index: 20000 !important;
+            }
         </style>
     @endpush
     <div class="space-y-6">
