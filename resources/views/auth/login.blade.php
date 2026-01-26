@@ -75,7 +75,7 @@
                 <!-- Logo/Header -->
                 <div class="text-center mb-8">
                     <h3 class="text-3xl font-bold text-gray-900 mb-2">
-                        <span class="text-red-500">POJOK</span> <span class="text-gray-700">IMS</span>
+                        <span class="text-gray-700">Si Eneng</span>
                     </h3>
                     <p class="text-gray-500 text-sm">Inventory Management System</p>
                 </div>
