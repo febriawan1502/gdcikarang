@@ -33,6 +33,11 @@ class MaterialImport implements ToCollection, WithHeadingRow
                 }
                 
                 // Map Excel columns to database fields (WithHeadingRow converts to lowercase with underscores)
+                $materialCode = $row['material'] ?? '';
+                if ($materialCode !== '' && is_numeric($materialCode)) {
+                    $materialCode = str_pad((string) (int) $materialCode, 8 + strlen((string) (int) $materialCode), '0', STR_PAD_LEFT);
+                }
+
                 $materialData = [
                     'company_code' => $row['company_code'] ?? '',
                     'company_code_description' => $row['company_code_description'] ?? '',
@@ -42,7 +47,7 @@ class MaterialImport implements ToCollection, WithHeadingRow
                     'storage_location_description' => $row['storage_location_description'] ?? '',
                     'material_type' => $row['material_type'] ?? '',
                     'material_type_description' => $row['material_type_description'] ?? '',
-                    'material_code' => $row['material'] ?? '',
+                    'material_code' => $materialCode,
                     'material_description' => $row['material_description'] ?? '',
                     'material_group' => $row['material_group'] ?? '',
                     'base_unit_of_measure' => $row['base_unit_of_measure'] ?? '',
@@ -54,11 +59,14 @@ class MaterialImport implements ToCollection, WithHeadingRow
                     'pabrikan' => $row['pabrikan'] ?? '',
                     'tanggal_terima' => !empty($row['tanggal_terima']) ? Carbon::parse($row['tanggal_terima']) : Carbon::now(),
                     'keterangan' => $row['keterangan'] ?? '',
-                    'rak' => $row['rak'] ?? '',
                     'status' => !empty($row['status']) ? $row['status'] : Material::STATUS_BAIK,
                     'created_by' => auth()->id() ?? 1,
                     'created_at' => Carbon::now(),
                 ];
+                $rak = trim((string) ($row['rak'] ?? ''));
+                if ($rak === '' || $rak === '#N/A') {
+                    $rak = null;
+                }
                 $stockData = [
                     'unrestricted_use_stock' => is_numeric($row['unrestricted_use_stock']) ? (float) $row['unrestricted_use_stock'] : 0,
                     'quality_inspection_stock' => is_numeric($row['quality_inspection_stock']) ? (float) $row['quality_inspection_stock'] : 0,
@@ -67,10 +75,8 @@ class MaterialImport implements ToCollection, WithHeadingRow
                     'project_stock' => is_numeric($row['project_stock'] ?? 0) ? (float) ($row['project_stock'] ?? 0) : 0,
                     'qty' => is_numeric($row['unrestricted_use_stock']) ? (int) $row['unrestricted_use_stock'] : 0,
                     'min_stock' => is_numeric($row['min_stock'] ?? null) ? (int) $row['min_stock'] : 0,
+                    'rak' => $rak,
                 ];
-                
-                // Set nomor manually to avoid transaction issues
-                $materialData['nomor'] = time() + $rowNumber; // Simple unique number
                 
                 // Validate required fields
                 if (empty($materialData['material_code']) || empty($materialData['material_description'])) {
@@ -84,15 +90,12 @@ class MaterialImport implements ToCollection, WithHeadingRow
                     continue;
                 }
                 
-                // Nomor sudah di-set manual di atas untuk menghindari masalah transaction
-                
-                // Use updateOrCreate to handle duplicates, prioritizing stock updates
-                $material = Material::updateOrCreate(
-                    ['material_code' => $materialData['material_code']],
-                    array_merge($materialData, [
-                        'updated_at' => Carbon::now()
-                    ])
-                );
+                $material = Material::where('material_code', $materialData['material_code'])->first();
+                if (!$material) {
+                    $materialData['nomor'] = time() + $rowNumber;
+                    $materialData['updated_at'] = Carbon::now();
+                    $material = Material::create($materialData);
+                }
 
                 $unitId = auth()->user()->unit_id ?? null;
                 if (!$unitId) {

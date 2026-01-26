@@ -21,6 +21,7 @@ class MaterialStock extends Model
         'project_stock',
         'qty',
         'min_stock',
+        'rak',
     ];
 
     protected $casts = [
