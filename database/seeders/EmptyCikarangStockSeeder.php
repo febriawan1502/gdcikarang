@@ -7,7 +7,7 @@ use App\Models\Material;
 use App\Models\MaterialStock;
 use App\Models\Unit;
 
-class EmptyCimahiStockSeeder extends Seeder
+class EmptyCikarangStockSeeder extends Seeder
 {
     public function run(): void
     {
