@@ -63,6 +63,7 @@ class MaterialTable extends Component
                 $join->on('materials.id', '=', 'ms.material_id');
             })
             ->select('materials.*', DB::raw('COALESCE(ms.unrestricted_use_stock, 0) as unrestricted_use_stock'))
+            ->whereRaw('COALESCE(ms.unrestricted_use_stock, 0) > 0')
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('material_code', 'like', '%' . $this->search . '%')

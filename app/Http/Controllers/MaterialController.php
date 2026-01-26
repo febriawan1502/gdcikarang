@@ -60,6 +60,7 @@ class MaterialController extends Controller
             })
             ->select('materials.*', DB::raw('COALESCE(ms.unrestricted_use_stock, 0) as unrestricted_use_stock'))
             ->selectRaw('(COALESCE(ms.unrestricted_use_stock, 0) * materials.harga_satuan) as total_nilai')
+            ->whereRaw('COALESCE(ms.unrestricted_use_stock, 0) > 0')
             ->when($search, function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('material_code', 'LIKE', "%{$search}%")
