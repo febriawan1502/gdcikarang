@@ -34,7 +34,7 @@ class SettingController extends Controller
     public function index()
     {
         $users = User::with('unit')->get();
-        $units = Unit::orderBy('name')->get();
+        $units = Unit::withoutGlobalScopes()->orderBy('name')->get();
         $companySettings = Setting::getByGroup('company');
         
         return view('settings.index', compact('users', 'units', 'companySettings'));
