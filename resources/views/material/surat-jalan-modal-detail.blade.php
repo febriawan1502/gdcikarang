@@ -1,6 +1,7 @@
 @php
     $isSecurity   = auth()->user()->role === 'security';
     $hasUnchecked = $suratJalan->details->where('is_checked', false)->count() > 0;
+    $isSapDone    = !empty($suratJalan->nomor_slip);
 @endphp
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -31,6 +32,14 @@
                 <tr>
                     <td class="py-2 text-gray-500 font-medium">No Slip SAP</td>
                     <td class="py-2 text-gray-900">: {{ $suratJalan->nomor_slip ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="py-2 text-gray-500 font-medium">Status SAP</td>
+                    <td class="py-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $isSapDone ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800' }}">
+                            : {{ $isSapDone ? 'Selesai SAP' : 'Belum Selesai SAP' }}
+                        </span>
+                    </td>
                 </tr>
                 <tr>
                     <td class="py-2 text-gray-500 font-medium">Status</td>

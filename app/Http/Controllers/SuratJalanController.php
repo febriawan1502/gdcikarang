@@ -122,6 +122,17 @@ namespace App\Http\Controllers;
                                   </span></div>';
                     }
 
+                    $isSapDone = !empty($row->nomor_slip);
+                    $sapBadgeClass = $isSapDone
+                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                        : 'bg-orange-100 text-orange-800 border border-orange-200';
+                    $sapIcon = $isSapDone ? '<i class="fas fa-check mr-1"></i>' : '<i class="fas fa-hourglass-half mr-1"></i>';
+                    $sapLabel = $isSapDone ? 'SELESAI SAP' : 'BELUM SELESAI SAP';
+
+                    $html .= '<div class="mt-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ' . $sapBadgeClass . '">'
+                          . $sapIcon . $sapLabel
+                          . '</span></div>';
+
                     return $html;
                 })
 

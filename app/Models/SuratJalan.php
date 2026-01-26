@@ -84,6 +84,11 @@ class SuratJalan extends Model
             ->where('source_type', 'surat_jalan');
     }
 
+    public function getStatusSapAttribute(): string
+    {
+        return empty($this->nomor_slip) ? 'Belum Selesai SAP' : 'Selesai SAP';
+    }
+
     /**
      * Generate nomor surat dengan sequence berdasarkan jenis, bulan, dan tahun
      */
