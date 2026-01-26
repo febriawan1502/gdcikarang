@@ -88,7 +88,7 @@
                     @endif
 
                     {{-- Surat Jalan --}}
-                    @if(in_array(auth()->user()->role, ['admin', 'guest', 'petugas', 'security']))
+                    @if(in_array(auth()->user()->role, ['admin', 'guest', 'petugas', 'security', 'satpam']))
                     <div class="nav-item">
                         <a href="{{ route('surat-jalan.index') }}" wire:navigate class="nav-link {{ request()->routeIs('surat-jalan.*') ? 'active' : '' }}">
                             <span class="nav-icon">
