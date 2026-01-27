@@ -43,6 +43,10 @@
                                     <td>{{ $suratJalan->kepada }}</td>
                                 </tr>
                                 <tr>
+                                    <td><strong>Nama Penerima:</strong></td>
+                                    <td>{{ $suratJalan->nama_penerima ?? '-' }}</td>
+                                </tr>
+                                <tr>
                                     <td><strong>Alamat:</strong></td>
                                     <td>{{ $suratJalan->alamat }}</td>
                                 </tr>

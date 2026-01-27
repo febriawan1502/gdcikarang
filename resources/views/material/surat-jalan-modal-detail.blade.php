@@ -26,6 +26,10 @@
                     <td class="py-2 text-gray-900">: {{ $suratJalan->kepada ?? '-' }}</td>
                 </tr>
                 <tr>
+                    <td class="py-2 text-gray-500 font-medium">Nama Penerima</td>
+                    <td class="py-2 text-gray-900">: {{ $suratJalan->nama_penerima ?? '-' }}</td>
+                </tr>
+                <tr>
                     <td class="py-2 text-gray-500 font-medium">Berdasarkan</td>
                     <td class="py-2 text-gray-900">: {{ $suratJalan->berdasarkan ?? '-' }}</td>
                 </tr>

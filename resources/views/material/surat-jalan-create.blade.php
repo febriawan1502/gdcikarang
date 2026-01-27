@@ -103,6 +103,14 @@
                         </div>
 
                         <div>
+                            <label for="nama_penerima" class="form-label">
+                                Nama Penerima
+                            </label>
+                            <input type="text" class="form-input" id="nama_penerima" name="nama_penerima"
+                                placeholder="Nama Penerima">
+                        </div>
+
+                        <div>
                             <label for="nomor_slip" class="form-label">
                                 Nomor Slip
                             </label>

@@ -226,6 +226,7 @@ public function store(Request $request)
         'jenis_surat_jalan' => 'required|in:Normal,Garansi,Peminjaman,Perbaikan,Manual', // ✅ tambahkan Manual
         'tanggal' => 'required|date',
         'kepada' => 'required|string|max:255',
+        'nama_penerima' => 'nullable|string|max:255',
         'berdasarkan' => 'required|string',
         'security' => 'nullable|string|max:255',
         'keterangan' => 'nullable|string',
@@ -291,6 +292,7 @@ public function store(Request $request)
             'jenis_surat_jalan' => $request->jenis_surat_jalan,
             'tanggal' => $request->tanggal,
             'kepada' => $request->kepada,
+            'nama_penerima' => $request->nama_penerima,
             'berdasarkan' => $request->berdasarkan,
             'security' => $request->security,
             'keterangan' => $request->keterangan,
@@ -527,6 +529,7 @@ private function handleSuratJalanUpdate(Request $request, SuratJalan $suratJalan
         'jenis_surat_jalan' => 'required|in:Normal,Garansi,Peminjaman,Perbaikan,Manual',
         'tanggal' => 'required|date',
         'kepada' => 'required|string|max:255',
+        'nama_penerima' => 'nullable|string|max:255',
         'berdasarkan' => 'required|string',
         'materials' => 'required|array|min:1',
     ]);
@@ -557,6 +560,7 @@ private function handleSuratJalanUpdate(Request $request, SuratJalan $suratJalan
             'jenis_surat_jalan' => $request->jenis_surat_jalan,
             'tanggal' => $request->tanggal,
             'kepada' => $request->kepada,
+            'nama_penerima' => $request->nama_penerima,
             'berdasarkan' => $request->berdasarkan,
             'security' => $request->security,
             'keterangan' => $request->keterangan,

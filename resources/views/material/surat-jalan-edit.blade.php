@@ -107,6 +107,15 @@
                                 class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">
                         </div>
 
+                        <!-- Nama Penerima -->
+                        <div>
+                            <label for="nama_penerima" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Nama Penerima
+                            </label>
+                            <input type="text" id="nama_penerima" name="nama_penerima" value="{{ $suratJalan->nama_penerima }}" placeholder="Nama Penerima"
+                                class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">
+                        </div>
+
                         <!-- Nomor Slip -->
                         <div>
                             <label for="nomor_slip" class="block text-sm font-semibold text-gray-700 mb-2">

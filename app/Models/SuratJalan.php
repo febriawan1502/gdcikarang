@@ -35,6 +35,7 @@ class SuratJalan extends Model
         'berdasarkan',
         'security',
         'keterangan',
+        'nama_penerima',
         'nomor_slip',
         'kendaraan',
         'no_polisi',

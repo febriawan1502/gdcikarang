@@ -346,7 +346,7 @@
 
         {{-- BARIS NAMA --}}
         <tr>
-            <td>{{ $suratJalan->kepada }}</td>
+            <td>{{ $suratJalan->nama_penerima ?? $suratJalan->kepada }}</td>
             <td>{{ $suratJalan->security ?? '-' }}</td>
             <td>{{ Auth::user()->nama }}<br>NIP. {{ Auth::user()->nip ?? '-' }}</td>
         </tr>

@@ -147,7 +147,7 @@
             <td colspan="6"></td>
         </tr>
         <tr>
-            <td style="text-align: center;">( {{ $suratJalan->kepada ?? '' }} )</td>
+            <td style="text-align: center;">( {{ $suratJalan->nama_penerima ?? $suratJalan->kepada ?? '' }} )</td>
             <td></td>
             <td style="text-align: center;">(                    )</td>
             <td></td>
