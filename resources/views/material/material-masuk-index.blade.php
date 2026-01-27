@@ -107,34 +107,13 @@
                 </div>
             @endif
 
-            <!-- Table -->
-            <div class="overflow-hidden rounded-xl border border-gray-100">
-                <table id="materialMasukTable" class="table-purity w-full">
-                    <thead>
-                        <tr class="bg-gray-50 text-left">
-                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">No</th>
-                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal Masuk
-                            </th>
-                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Nomor KR</th>
-                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Pabrikan</th>
-                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Material</th>
-                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Total Qty</th>
-                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Dibuat Oleh</th>
-                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status SAP</th>
-                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Aksi
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 bg-white">
-                        <!-- Data via AJAX -->
-                    </tbody>
-                </table>
-            </div>
+            <!-- Livewire Table -->
+            @livewire('material-masuk-table')
         </div>
     </div>
 
     <!-- Modal Detail Material Masuk (Tailwind) -->
-    <div id="detailModal" class="fixed inset-0 z-[9999] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+    <div id="detailModal" class="fixed inset-0 z-9999 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
         aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <!-- Background overlay -->
@@ -146,7 +125,7 @@
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
             <div
                 class="relative z-10 inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-gray-100">
-                <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-4">
+                <div class="bg-linear-to-r from-teal-500 to-teal-600 px-6 py-4">
                     <div class="flex items-center justify-between">
                         <h3 class="text-lg font-semibold text-white flex items-center gap-2">
                             <i class="fas fa-box-open"></i>
@@ -175,84 +154,6 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function() {
-            $('#materialMasukTable').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: '{{ route('material-masuk.data') }}',
-                // columns: [
-                //     { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-                //     { data: 'tanggal_masuk_formatted', name: 'tanggal_masuk' },
-                //     { data: 'nomor_kr', name: 'nomor_kr' },
-                //     { data: 'pabrikan', name: 'pabrikan' },
-                //     { data: 'material_info', name: 'material_info', orderable: false, searchable: false },
-                //     { data: 'total_quantity', name: 'total_quantity', orderable: false },
-                //     { data: 'creator_name', name: 'creator.nama' },
-                //     { data: 'action', name: 'action', orderable: false, searchable: false }
-                // ],
-                columns: [{
-                        data: 'DT_RowIndex',
-                        name: 'DT_RowIndex',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'tanggal_masuk_formatted',
-                        name: 'tanggal_masuk'
-                    },
-                    // { data: 'tanggal_keluar_formatted', name: 'tanggal_keluar' },
-                    // { data: 'jenis', name: 'jenis' },
-                    {
-                        data: 'nomor_kr',
-                        name: 'nomor_kr'
-                    },
-                    // { data: 'nomor_po', name: 'nomor_po' },
-                    // { data: 'nomor_doc', name: 'nomor_doc' },
-                    // { data: 'tugas_4', name: 'tugas_4' },
-                    {
-                        data: 'pabrikan',
-                        name: 'pabrikan'
-                    },
-                    {
-                        data: 'material_info',
-                        name: 'material_info',
-                        orderable: false,
-                        searchable: true
-                    },
-                    {
-                        data: 'total_quantity',
-                        name: 'total_quantity',
-                        orderable: false
-                    },
-                    {
-                        data: 'creator_name',
-                        name: 'creator.nama'
-                    },
-                    {
-                        data: 'status_sap',
-                        name: 'status_sap'
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
-
-                responsive: true,
-                order: [
-                    [1, 'desc']
-                ],
-                pageLength: 25,
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Indonesian.json'
-                }
-            });
-        });
-
-        // Old commented code removed
-
         function showDetail(id) {
             $.ajax({
                 url: '{{ route('material-masuk.index') }}/' + id,
@@ -431,7 +332,9 @@
                         success: function(response) {
                             if (response.success) {
                                 Swal.fire('Berhasil!', response.message, 'success');
-                                $('#materialMasukTable').DataTable().ajax.reload();
+                                if (window.Livewire) {
+                                    window.Livewire.dispatch('material-masuk-refresh');
+                                }
                             } else {
                                 Swal.fire('Error!', response.message, 'error');
                             }

@@ -138,7 +138,8 @@
                     <thead>
                         <tr class="bg-gray-50 text-left">
                             <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">No</th>
-                            <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider sj-col-number">Nomor Surat</th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider sj-col-number">
+                                Nomor Surat</th>
                             <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal</th>
                             <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Diberikan Kepada
                             </th>
@@ -159,7 +160,7 @@
 
     <!-- Modal Detail Surat Jalan -->
     <!-- Modal Detail Surat Jalan (Tailwind) -->
-    <div id="detailModal" class="fixed inset-0 z-[9999] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+    <div id="detailModal" class="fixed inset-0 z-9999 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
         aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <!-- Background overlay with blur -->
@@ -173,7 +174,7 @@
                 class="relative z-10 inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-gray-100">
 
                 <!-- Premium Header -->
-                <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-4">
+                <div class="bg-linear-to-r from-teal-500 to-teal-600 px-6 py-4">
                     <div class="flex items-center justify-between">
                         <h3 class="text-lg font-bold text-white flex items-center gap-3">
                             <div class="bg-white/20 p-2 rounded-lg">
@@ -216,17 +217,15 @@
                         d.status = $('#filterStatus').val();
                     }
                 },
-                columnDefs: [
-                    {
-                        targets: 1,
-                        createdCell: function (td) {
-                            $(td).addClass('sj-col-number');
-                        },
-                        render: function (data) {
-                            return `<div class="sj-number-wrap">${data}</div>`;
-                        }
+                columnDefs: [{
+                    targets: 1,
+                    createdCell: function(td) {
+                        $(td).addClass('sj-col-number');
+                    },
+                    render: function(data) {
+                        return `<div class="sj-number-wrap">${data}</div>`;
                     }
-                ],
+                }],
                 columns: [{
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',

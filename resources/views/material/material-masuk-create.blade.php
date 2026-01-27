@@ -41,7 +41,7 @@
                 <div class="p-6 border-b border-gray-100">
                     <div class="flex items-center gap-3 mb-6">
                         <div
-                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-teal-500 flex items-center justify-center text-white">
+                            class="w-10 h-10 rounded-xl bg-linear-to-br from-teal-400 to-teal-500 flex items-center justify-center text-white">
                             <i class="fas fa-file-invoice"></i>
                         </div>
                         <h3 class="text-lg font-semibold text-gray-800">Identitas Dokumen</h3>
@@ -127,7 +127,7 @@
                 <div class="p-6 border-b border-gray-100">
                     <div class="flex items-center gap-3 mb-6">
                         <div
-                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-purple-500 flex items-center justify-center text-white">
+                            class="w-10 h-10 rounded-xl bg-linear-to-br from-purple-400 to-purple-500 flex items-center justify-center text-white">
                             <i class="fas fa-boxes"></i>
                         </div>
                         <h3 class="text-lg font-semibold text-gray-800">Detail Material</h3>
@@ -436,7 +436,8 @@
             input.addEventListener('blur', function() {
                 const hiddenInput = input.parentElement.querySelector('.material-id');
                 if (input.value.trim() !== '' && (!hiddenInput || hiddenInput.value === '')) {
-                    alert('Material dan normalisasi tidak terdaftar. tambahkan material dulu di menu daftar material');
+                    alert(
+                        'Material dan normalisasi tidak terdaftar. tambahkan material dulu di menu daftar material');
                 }
             });
 

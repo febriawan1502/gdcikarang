@@ -28,7 +28,7 @@
                 <div class="p-6 border-b border-gray-100">
                     <div class="flex items-center gap-3 mb-6">
                         <div
-                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-teal-500 flex items-center justify-center text-white">
+                            class="w-10 h-10 rounded-xl bg-linear-to-br from-teal-400 to-teal-500 flex items-center justify-center text-white">
                             <i class="fas fa-file-alt"></i>
                         </div>
                         <h3 class="text-lg font-semibold text-gray-800">Informasi Surat Jalan</h3>
@@ -71,7 +71,7 @@
                 <div class="p-6 border-b border-gray-100">
                     <div class="flex items-center gap-3 mb-6">
                         <div
-                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center text-white">
+                            class="w-10 h-10 rounded-xl bg-linear-to-br from-blue-400 to-blue-500 flex items-center justify-center text-white">
                             <i class="fas fa-user-check"></i>
                         </div>
                         <h3 class="text-lg font-semibold text-gray-800">Informasi Penerima</h3>
@@ -153,7 +153,7 @@
                 <div class="p-6 border-b border-gray-100">
                     <div class="flex items-center gap-3 mb-6">
                         <div
-                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-purple-500 flex items-center justify-center text-white">
+                            class="w-10 h-10 rounded-xl bg-linear-to-br from-purple-400 to-purple-500 flex items-center justify-center text-white">
                             <i class="fas fa-boxes"></i>
                         </div>
                         <h3 class="text-lg font-semibold text-gray-800">Daftar Material</h3>
@@ -207,7 +207,7 @@
                 <div class="p-6 border-b border-gray-100">
                     <div class="flex items-center gap-3 mb-6">
                         <div
-                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white">
+                            class="w-10 h-10 rounded-xl bg-linear-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white">
                             <i class="fas fa-truck"></i>
                         </div>
                         <h3 class="text-lg font-semibold text-gray-800">Informasi Kendaraan</h3>
@@ -267,7 +267,7 @@
     </div>
 
     <!-- Camera Modal (Tailwind) -->
-    <div id="cameraModal" class="fixed inset-0 z-[9999] hidden overflow-y-auto" aria-labelledby="modal-title"
+    <div id="cameraModal" class="fixed inset-0 z-9999 hidden overflow-y-auto" aria-labelledby="modal-title"
         role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <!-- Background overlay -->
@@ -280,7 +280,7 @@
             <div
                 class="relative z-10 inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-gray-100">
                 <!-- Header -->
-                <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-4">
+                <div class="bg-linear-to-r from-teal-500 to-teal-600 px-6 py-4">
                     <div class="flex items-center justify-between">
                         <h3 class="text-lg font-semibold text-white flex items-center gap-2">
                             <i class="fas fa-camera"></i>
