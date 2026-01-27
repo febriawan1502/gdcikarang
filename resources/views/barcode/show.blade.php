@@ -145,6 +145,12 @@
                 <div class="info-label">Gudang</div>
                 <div class="info-value">: {{ $material->storage_location ?? '-' }}</div>
             </div>
+            @if ($unit)
+                <div class="info-row">
+                    <div class="info-label">Unit</div>
+                    <div class="info-value">: {{ $unit->nama_unit ?? $unit->name ?? '-' }}</div>
+                </div>
+            @endif
             <div class="info-row">
                 <div class="info-label">Saldo Akhir</div>
                 <div class="info-value">: <strong>{{ number_format($saldoAkhir, 0, ',', '.') }} {{ $material->base_unit_of_measure }}</strong></div>

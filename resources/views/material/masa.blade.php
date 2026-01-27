@@ -48,7 +48,8 @@
                             @php
                                 $keluar = \Carbon\Carbon::parse($surat->tanggal);
                                 $kembali = $detail->tanggal_kembali ? \Carbon\Carbon::parse($detail->tanggal_kembali) : now();
-                                $hari = $keluar->diffInDays($kembali);
+                                $hours = $keluar->diffInHours($kembali);
+                                $hari = max(1, (int) ceil($hours / 24));
                                 $masa = "{$hari} hari";
                                 $jumlahKeluar = $detail->quantity;
                                 $jumlahKembali = $detail->jumlah_kembali ?? 0;

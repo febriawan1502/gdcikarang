@@ -96,7 +96,7 @@ class SuratJalan extends Model
     /**
      * Generate nomor surat dengan sequence berdasarkan jenis, bulan, dan tahun
      */
-        public static function generateNomorSurat($jenisSuratJalan = 'Normal')
+    public static function generateNomorSurat($jenisSuratJalan = 'Normal')
 {
     $year = date('Y');
 
@@ -107,6 +107,7 @@ class SuratJalan extends Model
         'Peminjaman' => 'PMJ',
         'Perbaikan'  => 'PBK',
         'Manual'     => 'MNL',
+        'Rusak'      => 'RSK',
     ];
 
     $kode = $jenisKode[$jenisSuratJalan] ?? 'SJ';
@@ -179,8 +180,7 @@ class SuratJalan extends Model
     }
     public static function isStockAffectingJenis($jenis)
     {
-        // HANYA NORMAL YANG NGURANGI STOK
-        return $jenis === 'Normal';
+        return in_array($jenis, ['Normal', 'Garansi', 'Perbaikan', 'Rusak'], true);
     }
 
 }

@@ -278,10 +278,16 @@
                         name: 'action',
                         orderable: false,
                         searchable: false
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'created_at',
+                        visible: false,
+                        searchable: false
                     }
                 ],
                 order: [
-                    [2, 'desc']
+                    [8, 'desc']
                 ],
                 responsive: true,
                 dom: '<"hidden"f>rt<"flex flex-col md:flex-row justify-between items-center mt-4 gap-4"<"text-sm text-gray-500"l><"flex items-center gap-1"p>>',

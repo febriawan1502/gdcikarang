@@ -8,6 +8,8 @@ namespace App\Http\Controllers;
     use App\Models\Material;
     use App\Models\SuratJalan;
     use App\Models\SuratJalanDetail;
+    use App\Models\MaterialMrwiStock;
+    use App\Models\MaterialMrwiSerialMove;
     use Maatwebsite\Excel\Facades\Excel;
     use App\Exports\SuratJalanExport;
     use Barryvdh\DomPDF\Facade\Pdf;
@@ -53,7 +55,7 @@ namespace App\Http\Controllers;
         {
             $suratJalans = SuratJalan::with(['creator', 'approver', 'details'])
                                     ->select('surat_jalan.*')
-                                    ->orderBy('tanggal', 'desc');
+                                    ->orderBy('created_at', 'desc');
 
             return datatables($suratJalans)
         ->filter(function ($query) use ($request) {
@@ -149,6 +151,9 @@ namespace App\Http\Controllers;
                 ->editColumn('created_by', function($row) {
                     return $row->creator->nama ?? '-';
                 })
+                ->addColumn('created_at', function ($row) {
+                    return $row->created_at ? $row->created_at->format('Y-m-d H:i:s') : '';
+                })
 
                 ->addColumn('action', function($row) {
                     $user = auth()->user();
@@ -238,7 +243,7 @@ public function store(Request $request)
 
     $validator = Validator::make($request->all(), [
         'nomor_surat' => 'required|string',
-        'jenis_surat_jalan' => 'required|in:Normal,Garansi,Peminjaman,Perbaikan,Manual', // ✅ tambahkan Manual
+        'jenis_surat_jalan' => 'required|in:Normal,Garansi,Peminjaman,Perbaikan,Manual,Rusak', // ✅ tambahkan Manual + Rusak
         'tanggal' => 'required|date',
         'kepada' => 'required|string|max:255',
         'nama_penerima' => 'nullable|string|max:255',
@@ -267,6 +272,20 @@ public function store(Request $request)
         'materials.*.satuan' => 'required|string',
     ]);
 }
+
+    if ($this->isMrwiJenis($request->jenis_surat_jalan)) {
+        $validator->addRules([
+            'materials.*.serials' => 'required|array|min:1',
+            'materials.*.serials.*' => 'required|string',
+        ]);
+    }
+
+    if ($this->isMrwiJenis($request->jenis_surat_jalan)) {
+        $validator->addRules([
+            'materials.*.serials' => 'required|array|min:1',
+            'materials.*.serials.*' => 'required|string',
+        ]);
+    }
 
 
     if ($validator->fails()) {
@@ -335,12 +354,37 @@ foreach ($request->materials as $item) {
             'keterangan' => $item['keterangan'] ?? null,
         ]);
     } else {
+        $serials = [];
+        if ($this->isMrwiJenis($request->jenis_surat_jalan)) {
+            $serials = collect($item['serials'] ?? [])
+                ->map(fn ($s) => trim((string) $s))
+                ->filter(fn ($s) => $s !== '')
+                ->values()
+                ->all();
+
+            if (empty($serials)) {
+                throw new \RuntimeException('Serial number wajib dipilih untuk material MRWI.');
+            }
+
+            if (count($serials) !== count(array_unique($serials))) {
+                throw new \RuntimeException('Serial number duplikat ditemukan pada material MRWI.');
+            }
+
+            $bucket = $this->resolveMrwiBucket($request->jenis_surat_jalan);
+            $available = $bucket ? $this->getAvailableMrwiSerials((int) $item['material_id'], $suratJalan->unit_id, $bucket) : [];
+            $missing = array_diff($serials, $available);
+            if (!empty($missing)) {
+                throw new \RuntimeException('Ada serial number yang tidak tersedia di stok MRWI.');
+            }
+        }
+
         SuratJalanDetail::create([
             'surat_jalan_id' => $suratJalan->id,
             'is_manual' => false,
             'material_id' => $item['material_id'],
-            'quantity' => $item['quantity'],
+            'quantity' => $this->isMrwiJenis($request->jenis_surat_jalan) ? count($serials) : $item['quantity'],
             'satuan' => $item['satuan'],
+            'serial_numbers' => $serials ?: null,
             'keterangan' => $item['keterangan'] ?? null,
         ]);
     }
@@ -541,7 +585,7 @@ private function handleSuratJalanUpdate(Request $request, SuratJalan $suratJalan
 
     $validator = Validator::make($request->all(), [
         'nomor_surat' => 'required|string',
-        'jenis_surat_jalan' => 'required|in:Normal,Garansi,Peminjaman,Perbaikan,Manual',
+        'jenis_surat_jalan' => 'required|in:Normal,Garansi,Peminjaman,Perbaikan,Manual,Rusak',
         'tanggal' => 'required|date',
         'kepada' => 'required|string|max:255',
         'nama_penerima' => 'nullable|string|max:255',
@@ -592,14 +636,39 @@ private function handleSuratJalanUpdate(Request $request, SuratJalan $suratJalan
         $isManualLike = SuratJalan::isManualLikeJenis($request->jenis_surat_jalan);
 
 foreach ($request->materials as $item) {
+    $serials = [];
+    if (!$isManualLike && $this->isMrwiJenis($request->jenis_surat_jalan)) {
+        $serials = collect($item['serials'] ?? [])
+            ->map(fn ($s) => trim((string) $s))
+            ->filter(fn ($s) => $s !== '')
+            ->values()
+            ->all();
+
+        if (empty($serials)) {
+            throw new \RuntimeException('Serial number wajib dipilih untuk material MRWI.');
+        }
+
+        if (count($serials) !== count(array_unique($serials))) {
+            throw new \RuntimeException('Serial number duplikat ditemukan pada material MRWI.');
+        }
+
+        $bucket = $this->resolveMrwiBucket($request->jenis_surat_jalan);
+        $available = $bucket ? $this->getAvailableMrwiSerials((int) $item['material_id'], $suratJalan->unit_id, $bucket) : [];
+        $missing = array_diff($serials, $available);
+        if (!empty($missing)) {
+            throw new \RuntimeException('Ada serial number yang tidak tersedia di stok MRWI.');
+        }
+    }
+
     SuratJalanDetail::create([
         'surat_jalan_id' => $suratJalan->id,
         'is_manual' => $isManualLike,
         'material_id' => $isManualLike ? null : ($item['material_id'] ?? null),
         'nama_barang_manual' => $isManualLike ? ($item['nama_barang'] ?? null) : null,
         'satuan_manual' => $isManualLike ? ($item['satuan'] ?? null) : null,
-        'quantity' => $item['quantity'],
+        'quantity' => $isManualLike ? $item['quantity'] : ($this->isMrwiJenis($request->jenis_surat_jalan) ? count($serials) : $item['quantity']),
         'satuan' => $item['satuan'],
+        'serial_numbers' => $serials ?: null,
         'keterangan' => $item['keterangan'] ?? null,
     ]);
 }
@@ -617,150 +686,95 @@ foreach ($request->materials as $item) {
 
 
         /**
-         * Hapus surat jalan
-         */
-        public function destroy(SuratJalan $suratJalan)
-        {
-            $user = auth()->user();
+ * Hapus surat jalan
+ */
+public function destroy(SuratJalan $suratJalan)
+{
+    $user = auth()->user();
 
-            if ($suratJalan->status === 'APPROVED') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Surat jalan APPROVED tidak dapat dihapus.'
-                ], 403);
-            }
+    if ($suratJalan->status === 'APPROVED') {
+        return response()->json([
+            'success' => false,
+            'message' => 'Surat jalan APPROVED tidak dapat dihapus.'
+        ], 403);
+    }
 
-            if ($suratJalan->status === 'SELESAI' && (!$user || !$user->unit || !$user->unit->is_induk)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Hanya admin induk yang boleh menghapus surat jalan SELESAI.'
-                ], 403);
-            }
+    if ($suratJalan->status === 'SELESAI' && (!$user || !$user->unit || !$user->unit->is_induk)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Hanya admin induk yang boleh menghapus surat jalan SELESAI.'
+        ], 403);
+    }
 
-            DB::beginTransaction();
-            try {
+    DB::beginTransaction();
+    try {
 
-                // 🔥 HAPUS HISTORY KELUAR DULU
-                MaterialHistory::where('source_type', 'surat_jalan')
-                    ->where('source_id', $suratJalan->id)
-                    ->delete();
+        MaterialHistory::where('source_type', 'surat_jalan')
+            ->where('source_id', $suratJalan->id)
+            ->delete();
 
-                // 🔁 Kembalikan stok jika sudah APPROVED/SELESAI dan jenis mempengaruhi stok
-                if (in_array($suratJalan->status, ['APPROVED', 'SELESAI']) &&
-                    SuratJalan::isStockAffectingJenis($suratJalan->jenis_surat_jalan)) {
-                    foreach ($suratJalan->details as $detail) {
-                        if ($detail->is_manual) {
-                            continue;
-                        }
+        MaterialMrwiSerialMove::where('surat_jalan_id', $suratJalan->id)->delete();
 
-                        $stock = \App\Models\MaterialStock::withoutGlobalScopes()->firstOrCreate(
-                            [
-                                'material_id' => $detail->material_id,
-                                'unit_id' => $suratJalan->unit_id,
-                            ],
-                            [
-                                'unrestricted_use_stock' => 0,
-                                'quality_inspection_stock' => 0,
-                                'blocked_stock' => 0,
-                                'in_transit_stock' => 0,
-                                'project_stock' => 0,
-                                'qty' => 0,
-                                'min_stock' => 0,
-                            ]
+        if (in_array($suratJalan->status, ['APPROVED', 'SELESAI']) &&
+            SuratJalan::isStockAffectingJenis($suratJalan->jenis_surat_jalan)) {
+            foreach ($suratJalan->details as $detail) {
+                if ($detail->is_manual || !SuratJalan::isStockAffectingJenis($suratJalan->jenis_surat_jalan)) {
+                    continue;
+                }
+
+                $jenis = $suratJalan->jenis_surat_jalan;
+
+                if ($jenis === 'Normal') {
+                    $materialModel = Material::find($detail->material_id);
+                    if ($materialModel) {
+                        $materialModel->safeIncrement('unrestricted_use_stock', $detail->quantity);
+                    }
+                } else {
+                    $bucket = match ($jenis) {
+                        'Garansi' => 'garansi_stock',
+                        'Perbaikan' => 'perbaikan_stock',
+                        'Rusak' => 'rusak_stock',
+                        default => $null,
+                    };
+
+                    if ($bucket) {
+                        $stock = MaterialMrwiStock::firstOrCreate(
+                            ['material_id' => $detail->material_id, 'unit_id' => $suratJalan->unit_id],
+                            ['standby_stock' => 0, 'garansi_stock' => 0, 'perbaikan_stock' => 0, 'rusak_stock' => 0]
                         );
-
-                        $stock->unrestricted_use_stock = ($stock->unrestricted_use_stock ?? 0) + $detail->quantity;
-                        $stock->qty = ($stock->qty ?? 0) + $detail->quantity;
+                        $stock->$bucket = ($stock->$bucket ?? 0) + $detail->quantity;
                         $stock->save();
                     }
                 }
-
-                // 🔥 HAPUS DETAIL
-                $suratJalan->details()->delete();
-
-                // 🔥 HAPUS SURAT JALAN
-                $suratJalan->delete();
-
-                DB::commit();
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Surat jalan & history berhasil dihapus.'
-                ]);
-            } catch (\Exception $e) {
-                DB::rollBack();
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Gagal menghapus surat jalan: ' . $e->getMessage()
-                ], 500);
             }
         }
 
+        $suratJalan->details()->delete();
+        $suratJalan->delete();
 
-        /**
-         * Tampilkan halaman approval surat jalan
-         */
-        public function approval()
-        {
-            return view('material.surat-jalan-approval');
-        }
+        DB::commit();
 
-        /**
-         * Data untuk DataTables approval surat jalan
-         */
-    public function getApprovalData(Request $request)
-    {
-        $status = $request->get('status', 'BUTUH_PERSETUJUAN');
-        
-        $suratJalans = SuratJalan::with(['creator', 'approver'])
-                                ->byStatus($status)
-                                ->select('surat_jalan.*');
+        return response()->json([
+            'success' => true,
+            'message' => 'Surat jalan & history berhasil dihapus.'
+        ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
 
-        return datatables($suratJalans)
-            ->addIndexColumn()
-            ->editColumn('tanggal', function($row) {
-                return $row->tanggal->format('d/m/Y');
-            })
-            ->editColumn('status', function($row) {
-                $badge = $row->status == 'APPROVED' ? 'success' : 'warning';
-                return '<span class="badge badge-' . $badge . '">' . $row->status . '</span>';
-            })
-            ->editColumn('created_by', function($row) {
-                return $row->creator->nama ?? '-';
-            })
-            ->editColumn('approved_by', function($row) {
-                return $row->approver->nama ?? '-';
-            })
-            ->editColumn('approved_at', function($row) {
-                return $row->approved_at ? $row->approved_at->format('d/m/Y H:i') : '-';
-            })
-            ->addColumn('action', function($row) {
-                $actions = '';
-
-                if (in_array($row->status, ['APPROVED', 'SELESAI'])) {
-                    $actions .= '<button class="btn btn-sm btn-primary"
-                        onclick="printSuratJalan(' . $row->id . ')">
-                        <i class="fa fa-print"></i> Print
-                    </button>';
-                }
-
-
-                return $actions;
-            })
-            ->rawColumns(['status', 'action'])
-            ->make(true);
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal menghapus surat jalan: ' . $e->getMessage()
+        ], 500);
     }
+}
 
-
-        /**
-         * Approve surat jalan
-         */
+/**
+ * Approve surat jalan
+ */
 public function approve(Request $request, SuratJalan $suratJalan)
 {
     $user = auth()->user();
 
-    // ✅ Hanya admin & petugas yang bisa approve
     if (!in_array($user->role, ['admin', 'petugas'])) {
         if ($request->ajax()) {
             return response()->json([
@@ -785,53 +799,114 @@ public function approve(Request $request, SuratJalan $suratJalan)
 
     DB::beginTransaction();
     try {
-foreach ($suratJalan->details as $detail) {
+        foreach ($suratJalan->details as $detail) {
 
-    // 🔕 JANGAN KURANGI STOK JIKA:
-    // - Manual
-    // - Peminjaman
-    // - Garansi
-    // - Perbaikan
-    if (
-        $detail->is_manual ||
-        !SuratJalan::isStockAffectingJenis($suratJalan->jenis_surat_jalan)
-    ) {
-        continue;
-    }
+            if ($detail->is_manual || !SuratJalan::isStockAffectingJenis($suratJalan->jenis_surat_jalan)) {
+                continue;
+            }
 
-    // 🔻 HANYA NORMAL MASUK SINI
-    $materialModel = Material::find($detail->material_id);
+            $jenis = $suratJalan->jenis_surat_jalan;
+            $materialModel = Material::find($detail->material_id);
 
-    if (!$materialModel) {
-        DB::rollBack();
-        return back()->with('swal_error', 'Material tidak ditemukan');
-    }
+            if (!$materialModel) {
+                DB::rollBack();
+                return back()->with('swal_error', 'Material tidak ditemukan');
+            }
 
-    if ($materialModel->unrestricted_use_stock < $detail->quantity) {
-        DB::rollBack();
-        return back()->with(
-            'swal_error',
-            "❌ Stok material '{$materialModel->material_description}' tidak mencukupi"
-        );
-    }
+            if ($jenis === 'Normal') {
+                if ($materialModel->unrestricted_use_stock < $detail->quantity) {
+                    DB::rollBack();
+                    return back()->with(
+                        'swal_error',
+                        "❌ Stok material '{$materialModel->material_description}' tidak mencukupi"
+                    );
+                }
 
-    // 🔻 Kurangi stok
-    $materialModel->safeDecrement('unrestricted_use_stock', $detail->quantity);
+                $materialModel->safeDecrement('unrestricted_use_stock', $detail->quantity);
+            } else {
+                $bucket = match ($jenis) {
+                    'Garansi' => 'garansi_stock',
+                    'Perbaikan' => 'perbaikan_stock',
+                    'Rusak' => 'rusak_stock',
+                    default => $null,
+                };
 
-    // 🧾 History HANYA UNTUK NORMAL
-    MaterialHistory::create([
-    'material_id' => $detail->material_id,
-    'source_type' => 'surat_jalan',
-    'source_id'   => $suratJalan->id,
-    'tanggal'     => $suratJalan->tanggal,
-    'tipe'        => 'keluar',
-    'no_slip'     => $suratJalan->berdasarkan,
-    'masuk'       => 0,
-    'keluar'      => $detail->quantity,
-    'catatan' => $suratJalan->kepada,
-    ]);
-    }
-        // ✅ Update status surat jalan setelah stok diverifikasi
+                if (!$bucket) {
+                    DB::rollBack();
+                    return back()->with('swal_error', 'Jenis surat jalan tidak didukung.');
+                }
+
+                $stock = MaterialMrwiStock::where('material_id', $detail->material_id)
+                    ->where('unit_id', $suratJalan->unit_id)
+                    ->first();
+
+                $currentStock = $stock ? ($stock->{$bucket} ?? 0) : 0;
+                if ($currentStock < $detail->quantity) {
+                    DB::rollBack();
+                    return back()->with(
+                        'swal_error',
+                        "❌ Stok MRWI '{$materialModel->material_description}' tidak mencukupi"
+                    );
+                }
+
+                $stock->{$bucket} = $currentStock - $detail->quantity;
+                $stock->save();
+
+                if ($this->isMrwiJenis($jenis)) {
+                    $serials = $detail->serial_numbers ?? [];
+                    if (empty($serials)) {
+                        DB::rollBack();
+                        return back()->with('swal_error', 'Serial number MRWI wajib dipilih.');
+                    }
+
+                    if (count($serials) !== (int) $detail->quantity) {
+                        DB::rollBack();
+                        return back()->with('swal_error', 'Jumlah serial MRWI tidak sesuai dengan qty.');
+                    }
+
+                    if (count($serials) !== count(array_unique($serials))) {
+                        DB::rollBack();
+                        return back()->with('swal_error', 'Serial number MRWI duplikat ditemukan.');
+                    }
+
+                    $bucketLabel = $this->resolveMrwiBucket($jenis);
+                    $available = $bucketLabel ? $this->getAvailableMrwiSerials($detail->material_id, $suratJalan->unit_id, $bucketLabel) : [];
+                    $missing = array_diff($serials, $available);
+                    if (!empty($missing)) {
+                        DB::rollBack();
+                        return back()->with('swal_error', 'Ada serial number MRWI yang tidak tersedia.');
+                    }
+
+                    foreach ($serials as $serial) {
+                        MaterialMrwiSerialMove::create([
+                            'serial_number' => $serial,
+                            'material_id' => $detail->material_id,
+                            'unit_id' => $suratJalan->unit_id,
+                            'jenis' => 'keluar',
+                            'status_bucket' => $bucketLabel,
+                            'surat_jalan_id' => $suratJalan->id,
+                            'surat_jalan_detail_id' => $detail->id,
+                            'reference_type' => 'surat_jalan',
+                            'reference_number' => $suratJalan->nomor_surat,
+                            'tanggal' => $suratJalan->tanggal,
+                        ]);
+                    }
+                }
+            }
+
+            MaterialHistory::create([
+                'material_id' => $detail->material_id,
+                'source_type' => 'surat_jalan',
+                'source_id'   => $suratJalan->id,
+                'tanggal'     => $suratJalan->tanggal,
+                'tipe'        => 'keluar',
+                'no_slip'     => $suratJalan->berdasarkan,
+                'masuk'       => 0,
+                'keluar'      => $detail->quantity,
+                'catatan' => $suratJalan->kepada,
+            ]);
+        }
+
         $suratJalan->update([
             'status' => 'APPROVED',
             'approved_by' => $user->id,
@@ -842,7 +917,6 @@ foreach ($suratJalan->details as $detail) {
 
         $message = 'Surat jalan berhasil disetujui ✅ Stok material telah diperbarui.';
 
-        // ✅ Return sesuai tipe request
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
@@ -855,7 +929,7 @@ foreach ($suratJalan->details as $detail) {
 
     } catch (\Exception $e) {
         DB::rollBack();
-        \Log::error('❌ Gagal approve surat jalan', ['error' => $e->getMessage()]);
+        \Log::error('? Gagal approve surat jalan', ['error' => $e->getMessage()]);
 
         $message = 'Gagal menyetujui surat jalan: ' . $e->getMessage();
 
@@ -864,8 +938,8 @@ foreach ($suratJalan->details as $detail) {
             : redirect()->back()->with('swal_error', $message);
     }
 }
-        // fungsi approve->selesai
-        public function markAsSelesai(SuratJalan $suratJalan)
+
+public function markAsSelesai(SuratJalan $suratJalan)
         {
             if ($suratJalan->status !== 'APPROVED') {
                 return back()->with('swal_error', '❌ Surat jalan harus di-approve dulu sebelum bisa diselesaikan.');
@@ -966,7 +1040,7 @@ foreach ($suratJalan->details as $detail) {
                         return $query->where('jenis_surat_jalan', $jenis);
                     })
                     ->with(['details.material'])
-                    ->orderBy('tanggal', 'desc')
+                    ->orderBy('created_at', 'desc')
                     ->get();
 
     return view('material.masa', compact('suratJalans', 'jenis'));
@@ -982,25 +1056,62 @@ public function kembalikan(Request $request, SuratJalan $surat, SuratJalanDetail
         'request_data' => $request->all()
     ]);
 
-    // ✅ Simpan hasil validasi ke variabel
-    $validated = $request->validate([
+    $isMrwi = $this->isMrwiJenis($surat->jenis_surat_jalan) && !$detail->is_manual;
+    $maxKembali = $detail->quantity - ($detail->jumlah_kembali ?? 0);
+
+    $rules = [
         'nomor_surat_masuk' => 'required|string|max:255',
         'tanggal_masuk' => 'required|date',
-        'jumlah_kembali' => 'required|integer|min:1|max:' . ($detail->quantity - ($detail->jumlah_kembali ?? 0)),
         'keterangan' => 'nullable|string',
-    ]);
+    ];
 
-    // ✅ Simpan ke tabel pengembalian_histories
+    if ($isMrwi) {
+        $rules['serials'] = 'required|array|min:1';
+        $rules['serials.*'] = 'required|string';
+    } else {
+        $rules['jumlah_kembali'] = 'required|integer|min:1|max:' . $maxKembali;
+    }
+
+    $validated = $request->validate($rules);
+
+    $selectedSerials = [];
+    if ($isMrwi) {
+        $detailSerials = $detail->serial_numbers ?? [];
+        $returnedSerials = MaterialMrwiSerialMove::where('surat_jalan_detail_id', $detail->id)
+            ->where('jenis', 'kembali')
+            ->pluck('serial_number')
+            ->all();
+        $availableSerials = array_values(array_diff($detailSerials, $returnedSerials));
+
+        $selectedSerials = collect($validated['serials'] ?? [])
+            ->map(fn ($s) => trim((string) $s))
+            ->filter(fn ($s) => $s !== '')
+            ->values()
+            ->all();
+
+        if (empty($selectedSerials)) {
+            return back()->with('error', 'Serial number wajib dipilih.');
+        }
+
+        if (count($selectedSerials) != count(array_unique($selectedSerials))) {
+            return back()->with('error', 'Serial number duplikat ditemukan.');
+        }
+
+        $missing = array_diff($selectedSerials, $availableSerials);
+        if (!empty($missing)) {
+            return back()->with('error', 'Ada serial number yang tidak tersedia untuk dikembalikan.');
+        }
+    }
+
     PengembalianHistory::create([
         'surat_jalan_detail_id' => $detail->id,
         'nomor_surat_masuk' => $validated['nomor_surat_masuk'],
         'tanggal_masuk' => $validated['tanggal_masuk'],
-        'jumlah_kembali' => $validated['jumlah_kembali'],
+        'jumlah_kembali' => $isMrwi ? count($selectedSerials) : $validated['jumlah_kembali'],
         'keterangan' => $validated['keterangan'] ?? null,
     ]);
 
-    // 🧮 Update jumlah kembali di detail
-    $jumlahKembaliBaru = $validated['jumlah_kembali'];
+    $jumlahKembaliBaru = $isMrwi ? count($selectedSerials) : $validated['jumlah_kembali'];
     $jumlahLama = $detail->jumlah_kembali ?? 0;
     $totalKembali = $jumlahLama + $jumlahKembaliBaru;
 
@@ -1009,10 +1120,39 @@ public function kembalikan(Request $request, SuratJalan $surat, SuratJalanDetail
         'tanggal_kembali' => $validated['tanggal_masuk'],
     ]);
 
+    if (in_array($surat->jenis_surat_jalan, ['Garansi', 'Perbaikan'], true) && !$detail->is_manual) {
+        $stock = MaterialMrwiStock::firstOrCreate(
+            ['material_id' => $detail->material_id, 'unit_id' => $surat->unit_id],
+            ['standby_stock' => 0, 'garansi_stock' => 0, 'perbaikan_stock' => 0, 'rusak_stock' => 0]
+        );
+        $stock->standby_stock = ($stock->standby_stock ?? 0) + $jumlahKembaliBaru;
+        $stock->save();
+    }
+
+    if ($isMrwi) {
+        $bucketLabel = in_array($surat->jenis_surat_jalan, ['Garansi', 'Perbaikan'], true) ? 'standby' : 'rusak';
+        foreach ($selectedSerials as $serial) {
+            MaterialMrwiSerialMove::create([
+                'serial_number' => $serial,
+                'material_id' => $detail->material_id,
+                'unit_id' => $surat->unit_id,
+                'jenis' => 'kembali',
+                'status_bucket' => $bucketLabel,
+                'surat_jalan_id' => $surat->id,
+                'surat_jalan_detail_id' => $detail->id,
+                'reference_type' => 'surat_jalan_masuk',
+                'reference_number' => $validated['nomor_surat_masuk'],
+                'tanggal' => $validated['tanggal_masuk'],
+                'keterangan' => $validated['keterangan'] ?? null,
+            ]);
+        }
+    }
+
     return redirect()
         ->route('surat.masa', strtolower($surat->jenis_surat_jalan))
         ->with('success', 'Barang berhasil ditandai kembali.');
 }
+
 
 
 public function hapusDetailMasa(SuratJalan $surat, SuratJalanDetail $detail)
@@ -1038,8 +1178,17 @@ public function showReturnForm($suratId, $detailId)
     ->with('pengembalianHistories')
     ->findOrFail($detailId);
 
+    $availableSerials = [];
+    if ($this->isMrwiJenis($surat->jenis_surat_jalan) && !$detail->is_manual) {
+        $detailSerials = $detail->serial_numbers ?? [];
+        $returnedSerials = MaterialMrwiSerialMove::where('surat_jalan_detail_id', $detail->id)
+            ->where('jenis', 'kembali')
+            ->pluck('serial_number')
+            ->all();
+        $availableSerials = array_values(array_diff($detailSerials, $returnedSerials));
+    }
 
-    return view('material.pengembalian-masa', compact('surat', 'detail'));
+    return view('material.pengembalian-masa', compact('surat', 'detail', 'availableSerials'));
 }
 
 public function getHistory(SuratJalanDetail $detail)
@@ -1078,4 +1227,37 @@ public function getHistory(SuratJalanDetail $detail)
             }),
     ]);
 }
+
+    private function isMrwiJenis(?string $jenis): bool
+    {
+        return in_array($jenis, ['Garansi', 'Perbaikan', 'Rusak'], true);
     }
+
+    private function resolveMrwiBucket(string $jenis): ?string
+    {
+        return match ($jenis) {
+            'Garansi' => 'garansi',
+            'Perbaikan' => 'perbaikan',
+            'Rusak' => 'rusak',
+            default => null,
+        };
+    }
+
+    private function getAvailableMrwiSerials(int $materialId, ?int $unitId, string $bucket): array
+    {
+        $latestIds = MaterialMrwiSerialMove::selectRaw('MAX(id) as id')
+            ->where('material_id', $materialId)
+            ->when($unitId, function ($query) use ($unitId) {
+                $query->where('unit_id', $unitId);
+            })
+            ->groupBy('serial_number');
+
+        return MaterialMrwiSerialMove::whereIn('id', $latestIds)
+            ->where('status_bucket', $bucket)
+            ->whereIn('jenis', ['masuk', 'kembali'])
+            ->pluck('serial_number')
+            ->all();
+    }
+    }
+
+

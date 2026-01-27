@@ -347,7 +347,10 @@ class MaterialController extends Controller
      */
     public function generateBarcode(Material $material)
     {
-        $barcodeUrl = url('/barcode/' . $material->material_code);
+        $unitId = auth()->user()->unit_id ?? null;
+        $barcodeUrl = $unitId
+            ? url('/barcode/' . $unitId . '/' . $material->material_code)
+            : url('/barcode/' . $material->material_code);
         return view('material.generate-barcode', compact('material', 'barcodeUrl'));
     }
 
@@ -358,10 +361,13 @@ class MaterialController extends Controller
     {
         // Get all materials ordered by material_code
         $materials = Material::orderBy('material_code')->get();
+        $unitId = auth()->user()->unit_id ?? null;
         
         // Generate barcode URLs for each material
-        $materials = $materials->map(function ($material) {
-            $material->barcodeUrl = url('/barcode/' . $material->material_code);
+        $materials = $materials->map(function ($material) use ($unitId) {
+            $material->barcodeUrl = $unitId
+                ? url('/barcode/' . $unitId . '/' . $material->material_code)
+                : url('/barcode/' . $material->material_code);
             return $material;
         });
         
@@ -496,7 +502,7 @@ public function getMaterialById($id)
     /**
      * API untuk autocomplete material berdasarkan normalisasi
      */
-    public function autocomplete(Request $request)
+public function autocomplete(Request $request)
 {
     // support semua kemungkinan
     $query = $request->get('term') 
@@ -504,15 +510,66 @@ public function getMaterialById($id)
              ?? $request->get('query') 
              ?? '';
 
-    $query = strtolower($query);
+    $query = strtolower(trim($query));
+    $likeQuery = '%' . str_replace(' ', '%', $query) . '%';
 
     if (strlen($query) < 1) {
         return response()->json([]);
     }
 
-    $materials = Material::where(function ($q) use ($query) {
-            $q->whereRaw('LOWER(material_description) LIKE ?', ["%{$query}%"])
-              ->orWhereRaw('LOWER(material_code) LIKE ?', ["%{$query}%"]);
+    $jenis = $request->get('jenis');
+
+    $useMrwiStock = in_array($jenis, ['Garansi', 'Perbaikan', 'Rusak', 'Standby'], true);
+
+    if ($useMrwiStock) {
+        $stockColumn = match ($jenis) {
+            'Garansi' => 'garansi_stock',
+            'Perbaikan' => 'perbaikan_stock',
+            'Rusak' => 'rusak_stock',
+            default => 'standby_stock',
+        };
+
+        $user = auth()->user();
+        $unitId = null;
+        if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
+            $unitId = $user->unit_id;
+        }
+
+        $stockSub = \App\Models\MaterialMrwiStock::select(
+                'material_id',
+                \DB::raw("SUM({$stockColumn}) as stock_qty")
+            )
+            ->when($unitId, function ($q) use ($unitId) {
+                $q->where('unit_id', $unitId);
+            })
+            ->groupBy('material_id');
+
+        $materials = Material::leftJoinSub($stockSub, 'ms', function ($join) {
+                $join->on('materials.id', '=', 'ms.material_id');
+            })
+            ->where(function ($q) use ($likeQuery) {
+                $q->whereRaw('LOWER(material_description) LIKE ?', [$likeQuery])
+                  ->orWhereRaw('LOWER(material_code) LIKE ?', [$likeQuery]);
+            })
+            ->select('materials.id', 'materials.material_code', 'materials.material_description', 'materials.base_unit_of_measure', \DB::raw('COALESCE(ms.stock_qty, 0) as stock_qty'))
+            ->limit(10)
+            ->get();
+
+        return response()->json($materials->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'material_code' => $m->material_code,
+                'material_description' => $m->material_description,
+                'available_stock' => (int) $m->stock_qty,
+                'base_unit_of_measure' => $m->base_unit_of_measure ?? 'BH',
+                'satuan' => $m->base_unit_of_measure ?? 'BH',
+            ];
+        }));
+    }
+
+    $materials = Material::where(function ($q) use ($likeQuery) {
+            $q->whereRaw('LOWER(material_description) LIKE ?', [$likeQuery])
+              ->orWhereRaw('LOWER(material_code) LIKE ?', [$likeQuery]);
         })
         ->select('id', 'material_code', 'material_description', 'base_unit_of_measure', 'unrestricted_use_stock')
         ->limit(10)
@@ -524,6 +581,7 @@ public function getMaterialById($id)
             'material_code' => $m->material_code,
             'material_description' => $m->material_description,
             'unrestricted_use_stock' => (int) $m->unrestricted_use_stock,
+            'available_stock' => (int) $m->unrestricted_use_stock,
             'base_unit_of_measure' => $m->base_unit_of_measure ?? 'BH',
             'satuan' => $m->base_unit_of_measure ?? 'BH', // ✅ Ganti ini!
         ];

@@ -50,6 +50,7 @@
                         $inspectionGroupOpen = request()->routeIs('material.pemeriksaanFisik')
                             || request()->routeIs('berita-acara.*')
                             || request()->routeIs('sap-check.*');
+                        $mrwiGroupOpen = request()->routeIs('material-mrwi.*');
                         $isSecurityCikarang = auth()->user()->role === 'security'
                             && auth()->user()->unit
                             && auth()->user()->unit->code === 'UP3-CKR';
@@ -90,6 +91,37 @@
                     </div>
                     @endif
 
+                    {{-- MRWI --}}
+                    @if(in_array(auth()->user()->role, ['admin', 'petugas', 'guest']) && !$isSecurityCikarang)
+                    <div class="nav-item nav-group {{ $mrwiGroupOpen ? 'open' : '' }}">
+                        <button type="button" class="nav-link nav-group-toggle {{ $mrwiGroupOpen ? 'active' : '' }}" aria-expanded="{{ $mrwiGroupOpen ? 'true' : 'false' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-recycle"></i>
+                            </span>
+                            <span>MRWI</span>
+                            <span class="nav-group-caret">
+                                <i class="fas fa-chevron-down"></i>
+                            </span>
+                        </button>
+                        <div class="nav-submenu">
+                            <a href="{{ route('material-mrwi.stock', ['category' => 'standby']) }}" wire:navigate class="nav-link nav-sublink {{ request()->routeIs('material-mrwi.stock') ? 'active' : '' }}">
+                                <span>Saldo MRWI</span>
+                            </a>
+                            <a href="{{ route('material-mrwi.index') }}" wire:navigate class="nav-link nav-sublink {{ request()->routeIs('material-mrwi.index') ? 'active' : '' }}">
+                                <span>Material MRWI</span>
+                            </a>
+                            <a href="{{ route('material-mrwi.history') }}" wire:navigate class="nav-link nav-sublink {{ request()->routeIs('material-mrwi.history') ? 'active' : '' }}">
+                                <span>Histori Material MRWI</span>
+                            </a>
+                            @if(in_array(auth()->user()->role, ['admin', 'petugas']))
+                            <a href="{{ route('surat.masa', ['jenis' => 'Peminjaman']) }}" wire:navigate class="nav-link nav-sublink {{ request()->is('surat-jalan/peminjaman/masa') ? 'active' : '' }}">
+                                <span>Garansi &amp; Perbaikan</span>
+                            </a>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
                     {{-- Surat Jalan --}}
                     @if(in_array(auth()->user()->role, ['admin', 'guest', 'petugas', 'security', 'satpam']))
                     <div class="nav-item">
@@ -104,15 +136,6 @@
 
                     {{-- Additional Menu (Admin & Petugas) --}}
                     @if(in_array(auth()->user()->role, ['admin', 'petugas']))
-                    <div class="nav-item">
-                        <a href="{{ route('surat.masa', ['jenis' => 'Peminjaman']) }}" wire:navigate class="nav-link {{ request()->is('surat-jalan/peminjaman/masa') ? 'active' : '' }}">
-                            <span class="nav-icon">
-                                <i class="fas fa-clock"></i>
-                            </span>
-                            <span>Garansi &amp; Perbaikan</span>
-                        </a>
-                    </div>
-
                     <div class="nav-item">
                         <a href="{{ route('material.history') }}" wire:navigate class="nav-link {{ request()->routeIs('material.history') ? 'active' : '' }}">
                             <span class="nav-icon">

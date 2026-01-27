@@ -136,12 +136,26 @@
                 </div>
             @endif
 
-            <div class="mb-6">
-                <label class="form-label">Jumlah yang Dikembalikan Sekarang</label>
-                <input type="number" name="jumlah_kembali" class="form-input"
-                       min="1" max="{{ $detail->quantity - ($detail->jumlah_kembali ?? 0) }}"
-                       value="{{ $detail->quantity - ($detail->jumlah_kembali ?? 0) }}" required>
-            </div>
+            @if(in_array($surat->jenis_surat_jalan, ['Garansi', 'Perbaikan', 'Rusak']) && !$detail->is_manual)
+                <div class="mb-6">
+                    <label class="form-label">Pilih Serial Number yang Dikembalikan</label>
+                    <select name="serials[]" class="form-input" multiple size="6" required>
+                        @forelse($availableSerials ?? [] as $sn)
+                            <option value="{{ $sn }}">{{ $sn }}</option>
+                        @empty
+                            <option value="">Serial tidak tersedia</option>
+                        @endforelse
+                    </select>
+                    <p class="text-xs text-gray-500 mt-2">Pilih serial satu per satu. Jumlah kembali akan mengikuti jumlah serial terpilih.</p>
+                </div>
+            @else
+                <div class="mb-6">
+                    <label class="form-label">Jumlah yang Dikembalikan Sekarang</label>
+                    <input type="number" name="jumlah_kembali" class="form-input"
+                           min="1" max="{{ $detail->quantity - ($detail->jumlah_kembali ?? 0) }}"
+                           value="{{ $detail->quantity - ($detail->jumlah_kembali ?? 0) }}" required>
+                </div>
+            @endif
 
             <div class="flex justify-end gap-3">
                 <a href="{{ url()->previous() }}"

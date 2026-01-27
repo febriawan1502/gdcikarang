@@ -23,6 +23,7 @@ class SuratJalanDetail extends Model
         'material_id',
         'quantity',
         'satuan',
+        'serial_numbers',
         'keterangan',
         'is_checked',
         'checked_by',
@@ -32,6 +33,10 @@ class SuratJalanDetail extends Model
         'satuan_manual',
         'jumlah_kembali',
         'tanggal_kembali',
+    ];
+
+    protected $casts = [
+        'serial_numbers' => 'array',
     ];
 
     public function suratJalan(): BelongsTo

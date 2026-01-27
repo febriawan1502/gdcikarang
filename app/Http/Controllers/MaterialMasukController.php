@@ -29,7 +29,7 @@ class MaterialMasukController extends Controller
             ELSE 1
         END
     ")
-    ->orderBy('tanggal_masuk', 'desc');
+    ->orderBy('created_at', 'desc');
 
         return DataTables::of($materialMasuk)
     ->addIndexColumn()
@@ -669,7 +669,7 @@ public function autocomplete(Request $request)
 public function print()
 {
     $materials = MaterialMasuk::with(['details', 'creator'])
-        ->orderBy('tanggal_masuk', 'desc')
+        ->orderBy('created_at', 'desc')
         ->get();
 
     return view('exports.material-masuk', compact('materials'));

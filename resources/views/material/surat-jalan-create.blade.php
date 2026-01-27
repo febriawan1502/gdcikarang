@@ -53,6 +53,7 @@
                                 <option value="Garansi">Garansi</option>
                                 <option value="Peminjaman">Peminjaman</option>
                                 <option value="Perbaikan">Perbaikan</option>
+                                <option value="Rusak">Rusak</option>
                                 <option value="Manual">Manual</option>
                             </select>
                         </div>
@@ -174,6 +175,8 @@
                                     </th>
                                     <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Material
                                     </th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider col-serial">
+                                        Serial Number</th>
                                     <th
                                         class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-[140px] col-stock">
                                         Stock</th>
@@ -425,7 +428,8 @@
             const index = tbody.querySelectorAll('tr').length;
             const jenis = jenisSelect.value;
             const isManual = ['Manual', 'Peminjaman'].includes(jenis);
-            const isNonStock = ['Garansi', 'Perbaikan'].includes(jenis);
+            const isNonStock = ['Manual', 'Peminjaman'].includes(jenis);
+            const isMrwi = isMrwiJenis(jenis);
 
 
             const newRow = document.createElement('tr');
@@ -438,6 +442,8 @@
             <input type="text" class="form-input text-sm"
                    name="materials[${index}][nama_barang]" required placeholder="Nama Barang">
         </td>
+
+        <td class="col-serial px-4 py-3" style="display:none;"></td>
 
         <td class="col-stock px-4 py-3" style="display:none;"></td>
 
@@ -474,6 +480,10 @@
                     <div class="autocomplete-results"></div>
                 </div>
             </td>
+            <td class="col-serial px-4 py-3" style="${isMrwi ? '' : 'display:none;'}">
+                <select name="materials[${index}][serials][]" class="form-input text-sm mrwi-serials" multiple size="3" disabled></select>
+                <p class="text-xs text-gray-400 mt-1 mrwi-serial-hint hidden">Pilih serial satu per satu.</p>
+            </td>
             <td class="col-stock px-4 py-3" style="${isNonStock ? 'display:none;' : ''}">
                 <input type="number" class="form-input text-sm bg-gray-50"
                        name="materials[${index}][stock]" readonly disabled placeholder="Stock">
@@ -481,7 +491,7 @@
 
             <td class="px-4 py-3">
                 <input type="number" class="form-input text-sm"
-                       name="materials[${index}][quantity]" min="1" required placeholder="Qty">
+                       name="materials[${index}][quantity]" min="1" required placeholder="Qty" ${isMrwi ? 'readonly' : ''}>
             </td>
             <td class="px-4 py-3">
                 <input type="text" class="form-input text-sm ${jenis === 'Normal' ? 'bg-gray-50' : ''}"
@@ -551,8 +561,9 @@
                     return;
                 }
 
+                const jenis = document.getElementById('jenis_surat_jalan').value;
                 timeout = setTimeout(() => {
-                    fetch(`/material/autocomplete?query=${encodeURIComponent(query)}`)
+                    fetch(`/material/autocomplete?query=${encodeURIComponent(query)}&jenis=${encodeURIComponent(jenis)}`)
                         .then(response => response.json())
                         .then(data => {
                             resultsDiv.innerHTML = '';
@@ -568,11 +579,11 @@
 
                                     const jenis = document.getElementById('jenis_surat_jalan')
                                         .value;
-                                    const showStockInfo = (jenis === 'Normal');
+                                    const showStockInfo = !['Manual', 'Peminjaman'].includes(jenis);
 
                                     const stockInfo = showStockInfo ?
                                         `<small class="text-info d-block">
-                                    Stock: ${material.unrestricted_use_stock || 0} ${material.base_unit_of_measure || ''}
+                                    Stock: ${(material.available_stock ?? material.unrestricted_use_stock ?? 0)} ${material.base_unit_of_measure || ''}
                                 </small>` :
                                         '';
 
@@ -590,6 +601,7 @@
                                             'input[name*="[satuan]"]');
                                         const stockInput = row.querySelector(
                                             'input[name*="[stock]"]');
+                                        const serialSelect = row.querySelector('.mrwi-serials');
 
                                         input.value =
                                             `[${material.material_code} - ${material.material_description}]`;
@@ -600,13 +612,16 @@
                                         // ✅ HANYA NORMAL yang boleh isi stock
                                         const jenis = document.getElementById(
                                             'jenis_surat_jalan').value;
-                                        if (jenis === 'Normal') {
-                                            stockInput.value = material
-                                                .unrestricted_use_stock || 0;
+                                        if (!['Manual', 'Peminjaman'].includes(jenis)) {
+                                            stockInput.value = (material.available_stock ?? material.unrestricted_use_stock ?? 0);
                                             stockInput.disabled = false;
                                         } else {
                                             stockInput.value = '';
                                             stockInput.disabled = true;
+                                        }
+
+                                        if (isMrwiJenis(jenis) && serialSelect) {
+                                            loadSerialOptions(row, material.id, jenis);
                                         }
 
                                         resultsDiv.style.display = 'none';
@@ -640,7 +655,7 @@
             const jenis = document.getElementById('jenis_surat_jalan').value;
 
             // 🔕 SKIP VALIDASI STOK
-            if (['Garansi', 'Perbaikan', 'Manual', 'Peminjaman'].includes(jenis)) {
+            if (['Manual', 'Peminjaman'].includes(jenis)) {
                 return true;
             }
 
@@ -691,7 +706,7 @@
                 if (
                     quantity > stock &&
                     materialSearch.value.trim() !== '' &&
-                    !['Garansi', 'Perbaikan', 'Manual', 'Peminjaman'].includes(jenis)
+                    !['Manual', 'Peminjaman'].includes(jenis)
                 ) {
                     this.style.borderColor = '#dc3545';
                     this.style.backgroundColor = '#f8d7da';
@@ -744,6 +759,7 @@
         // Form validation
         document.getElementById('suratJalanForm').addEventListener('submit', function(e) {
             const jenis = document.getElementById('jenis_surat_jalan').value;
+            const isMrwi = isMrwiJenis(jenis);
 
             if (['Manual', 'Peminjaman'].includes(jenis)) {
                 const names = document.querySelectorAll('input[name*="[nama_barang]"]');
@@ -760,6 +776,7 @@
             const materialIds = document.querySelectorAll('.material-id');
             let hasValidMaterial = false;
             let hasStockError = false;
+            let hasSerialError = false;
 
             materialIds.forEach(input => {
                 if (input.value) {
@@ -802,13 +819,37 @@
                 alert('Terdapat quantity yang melebihi stock. Silakan periksa kembali.');
                 return false;
             }
+
+            if (isMrwi) {
+                const rows = document.querySelectorAll('#materialTable tbody tr');
+                rows.forEach(row => {
+                    const serialSelect = row.querySelector('.mrwi-serials');
+                    const qtyInput = row.querySelector('input[name*="[quantity]"]');
+                    if (!serialSelect || !qtyInput) {
+                        return;
+                    }
+                    const selected = Array.from(serialSelect.selectedOptions).map(opt => opt.value).filter(Boolean);
+                    if (selected.length === 0) {
+                        hasSerialError = true;
+                    } else {
+                        qtyInput.value = selected.length;
+                    }
+                });
+            }
+
+            if (hasSerialError) {
+                e.preventDefault();
+                alert('Semua material MRWI wajib memilih serial number.');
+                return false;
+            }
         });
 
         function toggleManualMode() {
             const jenis = jenisSelect.value;
 
             const isManual = ['Manual', 'Peminjaman'].includes(jenis);
-            const isNonStock = ['Garansi', 'Perbaikan', 'Manual', 'Peminjaman'].includes(jenis);
+            const isNonStock = ['Manual', 'Peminjaman'].includes(jenis);
+            const isMrwi = isMrwiJenis(jenis);
 
             // Header kolom nama
             table.querySelector('th:nth-child(2)').textContent =
@@ -819,10 +860,68 @@
                 th.style.display = isNonStock ? 'none' : '';
             });
 
-            // ⚠️ NOTICE MANUAL → HANYA MANUAL
+            // Serial column (hanya untuk MRWI)
+            table.querySelectorAll('.col-serial').forEach(th => {
+                th.style.display = isMrwi ? '' : 'none';
+            });
+
+            // NOTICE MANUAL -> HANYA MANUAL
             notice.classList.toggle('hidden', !isManual);
         }
 
+        function isMrwiJenis(jenis) {
+            return ['Garansi', 'Perbaikan', 'Rusak'].includes(jenis);
+        }
+
+        function loadSerialOptions(row, materialId, jenis) {
+            const serialSelect = row.querySelector('.mrwi-serials');
+            const hint = row.querySelector('.mrwi-serial-hint');
+            const qtyInput = row.querySelector('input[name*="[quantity]"]');
+            if (!serialSelect || !qtyInput) {
+                return;
+            }
+
+            serialSelect.innerHTML = '';
+            serialSelect.disabled = true;
+            if (hint) {
+                hint.classList.add('hidden');
+            }
+
+            fetch(`{{ route('material-mrwi.serials') }}?material_id=${encodeURIComponent(materialId)}&jenis=${encodeURIComponent(jenis)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const serials = data.serials || [];
+                    serialSelect.innerHTML = '';
+                    if (serials.length == 0) {
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = 'Serial tidak tersedia';
+                        serialSelect.appendChild(option);
+                        serialSelect.disabled = true;
+                    } else {
+                        serials.forEach(sn => {
+                            const option = document.createElement('option');
+                            option.value = sn;
+                            option.textContent = sn;
+                            serialSelect.appendChild(option);
+                        });
+                        serialSelect.disabled = false;
+                        if (hint) {
+                            hint.classList.remove('hidden');
+                        }
+                    }
+                    qtyInput.value = '';
+                })
+                .catch(() => {
+                    serialSelect.innerHTML = '';
+                    serialSelect.disabled = true;
+                });
+
+            serialSelect.onchange = function() {
+                const selected = Array.from(serialSelect.selectedOptions).map(opt => opt.value).filter(Boolean);
+                qtyInput.value = selected.length ? selected.length : '';
+            };
+        }
 
         // === Toggle mode Manual ===
         document.addEventListener('DOMContentLoaded', function() {
@@ -1033,3 +1132,4 @@
         }
     </script>
 @endpush
+

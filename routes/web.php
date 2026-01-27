@@ -5,6 +5,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\MaterialMasukController;
+use App\Http\Controllers\MaterialMrwiController;
+use App\Http\Controllers\MaterialMrwiHistoryController;
+use App\Http\Controllers\MaterialMrwiStockController;
 use App\Http\Controllers\SuratJalanController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\MaterialHistoryController;
@@ -33,7 +36,9 @@ Route::get('/', function () {
 });
 
 // Barcode Route (Public Access - No Auth Required)
-Route::get('/barcode/{materialCode}', [App\Http\Controllers\BarcodeController::class, 'show'])
+Route::get('/barcode/{unitId}/{materialCode}', [App\Http\Controllers\BarcodeController::class, 'show'])
+    ->name('barcode.show.unit');
+Route::get('/barcode/{materialCode}', [App\Http\Controllers\BarcodeController::class, 'showLegacy'])
     ->name('barcode.show');
 
 // Test route tanpa auth untuk debugging
@@ -203,6 +208,18 @@ Route::prefix('material-masuk')->group(function () {
     // Autocomplete
     Route::get('/autocomplete/material', [MaterialMasukController::class, 'autocompleteMaterial'])->name('material-masuk.autocomplete.material');
     Route::get('/autocomplete/normalisasi', [MaterialMasukController::class, 'autocompleteNormalisasi'])->name('material-masuk.autocomplete.normalisasi');
+});
+
+Route::prefix('material-mrwi')->name('material-mrwi.')->group(function () {
+    Route::get('/', [MaterialMrwiController::class, 'index'])->name('index');
+    Route::get('/data', [MaterialMrwiController::class, 'getData'])->name('data');
+    Route::get('/create', [MaterialMrwiController::class, 'create'])->name('create');
+    Route::post('/', [MaterialMrwiController::class, 'store'])->name('store');
+    Route::get('/history', [MaterialMrwiHistoryController::class, 'index'])->name('history');
+    Route::get('/serials', [MaterialMrwiController::class, 'getAvailableSerials'])->name('serials');
+    Route::get('/stock/{category?}', [MaterialMrwiStockController::class, 'index'])->name('stock');
+    Route::get('/stock/{category}/data', [MaterialMrwiStockController::class, 'getData'])->name('stock.data');
+    Route::get('/{id}', [MaterialMrwiController::class, 'show'])->name('show');
 });
 
     
