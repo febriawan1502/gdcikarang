@@ -110,6 +110,7 @@
                                 <option value="BUTUH_PERSETUJUAN">Butuh Persetujuan</option>
                                 <option value="APPROVED">Approved</option>
                                 <option value="SELESAI">Selesai</option>
+                                <option value="BELUM_SELESAI_SAP">Belum Selesai SAP</option>
                             </select>
                             <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
                                 <i class="fas fa-chevron-down text-xs"></i>

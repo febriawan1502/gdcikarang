@@ -69,7 +69,14 @@ namespace App\Http\Controllers;
 
         // ✅ Tambahan untuk filter status
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            if ($request->status === 'BELUM_SELESAI_SAP') {
+                $query->where(function ($q) {
+                    $q->whereNull('nomor_slip')
+                        ->orWhere('nomor_slip', '');
+                });
+            } else {
+                $query->where('status', $request->status);
+            }
         }
 
         // ✅ Filter tanggal (range)

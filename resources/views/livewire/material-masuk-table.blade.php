@@ -1,4 +1,12 @@
 <div>
+    <style>
+        .mm-kr-col {
+            max-width: 140px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
     <!-- Filter Section -->
     <div class="mb-6 bg-gray-50 rounded-xl p-4 border border-gray-100">
         <div class="flex flex-col lg:flex-row items-end gap-4">
@@ -51,17 +59,6 @@
                 </div>
             </div>
 
-            <!-- Per Page -->
-            <div class="w-full sm:w-40">
-                <label for="perPage"
-                    class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Tampilkan</label>
-                <select id="perPage" wire:model.live="perPage" class="form-input w-full bg-white">
-                    <option value="10">10</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select>
-            </div>
         </div>
     </div>
 
@@ -80,7 +77,7 @@
                 <tr class="bg-gray-50 text-left">
                     <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">No</th>
                     <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal Masuk</th>
-                    <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Nomor KR</th>
+                    <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider mm-kr-col">Nomor KR</th>
                     <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Pabrikan</th>
                     <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Material</th>
                     <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Total Qty</th>
@@ -98,7 +95,7 @@
                         <td class="px-4 py-3 text-sm text-gray-700">
                             {{ $row->tanggal_masuk ? \Carbon\Carbon::parse($row->tanggal_masuk)->format('d/m/Y') : '-' }}
                         </td>
-                        <td class="px-4 py-3 text-sm text-gray-700 font-mono">
+                        <td class="px-4 py-3 text-sm text-gray-700 font-mono mm-kr-col" title="{{ $row->nomor_kr ?? '-' }}">
                             {{ $row->nomor_kr ?? '-' }}
                         </td>
                         <td class="px-4 py-3 text-sm text-gray-700">
@@ -108,8 +105,7 @@
                             @php
                                 $details = $row->details ?? collect();
                                 $materials = $details->map(function ($detail) {
-                                    $desc = $detail->material->material_description ?? 'Material tidak diketahui';
-                                    return $desc . ' (' . $detail->quantity . ' ' . $detail->satuan . ')';
+                                    return $detail->material->material_description ?? 'Material tidak diketahui';
                                 });
                                 $preview = $materials->take(2);
                             @endphp
@@ -170,16 +166,18 @@
     </div>
 
     <!-- Pagination -->
-    <div class="mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-sm text-gray-500">
-        <div>
-            @if ($materialMasuk->total())
-                Menampilkan {{ $materialMasuk->firstItem() }} - {{ $materialMasuk->lastItem() }} dari
-                {{ $materialMasuk->total() }} data
-            @else
-                Menampilkan 0 data
-            @endif
+    <div class="mt-4 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
+        <div class="flex items-center gap-2">
+            <span>Tampilkan</span>
+            <select id="perPage" wire:model.live="perPage" class="form-input bg-white">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <span>data</span>
         </div>
-        <div>
+        <div class="flex items-center gap-1">
             {{ $materialMasuk->links() }}
         </div>
     </div>
