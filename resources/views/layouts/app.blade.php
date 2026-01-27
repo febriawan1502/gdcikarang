@@ -35,6 +35,9 @@
         ===================================== -->
         <aside class="sidebar">
             <div class="sidebar-inner">
+                <button type="button" id="sidebarCloseBtn" class="sidebar-close-btn" aria-label="Tutup sidebar">
+                    <i class="fas fa-times"></i>
+                </button>
                 <!-- Logo -->
                 <a href="{{ route('dashboard') }}" class="sidebar-logo">
                     <img src="{{ asset('assets/images/logo-teal.png') }}" alt="Logo" class="sidebar-logo-text" />
@@ -333,10 +336,17 @@
         // Mobile Sidebar Toggle
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.querySelector('.sidebar');
+        const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
 
         if (mobileMenuBtn && sidebar) {
             mobileMenuBtn.onclick = function() {
                 sidebar.classList.toggle('open');
+            };
+        }
+
+        if (sidebarCloseBtn && sidebar) {
+            sidebarCloseBtn.onclick = function() {
+                sidebar.classList.remove('open');
             };
         }
 
