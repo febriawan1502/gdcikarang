@@ -162,8 +162,15 @@ namespace App\Http\Controllers;
                         </button>';
                     }
 
-                    // ❌ Jangan tampilkan delete kalau APPROVED atau SELESAI
-                    if (!in_array($row->status, ['APPROVED', 'SELESAI'])) {
+                    // ❌ Default: jangan tampilkan delete kalau APPROVED atau SELESAI
+                    $canDelete = !in_array($row->status, ['APPROVED', 'SELESAI']);
+
+                    // ✅ Induk boleh hapus jika status SELESAI
+                    if ($row->status === 'SELESAI' && $user->unit && $user->unit->is_induk) {
+                        $canDelete = true;
+                    }
+
+                    if ($canDelete) {
                         $actions .= '<button class="action-btn delete"
                             onclick="deleteSuratJalan(' . $row->id . ')"
                             title="Delete">
@@ -595,6 +602,22 @@ foreach ($request->materials as $item) {
          */
         public function destroy(SuratJalan $suratJalan)
         {
+            $user = auth()->user();
+
+            if ($suratJalan->status === 'APPROVED') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Surat jalan APPROVED tidak dapat dihapus.'
+                ], 403);
+            }
+
+            if ($suratJalan->status === 'SELESAI' && (!$user || !$user->unit || !$user->unit->is_induk)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Hanya admin induk yang boleh menghapus surat jalan SELESAI.'
+                ], 403);
+            }
+
             DB::beginTransaction();
             try {
 
@@ -602,6 +625,36 @@ foreach ($request->materials as $item) {
                 MaterialHistory::where('source_type', 'surat_jalan')
                     ->where('source_id', $suratJalan->id)
                     ->delete();
+
+                // 🔁 Kembalikan stok jika sudah APPROVED/SELESAI dan jenis mempengaruhi stok
+                if (in_array($suratJalan->status, ['APPROVED', 'SELESAI']) &&
+                    SuratJalan::isStockAffectingJenis($suratJalan->jenis_surat_jalan)) {
+                    foreach ($suratJalan->details as $detail) {
+                        if ($detail->is_manual) {
+                            continue;
+                        }
+
+                        $stock = \App\Models\MaterialStock::withoutGlobalScopes()->firstOrCreate(
+                            [
+                                'material_id' => $detail->material_id,
+                                'unit_id' => $suratJalan->unit_id,
+                            ],
+                            [
+                                'unrestricted_use_stock' => 0,
+                                'quality_inspection_stock' => 0,
+                                'blocked_stock' => 0,
+                                'in_transit_stock' => 0,
+                                'project_stock' => 0,
+                                'qty' => 0,
+                                'min_stock' => 0,
+                            ]
+                        );
+
+                        $stock->unrestricted_use_stock = ($stock->unrestricted_use_stock ?? 0) + $detail->quantity;
+                        $stock->qty = ($stock->qty ?? 0) + $detail->quantity;
+                        $stock->save();
+                    }
+                }
 
                 // 🔥 HAPUS DETAIL
                 $suratJalan->details()->delete();

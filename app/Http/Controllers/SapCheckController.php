@@ -6,6 +6,15 @@ use Illuminate\Http\Request;
 
 class SapCheckController extends Controller
 {
+    private function normalizeMaterialCode(string $code): string
+    {
+        $digits = preg_replace('/\D+/', '', $code) ?? '';
+        $digits = ltrim($digits, '0');
+        if ($digits === '') {
+            return '';
+        }
+        return str_pad($digits, 15, '0', STR_PAD_LEFT);
+    }
     //
     public function index()
     {
@@ -107,7 +116,9 @@ class SapCheckController extends Controller
             $sapData = [];
             for ($i = $headerRowIndex + 1; $i < count($sheet); $i++) {
                 $row = $sheet[$i];
-                $code = trim((string)($row[$colIndexes['material']] ?? ''));
+                $codeRaw = trim((string)($row[$colIndexes['material']] ?? ''));
+                if ($codeRaw === '') continue;
+                $code = $this->normalizeMaterialCode($codeRaw);
                 if ($code === '') continue;
                 
                 $stockRaw = $row[$colIndexes['stock']] ?? 0;
@@ -126,7 +137,35 @@ class SapCheckController extends Controller
             }
 
             // 7. Ambil Data Database
-            $dbMaterials = \App\Models\Material::whereNotNull('material_code')->get()->keyBy('material_code');
+            $user = auth()->user();
+            $unitId = null;
+            if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
+                $unitId = $user->unit_id;
+            }
+
+            $dbRows = \DB::table('materials as m')
+                ->leftJoin('material_stocks as ms', function ($join) use ($unitId) {
+                    $join->on('m.id', '=', 'ms.material_id');
+                    if ($unitId) {
+                        $join->where('ms.unit_id', $unitId);
+                    }
+                })
+                ->whereNotNull('m.material_code')
+                ->groupBy('m.id', 'm.material_code', 'm.material_description')
+                ->select(
+                    'm.material_code',
+                    'm.material_description',
+                    \DB::raw('COALESCE(SUM(ms.unrestricted_use_stock), 0) as stock_fisik')
+                )
+                ->get();
+
+            $dbMaterials = $dbRows->mapWithKeys(function ($row) {
+                $code = $this->normalizeMaterialCode($row->material_code);
+                if ($code === '') {
+                    return [];
+                }
+                return [$code => $row];
+            });
             
             // 8. Bandingkan
             $results = [];
@@ -139,7 +178,7 @@ class SapCheckController extends Controller
                 $dbItem = $dbMaterials[$code] ?? null;
 
                 $stockSap = $sapItem ? $sapItem['stock'] : 0;
-                $stockFisik = $dbItem ? (float)$dbItem->unrestricted_use_stock : 0;
+                $stockFisik = $dbItem ? (float)$dbItem->stock_fisik : 0;
                 
                 $name = $dbItem ? $dbItem->material_description : ($sapItem['desc'] ?? '-'); 
                 $normalisasi = $code; 

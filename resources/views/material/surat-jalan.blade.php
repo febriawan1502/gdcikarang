@@ -58,6 +58,19 @@
                 color: #3182CE;
             }
 
+            .sj-col-number {
+                width: 140px;
+                max-width: 140px;
+                white-space: normal;
+                word-break: break-all;
+            }
+
+            .sj-number-wrap {
+                line-height: 1.2;
+                white-space: normal;
+                word-break: break-all;
+            }
+
             /* Ensure SweetAlert is above the detail modal */
             .swal2-container {
                 z-index: 20000 !important;
@@ -125,7 +138,7 @@
                     <thead>
                         <tr class="bg-gray-50 text-left">
                             <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">No</th>
-                            <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Nomor Surat</th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider sj-col-number">Nomor Surat</th>
                             <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal</th>
                             <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Diberikan Kepada
                             </th>
@@ -203,6 +216,17 @@
                         d.status = $('#filterStatus').val();
                     }
                 },
+                columnDefs: [
+                    {
+                        targets: 1,
+                        createdCell: function (td) {
+                            $(td).addClass('sj-col-number');
+                        },
+                        render: function (data) {
+                            return `<div class="sj-number-wrap">${data}</div>`;
+                        }
+                    }
+                ],
                 columns: [{
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',

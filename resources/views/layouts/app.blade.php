@@ -43,7 +43,7 @@
                 <!-- Navigation -->
                 <nav class="sidebar-nav">
                     @php
-                        $showInspectionGroup = in_array(auth()->user()->role, ['admin', 'petugas']);
+                        $showInspectionGroup = in_array(auth()->user()->role, ['admin', 'admin_induk', 'petugas']);
                         $inspectionGroupOpen = request()->routeIs('material.pemeriksaanFisik')
                             || request()->routeIs('berita-acara.*')
                             || request()->routeIs('sap-check.*');
@@ -133,7 +133,7 @@
                             </span>
                         </button>
                         <div class="nav-submenu">
-                            @if(auth()->user()->role === 'admin')
+                            @if(in_array(auth()->user()->role, ['admin', 'admin_induk']))
                             <a href="{{ route('sap-check.index') }}" wire:navigate class="nav-link nav-sublink {{ request()->routeIs('sap-check.*') ? 'active' : '' }}">
                                 <span class="nav-icon">
                                     <i class="fas fa-check-double"></i>
