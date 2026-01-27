@@ -71,6 +71,14 @@ namespace App\Http\Controllers;
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
+
+        // ✅ Filter tanggal (range)
+        if ($request->filled('start_date')) {
+            $query->whereDate('tanggal', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('tanggal', '<=', $request->end_date);
+        }
     })
     ->filterColumn('status', function($query, $keyword) {
         if (!empty($keyword)) {

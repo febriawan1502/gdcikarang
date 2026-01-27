@@ -98,12 +98,11 @@
         <div class="card p-6 border border-gray-100 shadow-xl shadow-gray-200/50">
             <!-- Filter Section -->
             <div class="mb-6 bg-gray-50 rounded-xl p-4 border border-gray-100">
-                <div class="flex flex-col md:flex-row items-end gap-4">
+                <div class="flex flex-col lg:flex-row items-end gap-4">
                     <!-- Status Filter -->
-                    <div class="w-full md:w-64">
+                    <div class="w-full lg:w-56">
                         <label for="filterStatus"
-                            class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Status
-                            Filter</label>
+                            class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Status</label>
                         <div class="relative">
                             <select id="filterStatus"
                                 class="form-input w-full appearance-none bg-white cursor-pointer hover:border-teal-400 transition-colors pr-10">
@@ -117,8 +116,21 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Date Range -->
+                    <div class="w-full sm:w-48">
+                        <label for="filterStartDate"
+                            class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Tanggal Awal</label>
+                        <input type="date" id="filterStartDate" class="form-input w-full">
+                    </div>
+                    <div class="w-full sm:w-48">
+                        <label for="filterEndDate"
+                            class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Tanggal Akhir</label>
+                        <input type="date" id="filterEndDate" class="form-input w-full">
+                    </div>
+
                     <!-- Search -->
-                    <div class="w-full md:flex-1">
+                    <div class="w-full lg:flex-1">
                         <label for="customSearch"
                             class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Pencarian</label>
                         <div class="relative">
@@ -215,6 +227,8 @@
                     url: '{{ route('surat-jalan.getData') }}',
                     data: function(d) {
                         d.status = $('#filterStatus').val();
+                        d.start_date = $('#filterStartDate').val();
+                        d.end_date = $('#filterEndDate').val();
                     }
                 },
                 columnDefs: [{
@@ -265,6 +279,9 @@
                         searchable: false
                     }
                 ],
+                order: [
+                    [2, 'desc']
+                ],
                 responsive: true,
                 dom: '<"hidden"f>rt<"flex flex-col md:flex-row justify-between items-center mt-4 gap-4"<"text-sm text-gray-500"l><"flex items-center gap-1"p>>',
                 language: {
@@ -283,14 +300,13 @@
                     }
                 }
             });
-
             // Custom search input
             $('#customSearch').on('keyup', function() {
                 table.search(this.value).draw();
             });
 
-            // ⬇️ Tambahkan ini
-            $('#filterStatus').on('change', function() {
+            // Filter reload
+            $('#filterStatus, #filterStartDate, #filterEndDate').on('change', function() {
                 table.ajax.reload();
             });
             // ✅ SWEETALERT SUCCESS
@@ -377,3 +393,5 @@
         }
     </script>
 @endpush
+
+
