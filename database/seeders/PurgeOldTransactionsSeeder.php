@@ -9,12 +9,13 @@ use App\Models\SuratJalan;
 use App\Models\SuratJalanDetail;
 use App\Models\PengembalianHistory;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class PurgeOldTransactionsSeeder extends Seeder
 {
     public function run(): void
     {
-        $cutoff = '2025-01-26';
+        $cutoff = Carbon::create(2025, 1, 26)->startOfDay();
 
         DB::transaction(function () use ($cutoff) {
             // Material Masuk sebelum cutoff
@@ -53,7 +54,7 @@ class PurgeOldTransactionsSeeder extends Seeder
                 }
 
                 SuratJalanDetail::whereIn('surat_jalan_id', $suratJalanIds)->delete();
-                SuratJalan::whereIn('id', $suratJalanIds)->delete();
+                DB::table('surat_jalan')->whereIn('id', $suratJalanIds)->delete();
             }
         });
     }
