@@ -178,6 +178,9 @@
         <main class="main-content">
             <!-- Header -->
             <header class="page-header">
+                <button type="button" id="mobileMenuBtn" class="mobile-menu-btn" aria-label="Buka menu">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <div class="header-actions ml-auto">
                     @auth
                     <div class="user-dropdown" id="userDropdown">

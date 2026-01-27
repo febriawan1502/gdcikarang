@@ -25,7 +25,7 @@ class MaterialMasukController extends Controller
     ->select('material_masuk.*')
     ->orderByRaw("
         CASE 
-            WHEN LOWER(status_sap) = 'belum selesai sap' THEN 0
+            WHEN LOWER(status_sap) IN ('belum sap', 'belum selesai sap') THEN 0
             ELSE 1
         END
     ")
@@ -64,9 +64,9 @@ class MaterialMasukController extends Controller
             ->addColumn('tanggal_masuk_formatted', fn($row) => Carbon::parse($row->tanggal_masuk)->format('d/m/Y'))
             ->addColumn('tanggal_keluar_formatted', fn($row) => $row->tanggal_keluar ? Carbon::parse($row->tanggal_keluar)->format('d/m/Y') : '-')
             ->addColumn('status_sap', function ($row) {
-                return $row->status_sap === 'Selesai SAP'
+                return strtolower(trim($row->status_sap)) === 'selesai sap'
                     ? ''
-                    : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">Belum Selesai SAP</span>';
+                    : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">Belum SAP</span>';
             })
             ->addColumn('action', function ($row) {
                 $user = auth()->user();
@@ -212,7 +212,7 @@ class MaterialMasukController extends Controller
                 'nomor_doc' => $request->nomor_doc,
                 'tugas_4' => $request->tugas_4,
                 'keterangan' => $request->keterangan,
-                'status_sap' => 'Belum Selesai SAP',
+                'status_sap' => 'Belum SAP',
                 'created_by' => auth()->id(),
             ]);
 

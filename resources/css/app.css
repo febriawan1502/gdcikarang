@@ -360,6 +360,23 @@ body {
     margin-bottom: 24px;
 }
 
+.mobile-menu-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 1px solid var(--color-gray-200);
+    background: white;
+    color: var(--color-gray-700);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.mobile-menu-btn:hover {
+    background: var(--color-gray-100);
+}
+
 .breadcrumb-area {
     display: flex;
     flex-direction: column;
@@ -669,6 +686,10 @@ body {
     .main-content {
         margin-left: 0;
         padding: 16px;
+    }
+
+    .mobile-menu-btn {
+        display: inline-flex;
     }
 }
 
