@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Concerns\HasUnitScope;
 
+/**
+ * @mixin IdeHelperBeritaAcara
+ */
 class BeritaAcara extends Model
 {
     use HasUnitScope;

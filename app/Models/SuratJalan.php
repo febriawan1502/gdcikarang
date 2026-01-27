@@ -10,6 +10,9 @@ use App\Models\MaterialHistory;
 use App\Models\Concerns\HasUnitScope;
 
 
+/**
+ * @mixin IdeHelperSuratJalan
+ */
 class SuratJalan extends Model
 {
     use HasFactory;

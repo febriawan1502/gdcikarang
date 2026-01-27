@@ -8,6 +8,9 @@ use App\Models\MaterialHistory;
 use Carbon\Carbon;
 use App\Models\Concerns\HasUnitScope;
 
+/**
+ * @mixin IdeHelperMaterialMasuk
+ */
 class MaterialMasuk extends Model
 {
     use HasFactory;

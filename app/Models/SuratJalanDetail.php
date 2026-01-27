@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Concerns\HasUnitScope;
 
+/**
+ * @mixin IdeHelperSuratJalanDetail
+ */
 class SuratJalanDetail extends Model
 {
     use HasFactory;

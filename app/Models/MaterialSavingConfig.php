@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin IdeHelperMaterialSavingConfig
+ */
 class MaterialSavingConfig extends Model
 {
     use HasFactory;

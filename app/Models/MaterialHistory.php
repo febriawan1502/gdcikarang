@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Material;
 use App\Models\Concerns\HasUnitScope;
 
+/**
+ * @mixin IdeHelperMaterialHistory
+ */
 class MaterialHistory extends Model
 {
     use HasUnitScope;

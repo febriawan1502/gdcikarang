@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * @mixin IdeHelperSetting
+ */
 class Setting extends Model
 {
     protected $fillable = [

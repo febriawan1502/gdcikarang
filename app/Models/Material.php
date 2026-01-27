@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\MaterialStock;
 
+/**
+ * @mixin IdeHelperMaterial
+ */
 class Material extends Model
 {
     use HasFactory;
