@@ -63,7 +63,7 @@ class MaterialMasukTable extends Component
                     ELSE 1
                 END
             ")
-            ->orderBy('tanggal_masuk', 'desc');
+            ->orderBy('created_at', 'desc');
 
         $query->when($this->status === 'BELUM_SAP', function ($q) {
             $q->where(function ($sub) {

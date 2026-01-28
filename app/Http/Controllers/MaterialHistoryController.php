@@ -21,7 +21,7 @@ public function index(Request $request, $id = null)
         $histories = MaterialHistory::with('material')
             ->onlyMaterialBaru()
             ->where('material_id', $id)
-            ->orderBy('tanggal', 'asc')
+            ->orderBy('created_at', 'asc')
             ->orderBy('id', 'asc') // Penting: urutan input
             ->get();
 
@@ -60,7 +60,7 @@ return view('material.history', [
 
     $histories = MaterialHistory::with('material')
         ->onlyMaterialBaru()
-        ->orderBy('tanggal', 'asc')
+        ->orderBy('created_at', 'asc')
         ->orderBy('id', 'asc')
         ->get();
 
@@ -76,7 +76,7 @@ return view('material.history', [
 
         $runningStock = ($material->unrestricted_use_stock ?? 0) - ($totalMasuk - $totalKeluar);
 
-        $mapped = $items->sortBy('tanggal')->sortBy('id')->values()->map(function ($item) use (&$runningStock) {
+        $mapped = $items->sortBy('created_at')->sortBy('id')->values()->map(function ($item) use (&$runningStock) {
             $runningStock += ($item->masuk ?? 0);
             $runningStock -= ($item->keluar ?? 0);
             $item->sisa_persediaan = $runningStock;
@@ -90,7 +90,7 @@ return view('material.history', [
         $finalHistories = $isSearch
             ? $finalHistories->values() // SEARCH → baca dari atas
             : $finalHistories
-        ->sortByDesc('tanggal')
+        ->sortByDesc('created_at')
         ->sortByDesc('id')
         ->values();
 
@@ -120,7 +120,7 @@ return view('material.history', [
 
     $histories = MaterialHistory::onlyMaterialBaru()
         ->where('material_id', $id)
-        ->orderBy('tanggal', 'asc')
+        ->orderBy('created_at', 'asc')
         ->orderBy('id', 'asc')
         ->get();
 

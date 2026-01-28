@@ -165,6 +165,71 @@
             margin: 10px 0;
             color: #666;
         }
+
+        .print-label-50x30 {
+            width: 50mm;
+            height: 30mm;
+            padding: 1.5mm;
+            border: 0.2mm solid #111;
+            display: flex;
+            gap: 1.5mm;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .print-label-50x30 .label-text {
+            flex: 1 1 auto;
+            min-width: 0;
+            text-align: left;
+            line-height: 1.1;
+        }
+
+        .print-label-50x30 .label-text .company {
+            font-size: 6.5pt;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .print-label-50x30 .label-text .up3 {
+            font-size: 6pt;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .print-label-50x30 .label-text .material-code {
+            font-size: 10pt;
+            font-weight: bold;
+            margin: 1mm 0 0.5mm;
+            font-family: monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .print-label-50x30 .label-text .material-name {
+            font-size: 6pt;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .print-label-50x30 .qr-wrap {
+            flex: 0 0 auto;
+            width: 22mm;
+            height: 22mm;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .print-label-50x30 .qr-wrap img {
+            width: 22mm;
+            height: 22mm;
+        }
     </style>
 </head>
 <body>
@@ -201,13 +266,14 @@
 
         <!-- Template untuk print -->
         <div id="printTemplate" style="display: none;">
-            <div class="print-label">
-                <h2>{{ \App\Models\Setting::get('company_name', 'PT PLN (Persero)') }}</h2>
-                <h2>{{ \App\Models\Setting::get('up3_name', 'UP3 Cimahi') }}</h2>
-                <div class="material-code">{{ $material->material_code }}</div>
-                <div class="material-name">{{ Str::limit($material->material_description, 50) }}</div>
-                <div id="qrcodePrint"></div>
-                <p style="font-size: 10px; margin-top: 10px;">Scan untuk lihat mutasi material</p>
+            <div class="print-label-50x30">
+                <div class="label-text">
+                    <div class="company">{{ \App\Models\Setting::get('company_name', 'PT PLN (Persero)') }}</div>
+                    <div class="up3">{{ \App\Models\Setting::get('up3_name', 'UP3 Cimahi') }}</div>
+                    <div class="material-code">{{ $material->material_code }}</div>
+                    <div class="material-name">{{ Str::limit($material->material_description, 28) }}</div>
+                </div>
+                <div class="qr-wrap" id="qrcodePrint"></div>
             </div>
         </div>
     </div>
@@ -251,61 +317,90 @@
                     <title>Print Barcode</title>
                     <style>
                         * { margin: 0; padding: 0; box-sizing: border-box; }
-                        body { 
-                            font-family: Arial, sans-serif; 
-                            display: flex; 
-                            justify-content: center; 
-                            align-items: center; 
-                            min-height: 100vh;
-                            padding: 20px;
+                        @page { size: 50mm 30mm; margin: 0; }
+                        html, body {
+                            width: 50mm;
+                            height: 30mm;
+                        }
+                        body {
+                            font-family: Arial, sans-serif;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
                         }
                         .print-label {
-                            border: 2px solid #333;
-                            padding: 20px;
-                            width: 300px;
-                            text-align: center;
+                            width: 50mm;
+                            height: 30mm;
+                            padding: 1.5mm;
+                            border: 0.2mm solid #111;
+                            display: flex;
+                            gap: 1.5mm;
+                            align-items: center;
+                            justify-content: space-between;
                         }
-                        .print-label h2 {
-                            font-size: 16px;
-                            margin-bottom: 5px;
+                        .label-text {
+                            flex: 1 1 auto;
+                            min-width: 0;
+                            text-align: left;
+                            line-height: 1.1;
                         }
-                        .material-code {
-                            font-size: 22px;
+                        .label-text .company {
+                            font-size: 6.5pt;
                             font-weight: bold;
-                            margin: 10px 0;
-                            font-family: monospace;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
                         }
-                        .material-name {
-                            font-size: 11px;
-                            margin: 10px 0;
-                            color: #666;
+                        .label-text .up3 {
+                            font-size: 6pt;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                        }
+                        .label-text .material-code {
+                            font-size: 10pt;
+                            font-weight: bold;
+                            margin: 1mm 0 0.5mm;
+                            font-family: monospace;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                        }
+                        .label-text .material-name {
+                            font-size: 6pt;
+                            color: #333;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
                         }
                         .qr-code {
-                            margin: 15px auto;
+                            flex: 0 0 auto;
+                            width: 22mm;
+                            height: 22mm;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
                         }
                         .qr-code img {
-                            width: 180px;
-                            height: 180px;
-                        }
-                        .scan-text {
-                            font-size: 10px;
-                            margin-top: 10px;
+                            width: 22mm;
+                            height: 22mm;
                         }
                         @media print {
-                            body { padding: 0; }
+                            body { margin: 0; }
                         }
                     </style>
                 </head>
                 <body>
                     <div class="print-label">
-                        <h2>${companyName}</h2>
-                        <h2>${up3Name}</h2>
-                        <div class="material-code">${materialCode}</div>
-                        <div class="material-name">${materialName}</div>
+                        <div class="label-text">
+                            <div class="company">${companyName}</div>
+                            <div class="up3">${up3Name}</div>
+                            <div class="material-code">${materialCode}</div>
+                            <div class="material-name">${materialName}</div>
+                        </div>
                         <div class="qr-code">
                             <img src="${qrImageSrc}" alt="QR Code">
                         </div>
-                        <p class="scan-text">Scan untuk lihat mutasi material</p>
                     </div>
                     <script>
                         window.onload = function() {
