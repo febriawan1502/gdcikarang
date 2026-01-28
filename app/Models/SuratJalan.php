@@ -18,13 +18,13 @@ class SuratJalan extends Model
     use HasFactory;
     use HasUnitScope;
     protected static function booted()
-{
-    static::deleting(function ($suratJalan) {
-        MaterialHistory::where('source_type', 'surat_jalan')
-            ->where('source_id', $suratJalan->id)
-            ->delete();
-    });
-}
+    {
+        static::deleting(function ($suratJalan) {
+            MaterialHistory::where('source_type', 'surat_jalan')
+                ->where('source_id', $suratJalan->id)
+                ->delete();
+        });
+    }
 
 
     protected $table = 'surat_jalan';
@@ -90,6 +90,9 @@ class SuratJalan extends Model
 
     public function getStatusSapAttribute(): string
     {
+        if (self::isStockAffectingJenis($this->jenis_surat_jalan) && $this->jenis_surat_jalan !== 'Normal') {
+            return 'Selesai SAP'; // MRWI types are considered done regardless of slip number
+        }
         return empty($this->nomor_slip) ? 'Belum Selesai SAP' : 'Selesai SAP';
     }
 
@@ -97,70 +100,80 @@ class SuratJalan extends Model
      * Generate nomor surat dengan sequence berdasarkan jenis, bulan, dan tahun
      */
     public static function generateNomorSurat($jenisSuratJalan = 'Normal')
-{
-    $year = date('Y');
+    {
+        $year = date('Y');
 
-    // Tentukan kode prefix berdasarkan jenis surat
-    $jenisKode = [
-        'Normal'     => 'SJ',
-        'Garansi'    => 'GRN',
-        'Peminjaman' => 'PMJ',
-        'Perbaikan'  => 'PBK',
-        'Manual'     => 'MNL',
-        'Rusak'      => 'RSK',
-        'Standby'    => 'STB',
-    ];
+        // Tentukan kode prefix berdasarkan jenis surat
+        $jenisKode = [
+            'Normal'     => 'SJ',
+            'Garansi'    => 'GRN',
+            'Peminjaman' => 'PMJ',
+            'Perbaikan'  => 'PBK',
+            'Manual'     => 'MNL',
+            'Rusak'      => 'RSK',
+            'Standby'    => 'STB',
+        ];
 
-    $kode = $jenisKode[$jenisSuratJalan] ?? 'SJ';
-    $kodeLog = 'LOG.00.02';
-    $kodeFungsi = auth()->user()->unit->kode_surat ?? 'F02050000';
+        $kode = $jenisKode[$jenisSuratJalan] ?? 'SJ';
+        $kodeLog = 'LOG.00.02';
+        $kodeFungsi = auth()->user()->unit->kode_surat ?? 'F02050000';
 
-    // 🔹 Ambil surat terakhir dari semua jenis (global numbering)
-    $lastSurat = self::whereYear('created_at', $year)
-        ->orderBy('id', 'desc')
-        ->first();
+        // 🔹 Ambil surat terakhir dari semua jenis (global numbering)
+        $lastSurat = self::whereYear('created_at', $year)
+            ->orderBy('id', 'desc')
+            ->first();
 
-    // Tentukan urutan berikutnya
-    if ($lastSurat) {
-        preg_match('/^(\d{3})/', $lastSurat->nomor_surat, $matches);
-        $sequence = isset($matches[1]) ? intval($matches[1]) + 1 : 1;
-    } else {
-        $sequence = 1;
-    }
-
-    // 🔹 Format hasil akhir dengan prefix sesuai jenis
-    return sprintf("%03d.%s/%s/%s/%s", $sequence, $kode, $kodeLog, $kodeFungsi, $year);
-}
-
-
-        private static function getNextSequence()
-        {
-            $lastSurat = self::orderByRaw("CAST(split_part(nomor_surat, '.', 1) AS INTEGER) DESC")
-                ->whereRaw("split_part(nomor_surat, '.', 1) ~ '^[0-9]+$'")
-                ->first();
-
-            if (!$lastSurat) {
-                return 1;
-            }
-
-            $nomorParts = explode('.', $lastSurat->nomor_surat);
-            $lastSequence = isset($nomorParts[0]) ? intval($nomorParts[0]) : 0;
-
-            return $lastSequence + 1;
+        // Tentukan urutan berikutnya
+        if ($lastSurat) {
+            preg_match('/^(\d{3})/', $lastSurat->nomor_surat, $matches);
+            $sequence = isset($matches[1]) ? intval($matches[1]) + 1 : 1;
+        } else {
+            $sequence = 1;
         }
 
+        // 🔹 Format hasil akhir dengan prefix sesuai jenis
+        return sprintf("%03d.%s/%s/%s/%s", $sequence, $kode, $kodeLog, $kodeFungsi, $year);
+    }
 
-    
+
+    private static function getNextSequence()
+    {
+        $lastSurat = self::orderByRaw("CAST(split_part(nomor_surat, '.', 1) AS INTEGER) DESC")
+            ->whereRaw("split_part(nomor_surat, '.', 1) ~ '^[0-9]+$'")
+            ->first();
+
+        if (!$lastSurat) {
+            return 1;
+        }
+
+        $nomorParts = explode('.', $lastSurat->nomor_surat);
+        $lastSequence = isset($nomorParts[0]) ? intval($nomorParts[0]) : 0;
+
+        return $lastSequence + 1;
+    }
+
+
+
     /**
      * Konversi angka bulan ke romawi
      */
     private static function getMonthRoman($month)
     {
         $romans = [
-            1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
-            7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+            1 => 'I',
+            2 => 'II',
+            3 => 'III',
+            4 => 'IV',
+            5 => 'V',
+            6 => 'VI',
+            7 => 'VII',
+            8 => 'VIII',
+            9 => 'IX',
+            10 => 'X',
+            11 => 'XI',
+            12 => 'XII'
         ];
-        
+
         return $romans[$month] ?? 'I';
     }
 
@@ -183,5 +196,4 @@ class SuratJalan extends Model
     {
         return in_array($jenis, ['Normal', 'Garansi', 'Perbaikan', 'Rusak', 'Standby'], true);
     }
-
 }

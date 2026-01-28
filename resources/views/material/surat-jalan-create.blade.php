@@ -253,12 +253,6 @@
                     </a>
 
                     <div class="flex gap-3 w-full sm:w-auto">
-                        <button type="reset"
-                            class="flex-1 sm:flex-none px-6 py-3 rounded-xl border border-yellow-400 text-yellow-600 hover:bg-yellow-50 transition-colors flex items-center justify-center gap-2">
-                            <i class="fas fa-undo"></i>
-                            <span>Reset</span>
-                        </button>
-
                         <button type="submit"
                             class="flex-1 sm:flex-none btn-teal px-6 py-3 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all duration-300 flex items-center justify-center gap-2">
                             <i class="fas fa-save"></i>

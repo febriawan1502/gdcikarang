@@ -20,9 +20,13 @@
         </div>
 
         <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
+            <a href="{{ route('material-mrwi.stock.export', $category) }}"
+                class="px-4 py-2 text-sm rounded-lg bg-green-500 text-white hover:bg-green-600 shadow-md transition-all flex items-center gap-2">
+                <i class="fas fa-file-excel"></i> Export
+            </a>
             <div class="relative">
-                <input type="text" wire:model.live.debounce.300ms="search"
-                    class="form-input pr-10" placeholder="Cari kode atau material...">
+                <input type="text" wire:model.live.debounce.300ms="search" class="form-input pr-10"
+                    placeholder="Cari kode atau material...">
                 @if ($search)
                     <button type="button" wire:click="$set('search', '')"
                         class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -88,7 +92,8 @@
                             @endif
                         </div>
                     </th>
-                    <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Satuan</th>
+                    <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Satuan
+                    </th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 bg-white" wire:loading.class="opacity-50">

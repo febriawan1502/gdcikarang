@@ -7,6 +7,10 @@ use App\Models\MaterialMrwiStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\MaterialMrwiStockDetailExport;
+
+use Illuminate\Support\Facades\Auth;
 
 class MaterialMrwiStockController extends Controller
 {
@@ -21,24 +25,24 @@ class MaterialMrwiStockController extends Controller
         $category = $this->normalizeCategory($category);
         $column = $this->getColumnByCategory($category);
 
-        $user = auth()->user();
+        $user = Auth::user();
         $unitId = null;
         if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
             $unitId = $user->unit_id;
         }
 
         $stockSub = MaterialMrwiStock::select(
-                'material_id',
-                DB::raw("SUM({$column}) as stock_qty")
-            )
+            'material_id',
+            DB::raw("SUM({$column}) as stock_qty")
+        )
             ->when($unitId, function ($query) use ($unitId) {
                 $query->where('unit_id', $unitId);
             })
             ->groupBy('material_id');
 
         $materials = Material::leftJoinSub($stockSub, 'ms', function ($join) {
-                $join->on('materials.id', '=', 'ms.material_id');
-            })
+            $join->on('materials.id', '=', 'ms.material_id');
+        })
             ->select([
                 'materials.id',
                 'materials.material_code',
@@ -71,5 +75,12 @@ class MaterialMrwiStockController extends Controller
             'rusak' => 'rusak_stock',
             default => 'standby_stock',
         };
+    }
+
+    public function export(Request $request, string $category)
+    {
+        $category = $this->normalizeCategory($category);
+        $timestamp = now()->format('Y-m-d_H-i');
+        return Excel::download(new MaterialMrwiStockDetailExport($category), "stok_mrwi_{$category}_{$timestamp}.xlsx");
     }
 }
