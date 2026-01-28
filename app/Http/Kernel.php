@@ -66,6 +66,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'role' => \App\Http\Middleware\RoleMiddleware::class,
         'guest.readonly' => \App\Http\Middleware\GuestReadOnlyMiddleware::class,
+        'api.key' => \App\Http\Middleware\ApiKeyMiddleware::class,
 
     ];
 }

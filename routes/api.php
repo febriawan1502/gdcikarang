@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MaterialController;
+use App\Http\Controllers\Api\AppInfoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +19,8 @@ use App\Http\Controllers\MaterialController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::middleware('api.key')->get('/app/summary', [AppInfoController::class, 'summary'])->name('api.app.summary');
 
 // Material API Routes
 Route::prefix('materials')->name('api.materials.')->group(function () {
