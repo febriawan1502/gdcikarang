@@ -9,9 +9,11 @@ use App\Models\MaterialMrwiSerialMove;
 use App\Models\MaterialMrwiStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\MrwiImport;
+use App\Models\Setting;
 
 class MaterialMrwiController extends Controller
 {
@@ -22,7 +24,7 @@ class MaterialMrwiController extends Controller
 
     public function getData(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $unitId = null;
         if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
             $unitId = $user->unit_id;
@@ -40,8 +42,8 @@ class MaterialMrwiController extends Controller
                     $searchValue = strtolower($request->search['value']);
                     $query->where(function ($q) use ($searchValue) {
                         $q->whereRaw('LOWER(nomor_mrwi) LIKE ?', ["%{$searchValue}%"])
-                          ->orWhereRaw('LOWER(sumber) LIKE ?', ["%{$searchValue}%"])
-                          ->orWhereRaw('LOWER(berdasarkan) LIKE ?', ["%{$searchValue}%"]);
+                            ->orWhereRaw('LOWER(sumber) LIKE ?', ["%{$searchValue}%"])
+                            ->orWhereRaw('LOWER(berdasarkan) LIKE ?', ["%{$searchValue}%"]);
                     });
                 }
 
@@ -92,7 +94,7 @@ class MaterialMrwiController extends Controller
         return view('material.mrwi-create');
     }
 
-    public function store(Request $request)
+    public function preview(Request $request)
     {
         $request->validate([
             'tanggal_masuk' => 'required|date',
@@ -148,21 +150,18 @@ class MaterialMrwiController extends Controller
             }
         }
 
-        $missing = array_diff($expectedHeaders, array_keys($headerIndexes));
-        if (!empty($missing)) {
-            return back()->withErrors([
-                'mrwi_file' => 'Header tidak sesuai template MRWI.',
-            ])->withInput();
-        }
+        $trafoBrands = json_decode(Setting::get('mrwi_brands_trafo', '[]'), true) ?? [];
+        $kubikelBrands = json_decode(Setting::get('mrwi_brands_kubikel', '[]'), true) ?? [];
 
         $items = [];
         foreach (array_slice($sheet, 1) as $index => $row) {
             $rowData = [];
             foreach ($expectedHeaders as $key) {
-                $colIndex = $headerIndexes[$key];
-                $rowData[$key] = $row[$colIndex] ?? null;
+                $colIndex = $headerIndexes[$key] ?? null;
+                $rowData[$key] = ($colIndex !== null) ? ($row[$colIndex] ?? null) : null;
             }
 
+            // Skip empty rows
             $isEmpty = true;
             foreach ($rowData as $val) {
                 if (trim((string) $val) !== '') {
@@ -174,32 +173,12 @@ class MaterialMrwiController extends Controller
                 continue;
             }
 
+            // Parsing without strict validation
             $rowNumber = $index + 2;
             $klasifikasi = (int) $rowData['klasifikasi'];
-            if ($klasifikasi === 7) {
-                return back()->withErrors([
-                    'mrwi_file' => "Klasifikasi 7 (Claim Asuransi) tidak didukung. Row: {$rowNumber}",
-                ])->withInput();
-            }
-            if ($klasifikasi < 1 || $klasifikasi > 7) {
-                return back()->withErrors([
-                    'mrwi_file' => "Klasifikasi tidak valid di row {$rowNumber}.",
-                ])->withInput();
-            }
-
             $qty = (int) $rowData['qty'];
-            if ($qty <= 0) {
-                return back()->withErrors([
-                    'mrwi_file' => "Qty tidak valid di row {$rowNumber}.",
-                ])->withInput();
-            }
-
             $serialNumber = trim((string) ($rowData['serial_number'] ?? ''));
-            if ($serialNumber === '') {
-                return back()->withErrors([
-                    'mrwi_file' => "Serial Number wajib diisi di row {$rowNumber}.",
-                ])->withInput();
-            }
+            $idPelanggan = trim((string) ($rowData['id_pelanggan'] ?? ''));
 
             $material = null;
             $noMaterial = trim((string) $rowData['no_material']);
@@ -207,61 +186,44 @@ class MaterialMrwiController extends Controller
 
             if ($noMaterial !== '') {
                 $candidates = [$noMaterial];
-
                 if (stripos($noMaterial, 'E+') !== false || stripos($noMaterial, 'e+') !== false) {
                     $asFloat = (float) $noMaterial;
-                    if ($asFloat > 0) {
-                        $candidates[] = sprintf('%.0f', $asFloat);
-                    }
+                    if ($asFloat > 0) $candidates[] = sprintf('%.0f', $asFloat);
                 }
-
                 $normalizedDigits = preg_replace('/\D+/', '', $noMaterial);
-                if ($normalizedDigits !== '' && $normalizedDigits !== $noMaterial) {
-                    $candidates[] = $normalizedDigits;
-                }
-
+                if ($normalizedDigits !== '' && $normalizedDigits !== $noMaterial) $candidates[] = $normalizedDigits;
                 $strippedZero = ltrim($normalizedDigits ?: $noMaterial, '0');
-                if ($strippedZero !== '' && !in_array($strippedZero, $candidates, true)) {
-                    $candidates[] = $strippedZero;
-                }
+                if ($strippedZero !== '' && !in_array($strippedZero, $candidates, true)) $candidates[] = $strippedZero;
 
                 foreach ($candidates as $code) {
-                    if ($code === '') {
-                        continue;
-                    }
+                    if ($code === '') continue;
                     $material = Material::where('material_code', $code)->first();
-                    if ($material) {
-                        break;
-                    }
-                }
-
-                if (!$material) {
-                    foreach ($candidates as $code) {
-                        if ($code === '') {
-                            continue;
-                        }
-                        $material = Material::where('material_code', 'like', '%' . $code)->first();
-                        if ($material) {
-                            break;
-                        }
-                    }
+                    if ($material) break;
+                    $material = Material::where('material_code', 'like', '%' . $code)->first();
+                    if ($material) break;
                 }
             }
 
             if (!$material && $namaMaterial !== '') {
                 $material = Material::whereRaw('LOWER(material_description) LIKE ?', ['%' . strtolower($namaMaterial) . '%'])->first();
             }
-            if (!$material) {
-                return back()->withErrors([
-                    'mrwi_file' => "Material belum terdaftar. Silahkan buat di daftar material dulu. (Row {$rowNumber}, Normalisasi: {$noMaterial})",
-                ])->withInput();
+
+            $currentName = $namaMaterial ?: ($material->material_description ?? '');
+            $normalizedName = strtolower($currentName);
+            $materialType = 'other';
+            if (str_contains($normalizedName, 'trafo')) {
+                $materialType = 'trafo';
+            } elseif (str_contains($normalizedName, 'cub') || str_contains($normalizedName, 'kubikel') || str_contains($normalizedName, 'tm k')) {
+                $materialType = 'kubikel';
             }
 
             $items[] = [
-                'material_id' => $material->id,
-                'no_material' => $noMaterial ?: $material->material_code,
-                'nama_material' => $namaMaterial ?: $material->material_description,
-                'qty' => $qty,
+                'row_number' => $rowNumber,
+                'material_id' => $material ? $material->id : null,
+                'no_material' => $noMaterial ?: ($material->material_code ?? ''),
+                'nama_material' => $currentName,
+                'material_type' => $materialType,
+                'qty' => $qty > 0 ? $qty : ($rowData['qty'] ?? ''),
                 'satuan' => trim((string) ($rowData['satuan'] ?? '')) ?: ($material->base_unit_of_measure ?? ''),
                 'serial_number' => $serialNumber,
                 'attb_limbah' => $rowData['attb_limbah'] ?? null,
@@ -269,17 +231,72 @@ class MaterialMrwiController extends Controller
                 'no_asset' => $rowData['no_asset'] ?? null,
                 'nama_pabrikan' => $rowData['nama_pabrikan'] ?? null,
                 'tahun_buat' => $rowData['tahun_buat'] ?? null,
-                'id_pelanggan' => $rowData['id_pelanggan'] ?? null,
-                'klasifikasi' => $klasifikasi,
+                'id_pelanggan' => $idPelanggan,
+                'klasifikasi' => $klasifikasi > 0 ? $klasifikasi : ($rowData['klasifikasi'] ?? ''),
                 'no_polis' => $rowData['no_polis'] ?? null,
             ];
         }
 
-        if (empty($items)) {
-            return back()->withErrors(['mrwi_file' => 'Tidak ada baris data yang valid.'])->withInput();
+        $requestData = $request->except(['mrwi_file', '_token']);
+        return view('material.mrwi-create', compact('items', 'requestData', 'trafoBrands', 'kubikelBrands'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'tanggal_masuk' => 'required|date',
+            'sumber' => 'required|string|max:255',
+            'items' => 'required|array|min:1',
+        ]);
+
+        $errors = [];
+        $validatedItems = [];
+
+        foreach ($request->items as $index => $item) {
+            $rowNum = $index + 1;
+
+            $materialId = $item['material_id'] ?? null;
+            if (!$materialId || !Material::find($materialId)) {
+                $errors[] = "Baris #{$rowNum}: Material tidak valid.";
+            }
+
+            $mandatory = ['qty', 'satuan', 'serial_number', 'klasifikasi', 'id_pelanggan'];
+            foreach ($mandatory as $field) {
+                if (empty($item[$field])) {
+                    $errors[] = "Baris #{$rowNum}: Kolom '$field' wajib diisi.";
+                }
+            }
+
+            $klasifikasi = (int) ($item['klasifikasi'] ?? 0);
+            if ($klasifikasi < 1 || $klasifikasi > 6) {
+                $errors[] = "Baris #{$rowNum}: Klasifikasi tidak valid (1-6).";
+            }
+            if ((int) ($item['qty'] ?? 0) <= 0) {
+                $errors[] = "Baris #{$rowNum}: Qty harus > 0.";
+            }
+
+            $serialNumber = trim((string)($item['serial_number'] ?? ''));
+            if ($serialNumber && MaterialMrwiDetail::where('serial_number', $serialNumber)->exists()) {
+                $errors[] = "Baris #{$rowNum}: Serial Number '$serialNumber' (PLN) sudah terdaftar.";
+            }
+
+            $idPelanggan = trim((string)($item['id_pelanggan'] ?? ''));
+            if ($idPelanggan && MaterialMrwiDetail::where('id_pelanggan', $idPelanggan)->exists()) {
+                $errors[] = "Baris #{$rowNum}: ID Pelanggan '$idPelanggan' (Pabrikan) sudah terdaftar.";
+            }
+
+            $validatedItems[] = $item;
         }
 
-        $user = auth()->user();
+        if (!empty($errors)) {
+            return view('material.mrwi-create', [
+                'items' => $request->items,
+                'requestData' => $request->except(['items', '_token']),
+                'validationErrors' => $errors
+            ]);
+        }
+
+        $user = Auth::user();
         $unitId = $user->unit_id ?? null;
 
         DB::beginTransaction();
@@ -296,16 +313,16 @@ class MaterialMrwiController extends Controller
                 'created_by' => $user->id ?? null,
             ]);
 
-            foreach ($items as $item) {
+            foreach ($validatedItems as $item) {
                 $material = Material::find($item['material_id']);
                 $detail = MaterialMrwiDetail::create([
                     'material_mrwi_id' => $mrwi->id,
                     'material_id' => $item['material_id'],
-                    'no_material' => $item['no_material'] ?? ($material->material_code ?? null),
-                    'nama_material' => $item['nama_material'] ?? ($material->material_description ?? ''),
+                    'no_material' => $item['no_material'] ?? $material->material_code,
+                    'nama_material' => $item['nama_material'] ?? $material->material_description,
                     'qty' => $item['qty'],
-                    'satuan' => $item['satuan'] ?? ($material->base_unit_of_measure ?? ''),
-                    'serial_number' => $item['serial_number'] ?? null,
+                    'satuan' => $item['satuan'],
+                    'serial_number' => $item['serial_number'],
                     'attb_limbah' => $item['attb_limbah'] ?? null,
                     'status_anggaran' => $item['status_anggaran'] ?? null,
                     'no_asset' => $item['no_asset'] ?? null,
@@ -403,22 +420,22 @@ class MaterialMrwiController extends Controller
             'jenis' => 'required|string',
         ]);
 
-        $bucket = match ($request->jenis) {
-            'Garansi' => 'garansi',
-            'Perbaikan' => 'perbaikan',
-            'Rusak' => 'rusak',
-            'Standby' => 'standby',
-            default => null,
+        $buckets = match ($request->jenis) {
+            'Garansi' => ['garansi'],
+            'Perbaikan' => ['perbaikan', 'rusak'],
+            'Rusak' => ['rusak'],
+            'Standby' => ['standby'],
+            default => [],
         };
 
-        if (!$bucket) {
+        if (empty($buckets)) {
             return response()->json([
                 'serials' => [],
                 'available_count' => 0,
             ]);
         }
 
-        $user = auth()->user();
+        $user = Auth::user();
         $unitId = $user->unit_id ?? null;
 
         $latestIds = MaterialMrwiSerialMove::selectRaw('MAX(id) as id')
@@ -429,7 +446,7 @@ class MaterialMrwiController extends Controller
             ->groupBy('serial_number');
 
         $moves = MaterialMrwiSerialMove::whereIn('id', $latestIds)
-            ->where('status_bucket', $bucket)
+            ->whereIn('status_bucket', $buckets)
             ->whereIn('jenis', ['masuk', 'kembali'])
             ->orderBy('serial_number')
             ->get();
@@ -449,15 +466,15 @@ class MaterialMrwiController extends Controller
             'jenis' => 'required|string',
         ]);
 
-        $bucket = match ($request->jenis) {
-            'Garansi' => 'garansi',
-            'Perbaikan' => 'perbaikan',
-            'Rusak' => 'rusak',
-            'Standby' => 'standby',
-            default => null,
+        $buckets = match ($request->jenis) {
+            'Garansi' => ['garansi'],
+            'Perbaikan' => ['perbaikan', 'rusak'],
+            'Rusak' => ['rusak'],
+            'Standby' => ['standby'],
+            default => [],
         };
 
-        if (!$bucket) {
+        if (empty($buckets)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Jenis surat jalan tidak didukung.',
@@ -465,7 +482,7 @@ class MaterialMrwiController extends Controller
         }
 
         $serial = trim((string) $request->serial);
-        $user = auth()->user();
+        $user = Auth::user();
         $unitId = $user->unit_id ?? null;
 
         $latest = MaterialMrwiSerialMove::where('serial_number', $serial)
@@ -475,14 +492,30 @@ class MaterialMrwiController extends Controller
             ->orderByDesc('id')
             ->first();
 
+        // Fallback: Check if it's an ID Pelanggan (Manufacturer Serial)
+        if (!$latest) {
+            $mappedSerial = \App\Models\MaterialMrwiDetail::where('id_pelanggan', $serial)
+                ->value('serial_number');
+
+            if ($mappedSerial) {
+                $serial = $mappedSerial; // Use the mapped serial from now on
+                $latest = MaterialMrwiSerialMove::where('serial_number', $serial)
+                    ->when($unitId, function ($query) use ($unitId) {
+                        $query->where('unit_id', $unitId);
+                    })
+                    ->orderByDesc('id')
+                    ->first();
+            }
+        }
+
         if (!$latest) {
             return response()->json([
                 'success' => false,
-                'message' => 'Serial number tidak ditemukan.',
+                'message' => 'Serial number atau No Seri Pabrikan tidak ditemukan.',
             ], 404);
         }
 
-        if (!in_array($latest->jenis, ['masuk', 'kembali'], true) || $latest->status_bucket !== $bucket) {
+        if (!in_array($latest->jenis, ['masuk', 'kembali'], true) || !in_array($latest->status_bucket, $buckets)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Serial number tidak tersedia pada stok yang dipilih.',
