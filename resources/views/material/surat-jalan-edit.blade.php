@@ -7,178 +7,178 @@
 @section('content')
     <!-- <pre>{{ json_encode($suratJalan->details, JSON_PRETTY_PRINT) }}</pre> -->
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Header with Back Button -->
-        <div class="mb-6 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <a href="{{ route('surat-jalan.index') }}"
-                    class="p-2 bg-white rounded-xl shadow-sm border border-gray-200 text-gray-600 hover:text-teal-600 hover:border-teal-200 transition-all">
-                    <i class="fas fa-arrow-left text-lg"></i>
-                </a>
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-800">Edit Surat Jalan</h1>
-                    <p class="text-gray-500 text-sm">Perbarui data dan detail pengiriman material.</p>
-                </div>
-            </div>
-            <div class="hidden md:block">
-                <span class="px-4 py-2 rounded-lg bg-teal-50 text-teal-700 text-sm font-semibold border border-teal-100">
+    <div class="space-y-6">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">Edit Surat Jalan</h2>
+                <p class="text-gray-500 text-sm mt-1">Perbarui data dan detail pengiriman material.</p>
+                <span
+                    class="inline-flex mt-3 px-4 py-2 rounded-lg bg-teal-50 text-teal-700 text-sm font-semibold border border-teal-100">
                     {{ $suratJalan->nomor_surat }}
                 </span>
             </div>
+            <a href="{{ route('surat-jalan.index') }}"
+                class="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors">
+                <i class="fas fa-arrow-left"></i>
+                <span>Kembali</span>
+            </a>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <!-- Form Content -->
-            <div class="p-8 md:p-10">
-                <form action="{{ route('surat-jalan.update', $suratJalan->id) }}" method="POST" id="suratJalanForm"
-                    class="space-y-12">
-                    @csrf
-                    @method('PUT')
+        <!-- Form Container -->
+        <div class="card border border-gray-100 shadow-xl shadow-gray-200/50">
+            <form action="{{ route('surat-jalan.update', $suratJalan->id) }}" method="POST" id="suratJalanForm">
+                @csrf
+                @method('PUT')
 
-                    <!-- Section 1: Informasi Dasar -->
-                    <div>
-                        <h3 class="flex items-center text-lg font-bold text-gray-800 mb-6 pb-2 border-b border-gray-100">
-                            <i class="fas fa-file-alt text-teal-600 mr-3 text-xl"></i>
-                            Informasi Surat Jalan
-                        </h3>
+                    <!-- Section: Informasi Surat Jalan -->
+                    <div class="p-6 border-b border-gray-100">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-linear-to-br from-teal-400 to-teal-500 flex items-center justify-center text-white">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-800">Informasi Surat Jalan</h3>
+                        </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <!-- Nomor Surat (Readonly) -->
                             <div>
-                                <label for="nomor_surat" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <label for="nomor_surat" class="form-label">
                                     Nomor Surat Jalan <span class="text-red-500">*</span>
                                 </label>
                                 <input type="text" id="nomor_surat" name="nomor_surat"
                                     value="{{ $suratJalan->nomor_surat }}" readonly
-                                    class="w-full rounded-lg bg-gray-50 border-gray-300 text-gray-500 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 cursor-not-allowed">
+                                    class="form-input bg-gray-50 text-gray-500 cursor-not-allowed">
                             </div>
 
                             <!-- Jenis Surat -->
                             <div>
-                                <label for="jenis_surat_jalan" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <label for="jenis_surat_jalan" class="form-label">
                                     Jenis Surat Jalan <span class="text-red-500">*</span>
                                 </label>
                                 <input type="text" value="{{ $suratJalan->jenis_surat_jalan }}" readonly
-                                    class="w-full rounded-lg bg-gray-50 border-gray-300 text-gray-500 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 cursor-not-allowed">
+                                    class="form-input bg-gray-50 text-gray-500 cursor-not-allowed">
                                 <input type="hidden" name="jenis_surat_jalan" value="{{ $suratJalan->jenis_surat_jalan }}">
                             </div>
 
                             <!-- Tanggal -->
                             <div>
-                                <label for="tanggal" class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Tanggal <span class="text-red-500">*</span>
+                                <label for="tanggal" class="form-label">
+                                    Tanggal Surat Jalan <span class="text-red-500">*</span>
                                 </label>
                                 <input type="date" id="tanggal" name="tanggal"
                                     value="{{ old('tanggal', \Carbon\Carbon::parse($suratJalan->tanggal)->format('Y-m-d')) }}"
-                                    class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                                    class="form-input">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Section 2: Informasi Penerima -->
-                    <div>
-                        <h3 class="flex items-center text-lg font-bold text-gray-800 mb-6 pb-2 border-b border-gray-100">
-                            <i class="fas fa-user-check text-blue-600 mr-3 text-xl"></i>
-                            Informasi Penerima & Tujuan
-                        </h3>
+                    <!-- Section: Informasi Penerima -->
+                    <div class="p-6 border-b border-gray-100">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-linear-to-br from-blue-400 to-blue-500 flex items-center justify-center text-white">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-800">Informasi Penerima</h3>
+                        </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <!-- Kepada -->
                             <div>
-                                <label for="kepada" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <label for="kepada" class="form-label">
                                     Diberikan Kepada <span class="text-red-500">*</span>
                                 </label>
                                 <input type="text" id="kepada" name="kepada" value="{{ $suratJalan->kepada }}"
-                                    required placeholder="Vendor / Unit PLN"
-                                    class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">
+                                    required placeholder="Vendor / Unit PLN" class="form-input">
                             </div>
 
                             <!-- Berdasarkan -->
                             <div class="md:row-span-2">
-                                <label for="berdasarkan" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <label for="berdasarkan" class="form-label">
                                     Berdasarkan <span class="text-red-500">*</span>
                                 </label>
-                                <textarea id="berdasarkan" name="berdasarkan" rows="5" required placeholder="Dasar permintaan / referensi..."
-                                    class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">{{ $suratJalan->berdasarkan }}</textarea>
+                                <textarea id="berdasarkan" name="berdasarkan" rows="5" required
+                                    placeholder="Dasar permintaan / referensi..." class="form-input">{{ $suratJalan->berdasarkan }}</textarea>
                             </div>
 
                             <!-- Keterangan -->
                             <div>
-                                <label for="keterangan" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <label for="keterangan" class="form-label">
                                     Untuk Pekerjaan
                                 </label>
                                 <input type="text" id="keterangan" name="keterangan"
                                     value="{{ $suratJalan->keterangan }}" placeholder="Deskripsi pekerjaan..."
-                                    class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">
+                                    class="form-input">
                             </div>
 
                             <!-- Nama Penerima -->
                             <div>
-                                <label for="nama_penerima" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <label for="nama_penerima" class="form-label">
                                     Nama Penerima
                                 </label>
                                 <input type="text" id="nama_penerima" name="nama_penerima"
                                     value="{{ $suratJalan->nama_penerima }}" placeholder="Nama Penerima"
-                                    class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">
+                                    class="form-input">
                             </div>
 
                             <!-- Nomor Slip -->
                             <div>
-                                <label for="nomor_slip" class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Nomor Slip SAP
+                                <label for="nomor_slip" class="form-label">
+                                    Nomor Slip
                                 </label>
                                 <input type="text" id="nomor_slip" name="nomor_slip"
-                                    value="{{ $suratJalan->nomor_slip }}" placeholder="Contoh: TUG8 / TUG9"
-                                    class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">
+                                    value="{{ $suratJalan->nomor_slip }}" placeholder="No SAP : TUG8 / TUG9"
+                                    class="form-input">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Section 3: Daftar Material -->
-                    <div>
-                        <div class="flex items-center justify-between mb-6 pb-3 border-b border-gray-100">
-                            <h3 class="flex items-center text-lg font-bold text-gray-800">
-                                <i class="fas fa-boxes text-indigo-600 mr-3 text-xl"></i>
-                                Daftar Material
-                            </h3>
-                            <button type="button" onclick="addRow()"
-                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 shadow-lg shadow-teal-500/30 transition-all">
-                                <i class="fas fa-plus mr-2"></i> Tambah Material
-                            </button>
+                    <!-- Section: Daftar Material -->
+                    <div class="p-6 border-b border-gray-100">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-linear-to-br from-purple-400 to-purple-500 flex items-center justify-center text-white">
+                                <i class="fas fa-boxes"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-800">Daftar Material</h3>
                         </div>
 
-                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200" id="materialTable">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th scope="col"
-                                                class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-12">
-                                                No</th>
-                                            <th scope="col"
-                                                class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                                Material / Barang</th>
-                                            <th scope="col"
-                                                class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider col-serial">
-                                                Serial Number</th>
-                                            <th scope="col"
-                                                class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-24">
-                                                Stock</th>
-                                            <th scope="col"
-                                                class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-24">
-                                                Qty</th>
-                                            <th scope="col"
-                                                class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-24">
-                                                Satuan</th>
-                                            <th scope="col"
-                                                class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                                Keterangan</th>
-                                            <th scope="col"
-                                                class="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-16">
-                                                Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
+                        <div class="rounded-xl border border-gray-100">
+                            <table class="table-purity w-full" id="materialTable">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-12">
+                                            No
+                                        </th>
+                                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                            Material / Barang
+                                        </th>
+                                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider col-serial">
+                                            Serial Number
+                                        </th>
+                                        <th
+                                            class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-[140px] col-stock">
+                                            Stock
+                                        </th>
+                                        <th
+                                            class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-[140px]">
+                                            Qty
+                                        </th>
+                                        <th
+                                            class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-[100px]">
+                                            Satuan
+                                        </th>
+                                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                            Keterangan
+                                        </th>
+                                        <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-16">
+                                            Aksi
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100 bg-white">
                                         @foreach ($suratJalan->details as $index => $detail)
                                             <tr>
                                                 <td class="px-4 py-3 text-sm text-gray-500 text-center">
@@ -323,70 +323,80 @@
                                         @endforeach
                                     </tbody>
                                 </table>
-                            </div>
+                        </div>
+
+                        <div class="mt-4 flex justify-end">
+                            <button type="button"
+                                class="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center gap-2"
+                                onclick="addRow()">
+                                <i class="fas fa-plus"></i>
+                                <span>Tambah Material</span>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Section 4: Keterangan Tambahan -->
-                    <div>
-                        <h3 class="flex items-center text-lg font-bold text-gray-800 mb-6 pb-2 border-b border-gray-100">
-                            <i class="fas fa-sticky-note text-yellow-600 mr-3 text-xl"></i>
-                            Keterangan Tambahan
-                        </h3>
+                    <!-- Section: Keterangan Tambahan -->
+                    <div class="p-6 border-b border-gray-100">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-linear-to-br from-yellow-400 to-yellow-500 flex items-center justify-center text-white">
+                                <i class="fas fa-sticky-note"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-800">Keterangan Tambahan</h3>
+                        </div>
 
                         <div>
-                            <textarea id="keterangan" name="keterangan" rows="3" placeholder="Catatan tambahan (opsional)..."
-                                class="w-full rounded-lg border-gray-300 px-4 py-3 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">{{ $suratJalan->keterangan }}</textarea>
+                            <textarea id="keterangan" name="keterangan" rows="3"
+                                placeholder="Catatan tambahan (opsional)..." class="form-input">{{ $suratJalan->keterangan }}</textarea>
                         </div>
                     </div>
 
-                    <!-- Section 5: Informasi Kendaraan -->
-                    <div>
-                        <h3 class="flex items-center text-lg font-bold text-gray-800 mb-6 pb-2 border-b border-gray-100">
-                            <i class="fas fa-truck text-slate-600 mr-3 text-xl"></i>
-                            Informasi Kendaraan & Pengangkut
-                        </h3>
+                    <!-- Section: Informasi Kendaraan -->
+                    <div class="p-6 border-b border-gray-100">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-linear-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-800">Informasi Kendaraan</h3>
+                        </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             <!-- Kendaraan -->
                             <div>
-                                <label for="kendaraan"
-                                    class="block text-sm font-medium text-gray-700 mb-1">Kendaraan</label>
+                                <label for="kendaraan" class="form-label">Kendaraan</label>
                                 <input type="text" id="kendaraan" name="kendaraan"
-                                    value="{{ $suratJalan->kendaraan }}" placeholder="Jenis/Merk"
-                                    class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">
+                                    value="{{ $suratJalan->kendaraan }}" placeholder="Jenis/Merk kendaraan"
+                                    class="form-input">
                             </div>
 
                             <!-- No Polisi -->
                             <div>
-                                <label for="no_polisi" class="block text-sm font-medium text-gray-700 mb-1">No.
-                                    Polisi</label>
+                                <label for="no_polisi" class="form-label">No. Polisi</label>
                                 <input type="text" id="no_polisi" name="no_polisi"
-                                    value="{{ $suratJalan->no_polisi }}" placeholder="Plat Nomor"
-                                    class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400 uppercase">
+                                    value="{{ $suratJalan->no_polisi }}" placeholder="Nomor polisi kendaraan"
+                                    class="form-input uppercase">
                             </div>
 
                             <!-- Pengemudi -->
                             <div>
-                                <label for="pengemudi"
-                                    class="block text-sm font-medium text-gray-700 mb-1">Pengemudi</label>
+                                <label for="pengemudi" class="form-label">Pengemudi</label>
                                 <input type="text" id="pengemudi" name="pengemudi"
-                                    value="{{ $suratJalan->pengemudi }}" placeholder="Nama Supir"
-                                    class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">
+                                    value="{{ $suratJalan->pengemudi }}" placeholder="Nama pengemudi"
+                                    class="form-input">
                             </div>
 
                             <!-- Security -->
                             <div>
-                                <label for="security"
-                                    class="block text-sm font-medium text-gray-700 mb-1">Security</label>
+                                <label for="security" class="form-label">Security</label>
                                 <input type="text" id="security" name="security"
-                                    value="{{ $suratJalan->security }}" placeholder="Petugas Jaga"
-                                    class="w-full rounded-lg border-gray-300 px-4 py-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500 placeholder-gray-400">
+                                    value="{{ $suratJalan->security }}" placeholder="Nama security"
+                                    class="form-input">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Section 6: Foto Dokumentasi -->
+                    <!-- Section: Foto Dokumentasi -->
                     @if ($suratJalan->foto_penerima)
                         @php
                             $fotoPath = $suratJalan->foto_penerima;
@@ -395,12 +405,14 @@
                                 : ltrim($fotoPath, '/');
                             $fotoUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($normalizedPath);
                         @endphp
-                        <div>
-                            <h3
-                                class="flex items-center text-lg font-bold text-gray-800 mb-6 pb-2 border-b border-gray-100">
-                                <i class="fas fa-camera text-purple-600 mr-3 text-xl"></i>
-                                Foto Dokumentasi
-                            </h3>
+                        <div class="p-6 border-b border-gray-100">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-linear-to-br from-purple-400 to-purple-500 flex items-center justify-center text-white">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-800">Foto Dokumentasi</h3>
+                            </div>
 
                             <div
                                 class="bg-gray-50 rounded-xl border border-dashed border-gray-300 p-6 flex flex-col items-center justify-center">
@@ -422,42 +434,39 @@
                     @endif
 
                     <!-- Action Buttons -->
-                    <div
-                        class="mt-10 pt-6 border-t border-gray-100 flex flex-col-reverse md:flex-row md:items-center justify-between gap-4">
+                    <div class="p-6 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-4">
                         <a href="{{ route('surat-jalan.index') }}"
-                            class="w-full md:w-auto px-6 py-3 bg-white border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 hover:text-gray-900 shadow-sm transition-all text-center">
-                            <i class="fas fa-arrow-left mr-2"></i> Kembali
+                            class="w-full sm:w-auto px-6 py-3 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors flex items-center justify-center gap-2">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Kembali</span>
                         </a>
 
-                        <div class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-                            <button type="reset"
-                                class="w-full md:w-auto px-6 py-3 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl font-medium hover:bg-amber-100 transition-all shadow-sm">
-                                <i class="fas fa-undo mr-2"></i> Reset
-                            </button>
-
+                        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                             @if ($suratJalan->status === 'BUTUH_PERSETUJUAN')
                                 <button type="button" onclick="approveSuratJalan({{ $suratJalan->id }})"
-                                    class="w-full md:w-auto px-6 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:from-blue-700 hover:to-blue-800 transition-all transform hover:-translate-y-0.5">
-                                    <i class="fas fa-check-circle mr-2"></i> Approve Surat Jalan
+                                    class="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Approve Surat Jalan</span>
                                 </button>
                             @endif
 
                             <button type="submit" name="action" value="update"
-                                class="w-full md:w-auto px-6 py-3 bg-linear-to-r from-teal-600 to-teal-700 text-white rounded-xl font-bold shadow-lg shadow-teal-500/30 hover:shadow-teal-500/50 hover:from-teal-700 hover:to-teal-800 transition-all transform hover:-translate-y-0.5">
-                                <i class="fas fa-save mr-2"></i> Simpan Perubahan
+                                class="flex-1 sm:flex-none btn-teal px-6 py-3 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all duration-300 flex items-center justify-center gap-2">
+                                <i class="fas fa-save"></i>
+                                <span>Simpan Perubahan</span>
                             </button>
 
                             @if ($suratJalan->status === 'APPROVED')
                                 <button type="submit" name="action" value="selesai"
-                                    class="w-full md:w-auto px-6 py-3 bg-linear-to-r from-green-600 to-green-700 text-white rounded-xl font-bold shadow-lg shadow-green-500/30 hover:shadow-green-500/50 hover:from-green-700 hover:to-green-800 transition-all transform hover:-translate-y-0.5">
-                                    <i class="fas fa-check-double mr-2"></i> Tandai Selesai
+                                    class="flex-1 sm:flex-none btn-green px-6 py-3 rounded-xl flex items-center justify-center gap-2">
+                                    <i class="fas fa-check-double"></i>
+                                    <span>Tandai Selesai</span>
                                 </button>
                             @endif
                         </div>
                     </div>
 
-                </form>
-            </div>
+            </form>
         </div>
     </div>
 @endsection
@@ -465,73 +474,43 @@
 @push('styles')
     <style>
         .table-responsive {
-            overflow-x: auto;
+            overflow: visible !important;
         }
 
-        .btn-sm {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.875rem;
+        .table-responsive table {
+            overflow: visible !important;
         }
 
-        .form-control-sm {
-            height: calc(1.5em + 0.5rem + 2px);
-            padding: 0.25rem 0.5rem;
-            font-size: 0.875rem;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .text-right {
-            text-align: right;
-        }
-
-        #materialTable tbody tr:hover {
-            background-color: #f8f9fa;
-        }
-
-        .invalid-feedback {
-            display: block;
-        }
-
-        /* Autocomplete Styles */
         .autocomplete-container {
             position: relative;
         }
 
-        .autocomplete-suggestions {
+        .autocomplete-results {
             position: absolute;
+            width: max-content;
+            min-width: 100%;
             top: 100%;
             left: 0;
-            right: 0;
             background: white;
             border: 1px solid #ddd;
             border-top: none;
-            max-height: 200px;
+            max-height: 400px;
             overflow-y: auto;
-            z-index: 9999;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 9999 !important;
             display: none;
-        }
-
-        /* Ensure parent td has relative positioning */
-        td {
-            position: relative;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 0 0 0.5rem 0.5rem;
         }
 
         .autocomplete-item {
-            padding: 8px 12px;
+            padding: 10px;
             cursor: pointer;
             border-bottom: 1px solid #eee;
+            font-size: 0.875rem;
         }
 
         .autocomplete-item:hover {
             background-color: #f8f9fa;
-        }
-
-        .autocomplete-item:last-child {
-            border-bottom: none;
         }
     </style>
 @endpush
@@ -1125,18 +1104,3 @@
     </script>
 @endpush
 
-@push('styles')
-    <style>
-        .table-responsive {
-            overflow: visible !important;
-        }
-
-        .table-responsive table {
-            overflow: visible !important;
-        }
-
-        .autocomplete-results {
-            z-index: 9999 !important;
-        }
-    </style>
-@endpush
