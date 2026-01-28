@@ -173,7 +173,12 @@
                                                 @endif
                                             @else
                                                 {{-- yang normal tetap pakai master/autocomplete --}}
-                                                @if($suratJalan->status === 'APPROVED')
+                                                @if(in_array($suratJalan->jenis_surat_jalan, ['Garansi', 'Perbaikan', 'Rusak', 'Standby']))
+                                                    <input type="text" value="{{ $detail->material->material_code ?? '' }} - {{ $detail->material->material_description ?? '' }}" readonly
+                                                        class="block w-full rounded-md bg-gray-50 border-gray-300 text-gray-500 shadow-sm sm:text-sm mrwi-material-display">
+                                                    <input type="hidden" name="materials[{{ $index }}][material_id]" value="{{ $detail->material_id }}">
+                                                    <input type="hidden" name="materials[{{ $index }}][material_search]" value="{{ $detail->material->material_code ?? '' }} - {{ $detail->material->material_description ?? '' }}">
+                                                @elseif($suratJalan->status === 'APPROVED')
                                                     <input type="text" value="{{ $detail->material->material_code ?? '' }} - {{ $detail->material->material_description ?? '' }}" readonly
                                                         class="block w-full rounded-md bg-gray-50 border-gray-300 text-gray-500 shadow-sm sm:text-sm">
                                                     <input type="hidden" name="materials[{{ $index }}][material_id]" value="{{ $detail->material_id }}">
@@ -188,26 +193,24 @@
                                                         <input type="hidden" name="materials[{{ $index }}][material_id]" value="{{ $detail->material_id }}" class="material-id-input">
                                                         <div class="autocomplete-results absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto hidden"></div>
                                                     </div>
-                                        @endif
-                                    @endif
+                                                @endif
+                                            @endif
                                 </td>
 
                                 {{-- Kolom Serial --}}
                                 <td class="px-4 py-3 col-serial">
-                                    @if(in_array($suratJalan->jenis_surat_jalan, ['Garansi', 'Perbaikan', 'Rusak']))
+                                    @if(in_array($suratJalan->jenis_surat_jalan, ['Garansi', 'Perbaikan', 'Rusak', 'Standby']))
                                         @php
-                                            $serials = $detail->serial_numbers ?? [];
+                                            $serial = $detail->serial_numbers[0] ?? '';
                                         @endphp
                                         @if($suratJalan->status === 'APPROVED')
-                                            <input type="text" value="{{ implode(', ', $serials) }}" readonly
+                                            <input type="text" value="{{ $serial }}" readonly
                                                 class="block w-full rounded-md bg-gray-50 border-gray-300 text-gray-500 shadow-sm sm:text-sm">
-                                            @foreach($serials as $sn)
-                                                <input type="hidden" name="materials[{{ $index }}][serials][]" value="{{ $sn }}">
-                                            @endforeach
                                         @else
-                                            <select name="materials[{{ $index }}][serials][]" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm mrwi-serials"
-                                                multiple size="3" data-selected='@json($serials)'></select>
-                                            <p class="text-xs text-gray-400 mt-1 mrwi-serial-hint hidden">Pilih serial satu per satu.</p>
+                                            <input type="text" name="materials[{{ $index }}][serial_number]" value="{{ $serial }}"
+                                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm mrwi-serial-input"
+                                                placeholder="Serial Number" required>
+                                            <p class="text-xs text-gray-400 mt-1 mrwi-serial-hint hidden">Tekan Enter untuk ambil detail material.</p>
                                         @endif
                                     @else
                                         <input type="text" value="-" readonly class="block w-full rounded-md bg-gray-50 border-gray-300 text-center text-gray-500 shadow-sm sm:text-sm">
@@ -217,17 +220,19 @@
                                 {{-- Kolom Stock --}}
                                 <td class="px-4 py-3">
                                     @if(in_array($suratJalan->jenis_surat_jalan, ['Manual', 'Peminjaman']))
-                                                <input type="text" value="-" readonly class="block w-full rounded-md bg-gray-50 border-gray-300 text-center text-gray-500 shadow-sm sm:text-sm">
-                                            @else
-                                                <input type="number" name="materials[{{ $index }}][stock]" value="{{ $detail->material->unrestricted_use_stock ?? 0 }}" readonly
-                                                    class="block w-full rounded-md bg-gray-50 border-gray-300 text-center text-gray-500 shadow-sm sm:text-sm font-mono">
-                                            @endif
+                                        <input type="text" value="-" readonly class="block w-full rounded-md bg-gray-50 border-gray-300 text-center text-gray-500 shadow-sm sm:text-sm">
+                                    @elseif(in_array($suratJalan->jenis_surat_jalan, ['Garansi', 'Perbaikan', 'Rusak', 'Standby']))
+                                        <input type="text" value="-" readonly class="block w-full rounded-md bg-gray-50 border-gray-300 text-center text-gray-500 shadow-sm sm:text-sm">
+                                    @else
+                                        <input type="number" name="materials[{{ $index }}][stock]" value="{{ $detail->material->unrestricted_use_stock ?? 0 }}" readonly
+                                            class="block w-full rounded-md bg-gray-50 border-gray-300 text-center text-gray-500 shadow-sm sm:text-sm font-mono">
+                                    @endif
                                         </td>
 
                                         {{-- Kolom Qty --}}
                                         <td class="px-4 py-3">
                                             <input type="number" name="materials[{{ $index }}][quantity]" value="{{ $detail->quantity }}" min="1" required
-                                                {{ ($suratJalan->status === 'APPROVED' || in_array($suratJalan->jenis_surat_jalan, ['Garansi', 'Perbaikan', 'Rusak'])) ? 'readonly' : '' }}
+                                                {{ ($suratJalan->status === 'APPROVED' || in_array($suratJalan->jenis_surat_jalan, ['Garansi', 'Perbaikan', 'Rusak', 'Standby'])) ? 'readonly' : '' }}
                                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm text-center font-bold {{ $suratJalan->status === 'APPROVED' ? 'bg-gray-50 text-gray-500' : 'text-gray-900' }}">
                                         </td>
 
@@ -475,7 +480,7 @@ function addRow() {
 
     const isManual = ['Manual', 'Peminjaman'].includes(JENIS_SURAT);
     const isNonStock = ['Manual', 'Peminjaman'].includes(JENIS_SURAT);
-    const isMrwi = ['Garansi', 'Perbaikan', 'Rusak'].includes(JENIS_SURAT);
+    const isMrwi = ['Garansi', 'Perbaikan', 'Rusak', 'Standby'].includes(JENIS_SURAT);
 
     const tr = document.createElement('tr');
 
@@ -515,16 +520,17 @@ function addRow() {
             <td class="px-4 py-3">
                 <div class="relative">
                     <input type="text" name="materials[${index}][material_search]"
-                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm material-autocomplete placeholder-gray-400"
-                           autocomplete="off" required placeholder="Cari material...">
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm ${isMrwi ? 'mrwi-material-display bg-gray-50' : 'material-autocomplete'} placeholder-gray-400"
+                           autocomplete="off" required placeholder="${isMrwi ? 'Otomatis dari serial' : 'Cari material...'}" ${isMrwi ? 'readonly' : ''}>
                     <input type="hidden" name="materials[${index}][material_id]"
                            class="material-id">
                     <div class="autocomplete-results absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto hidden"></div>
                 </div>
             </td>
             <td class="px-4 py-3 col-serial" style="${isMrwi ? '' : 'display:none;'}">
-                <select name="materials[${index}][serials][]" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm mrwi-serials" multiple size="3" disabled></select>
-                <p class="text-xs text-gray-400 mt-1 mrwi-serial-hint hidden">Pilih serial satu per satu.</p>
+                <input type="text" name="materials[${index}][serial_number]" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm mrwi-serial-input"
+                    placeholder="Serial Number" ${isMrwi ? 'required' : ''}>
+                <p class="text-xs text-gray-400 mt-1 mrwi-serial-hint hidden">Tekan Enter untuk ambil detail material.</p>
             </td>
             <td class="px-4 py-3" style="${isNonStock ? 'display:none;' : ''}">
                 <input type="number" name="materials[${index}][stock]"
@@ -551,8 +557,14 @@ function addRow() {
 
     tbody.appendChild(tr);
 
-    if (!isManual) {
+    if (!isManual && !isMrwi) {
         initializeAutocomplete(tr.querySelector('.material-autocomplete'));
+    }
+    if (isMrwi) {
+        const serialInput = tr.querySelector('.mrwi-serial-input');
+        if (serialInput) {
+            attachSerialHandler(serialInput);
+        }
     }
     toggleManualModeEdit();
 }
@@ -580,7 +592,6 @@ function initializeAutocomplete(input) {
     const hiddenInput = input.closest('tr').querySelector('.material-id-input, .material-id');
     const satuanInput = input.closest('tr').querySelector('input[name*="[satuan]"]');
     const stockInput = input.closest('tr').querySelector('input[name*="[stock]"]');
-    const serialSelect = input.closest('tr').querySelector('.mrwi-serials');
 
     // 🧠 Reset ID jika user mengetik manual
     input.addEventListener('input', function () {
@@ -624,10 +635,6 @@ function initializeAutocomplete(input) {
                                 stockInput.value = '';
                             }
 
-                            if (isMrwiJenis(JENIS_SURAT) && serialSelect) {
-                                loadSerialOptions(input.closest('tr'), material.id, JENIS_SURAT);
-                            }
-
                             resultsDiv.style.display = 'none';
                             input.style.borderColor = ''; // reset warna
                             input.style.backgroundColor = '';
@@ -666,7 +673,7 @@ function initializeAutocomplete(input) {
 function validateStockQuantity(quantityInput, showAlert = true) {
 
     // 🔕 SKIP VALIDASI STOK
-    if (['Manual', 'Peminjaman'].includes(JENIS_SURAT)) {
+    if (['Manual', 'Peminjaman'].includes(JENIS_SURAT) || isMrwiJenis(JENIS_SURAT)) {
         return true;
     }
 
@@ -744,73 +751,106 @@ function toggleManualModeEdit() {
 }
 
 function isMrwiJenis(jenis) {
-    return ['Garansi', 'Perbaikan', 'Rusak'].includes(jenis);
+    return ['Garansi', 'Perbaikan', 'Rusak', 'Standby'].includes(jenis);
 }
 
-function loadSerialOptions(row, materialId, jenis) {
-    const serialSelect = row.querySelector('.mrwi-serials');
-    const hint = row.querySelector('.mrwi-serial-hint');
-    const qtyInput = row.querySelector('input[name*="[quantity]"]');
-    if (!serialSelect || !qtyInput) {
+function attachSerialHandler(input) {
+    input.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter') {
+            return;
+        }
+        e.preventDefault();
+        handleSerialLookup(input);
+    });
+}
+
+function handleSerialLookup(input) {
+    const row = input.closest('tr');
+    const serial = (input.value || '').trim();
+    if (!serial) {
         return;
     }
 
-    serialSelect.innerHTML = '';
-    serialSelect.disabled = true;
+    if (isDuplicateSerial(serial, input)) {
+        alert('Serial number sudah ada di list.');
+        clearMrwiRow(row);
+        input.value = '';
+        input.focus();
+        return;
+    }
+
+    const hint = row.querySelector('.mrwi-serial-hint');
     if (hint) {
         hint.classList.add('hidden');
     }
 
-    fetch(`{{ route('material-mrwi.serials') }}?material_id=${encodeURIComponent(materialId)}&jenis=${encodeURIComponent(jenis)}`)
+    fetch(`{{ route('material-mrwi.serial-lookup') }}?serial=${encodeURIComponent(serial)}&jenis=${encodeURIComponent(JENIS_SURAT)}`)
         .then(response => response.json())
         .then(data => {
-            const serials = data.serials || [];
-            serialSelect.innerHTML = '';
-            if (serials.length === 0) {
-                const option = document.createElement('option');
-                option.value = '';
-                option.textContent = 'Serial tidak tersedia';
-                serialSelect.appendChild(option);
-                serialSelect.disabled = true;
-            } else {
-                serials.forEach(sn => {
-                    const option = document.createElement('option');
-                    option.value = sn;
-                    option.textContent = sn;
-                    serialSelect.appendChild(option);
-                });
-                serialSelect.disabled = false;
-                if (hint) {
-                    hint.classList.remove('hidden');
-                }
+            if (!data.success) {
+                alert(data.message || 'Serial number tidak valid.');
+                clearMrwiRow(row);
+                input.value = '';
+                return;
             }
-            qtyInput.value = '';
 
-            const selectedData = serialSelect.dataset.selected;
-            if (selectedData) {
-                try {
-                    const selectedList = JSON.parse(selectedData);
-                    const selectedSet = new Set(selectedList);
-                    Array.from(serialSelect.options).forEach(opt => {
-                        if (selectedSet.has(opt.value)) {
-                            opt.selected = true;
-                        }
-                    });
-                    qtyInput.value = selectedList.length;
-                } catch (err) {
-                    // ignore parse error
-                }
+            const hiddenInput = row.querySelector('.material-id-input, .material-id');
+            const materialInput = row.querySelector('.mrwi-material-display');
+            const materialSearch = row.querySelector('input[name*="[material_search]"]');
+            const satuanInput = row.querySelector('input[name*="[satuan]"]');
+            const qtyInput = row.querySelector('input[name*="[quantity]"]');
+            const stockInput = row.querySelector('input[name*="[stock]"]');
+
+            hiddenInput.value = data.material.id;
+            if (materialInput) {
+                materialInput.value = `[${data.material.code}] - ${data.material.description}`;
+            }
+            if (materialSearch) {
+                materialSearch.value = `[${data.material.code}] - ${data.material.description}`;
+            }
+            if (satuanInput) {
+                satuanInput.value = data.material.satuan || '';
+            }
+            if (qtyInput) {
+                qtyInput.value = 1;
+            }
+            if (stockInput) {
+                stockInput.value = 1;
             }
         })
         .catch(() => {
-            serialSelect.innerHTML = '';
-            serialSelect.disabled = true;
+            alert('Gagal ambil data serial number.');
+            clearMrwiRow(row);
         });
+}
 
-    serialSelect.onchange = function() {
-        const selected = Array.from(serialSelect.selectedOptions).map(opt => opt.value).filter(Boolean);
-        qtyInput.value = selected.length ? selected.length : '';
-    };
+function clearMrwiRow(row) {
+    const hiddenInput = row.querySelector('.material-id-input, .material-id');
+    const materialInput = row.querySelector('.mrwi-material-display');
+    const materialSearch = row.querySelector('input[name*="[material_search]"]');
+    const satuanInput = row.querySelector('input[name*="[satuan]"]');
+    const qtyInput = row.querySelector('input[name*="[quantity]"]');
+    const stockInput = row.querySelector('input[name*="[stock]"]');
+
+    if (hiddenInput) hiddenInput.value = '';
+    if (materialInput) materialInput.value = '';
+    if (materialSearch) materialSearch.value = '';
+    if (satuanInput) satuanInput.value = '';
+    if (qtyInput) qtyInput.value = '';
+    if (stockInput) stockInput.value = '';
+}
+
+function isDuplicateSerial(serial, currentInput) {
+    const inputs = document.querySelectorAll('.mrwi-serial-input');
+    for (const input of inputs) {
+        if (input === currentInput) {
+            continue;
+        }
+        if ((input.value || '').trim().toLowerCase() === serial.toLowerCase()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function approveSuratJalan(id) {
@@ -893,10 +933,12 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM Content Loaded');
     toggleManualModeEdit();
 
-    const materialInputs = document.querySelectorAll('.material-autocomplete');
-    materialInputs.forEach(input => {
-        initializeAutocomplete(input);
-    });
+    if (!isMrwiJenis(JENIS_SURAT)) {
+        const materialInputs = document.querySelectorAll('.material-autocomplete');
+        materialInputs.forEach(input => {
+            initializeAutocomplete(input);
+        });
+    }
 
     const quantityInputs = document.querySelectorAll('input[name*="[quantity]"]');
     quantityInputs.forEach(input => {
@@ -906,13 +948,9 @@ document.addEventListener('DOMContentLoaded', function() {
     updateRowNumbers();
 
     if (isMrwiJenis(JENIS_SURAT) && STATUS_SURAT !== 'APPROVED') {
-        const rows = document.querySelectorAll('#materialTable tbody tr');
-        rows.forEach(row => {
-            const materialIdInput = row.querySelector('input[name*="[material_id]"]');
-            if (!materialIdInput || !materialIdInput.value) {
-                return;
-            }
-            loadSerialOptions(row, materialIdInput.value, JENIS_SURAT);
+        const serialInputs = document.querySelectorAll('.mrwi-serial-input');
+        serialInputs.forEach(input => {
+            attachSerialHandler(input);
         });
     }
 
@@ -924,19 +962,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             let hasSerialError = false;
+            const seenSerials = new Set();
             const rows = document.querySelectorAll('#materialTable tbody tr');
             rows.forEach(row => {
-                const serialSelect = row.querySelector('.mrwi-serials');
+                const serialInput = row.querySelector('.mrwi-serial-input');
                 const qtyInput = row.querySelector('input[name*="[quantity]"]');
-                if (!serialSelect || !qtyInput) {
+                if (!serialInput || !qtyInput) {
                     return;
                 }
-                const selected = Array.from(serialSelect.selectedOptions).map(opt => opt.value).filter(Boolean);
-                if (selected.length === 0) {
+                const serial = (serialInput.value || '').trim();
+                if (!serial) {
                     hasSerialError = true;
-                } else {
-                    qtyInput.value = selected.length;
+                    return;
                 }
+                const key = serial.toLowerCase();
+                if (seenSerials.has(key)) {
+                    hasSerialError = true;
+                    return;
+                }
+                seenSerials.add(key);
+                qtyInput.value = 1;
             });
 
             if (hasSerialError) {

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Material;
 use App\Models\Concerns\HasUnitScope;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @mixin IdeHelperMaterialHistory
@@ -40,6 +41,23 @@ class MaterialHistory extends Model
     public function material()
     {
         return $this->belongsTo(Material::class);
+    }
+
+    public function scopeOnlyMaterialBaru($query)
+    {
+        $mrwiJenis = ['Garansi', 'Perbaikan', 'Rusak', 'Standby'];
+
+        return $query->where(function ($q) use ($mrwiJenis) {
+            $q->where('source_type', '!=', 'surat_jalan')
+                ->orWhere(function ($sq) use ($mrwiJenis) {
+                    $sq->where('source_type', 'surat_jalan')
+                        ->whereNotIn('source_id', function ($sub) use ($mrwiJenis) {
+                            $sub->select('id')
+                                ->from('surat_jalans')
+                                ->whereIn('jenis_surat_jalan', $mrwiJenis);
+                        });
+                });
+        });
     }
 
     /**

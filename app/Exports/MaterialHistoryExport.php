@@ -25,6 +25,7 @@ class MaterialHistoryExport implements FromView, WithStyles, ShouldAutoSize
     public function view(): View
 {
     $query = MaterialHistory::query()
+        ->onlyMaterialBaru()
         ->when($this->materialId, function ($q) {
             $q->where('material_id', $this->materialId);
         })

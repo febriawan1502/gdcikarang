@@ -108,7 +108,7 @@
                                 <span>Saldo MRWI</span>
                             </a>
                             <a href="{{ route('material-mrwi.index') }}" wire:navigate class="nav-link nav-sublink {{ request()->routeIs('material-mrwi.index') ? 'active' : '' }}">
-                                <span>Material MRWI</span>
+                                <span>Input Material MRWI</span>
                             </a>
                             <a href="{{ route('material-mrwi.history') }}" wire:navigate class="nav-link nav-sublink {{ request()->routeIs('material-mrwi.history') ? 'active' : '' }}">
                                 <span>Histori Material MRWI</span>

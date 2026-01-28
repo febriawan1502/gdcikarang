@@ -19,6 +19,7 @@ public function index(Request $request, $id = null)
         $material = Material::findOrFail($id);
 
         $histories = MaterialHistory::with('material')
+            ->onlyMaterialBaru()
             ->where('material_id', $id)
             ->orderBy('tanggal', 'asc')
             ->orderBy('id', 'asc') // Penting: urutan input
@@ -58,6 +59,7 @@ return view('material.history', [
     // ==============================
 
     $histories = MaterialHistory::with('material')
+        ->onlyMaterialBaru()
         ->orderBy('tanggal', 'asc')
         ->orderBy('id', 'asc')
         ->get();
@@ -116,7 +118,8 @@ return view('material.history', [
 {
     $material = Material::findOrFail($id);
 
-    $histories = MaterialHistory::where('material_id', $id)
+    $histories = MaterialHistory::onlyMaterialBaru()
+        ->where('material_id', $id)
         ->orderBy('tanggal', 'asc')
         ->orderBy('id', 'asc')
         ->get();

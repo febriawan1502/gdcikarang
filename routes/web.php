@@ -217,6 +217,7 @@ Route::prefix('material-mrwi')->name('material-mrwi.')->group(function () {
     Route::post('/', [MaterialMrwiController::class, 'store'])->name('store');
     Route::get('/history', [MaterialMrwiHistoryController::class, 'index'])->name('history');
     Route::get('/serials', [MaterialMrwiController::class, 'getAvailableSerials'])->name('serials');
+    Route::get('/serial-lookup', [MaterialMrwiController::class, 'lookupSerial'])->name('serial-lookup');
     Route::get('/stock/{category?}', [MaterialMrwiStockController::class, 'index'])->name('stock');
     Route::get('/stock/{category}/data', [MaterialMrwiStockController::class, 'getData'])->name('stock.data');
     Route::get('/{id}', [MaterialMrwiController::class, 'show'])->name('show');

@@ -407,6 +407,7 @@ class MaterialMrwiController extends Controller
             'Garansi' => 'garansi',
             'Perbaikan' => 'perbaikan',
             'Rusak' => 'rusak',
+            'Standby' => 'standby',
             default => null,
         };
 
@@ -438,6 +439,72 @@ class MaterialMrwiController extends Controller
         return response()->json([
             'serials' => $serials,
             'available_count' => $serials->count(),
+        ]);
+    }
+
+    public function lookupSerial(Request $request)
+    {
+        $request->validate([
+            'serial' => 'required|string',
+            'jenis' => 'required|string',
+        ]);
+
+        $bucket = match ($request->jenis) {
+            'Garansi' => 'garansi',
+            'Perbaikan' => 'perbaikan',
+            'Rusak' => 'rusak',
+            'Standby' => 'standby',
+            default => null,
+        };
+
+        if (!$bucket) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Jenis surat jalan tidak didukung.',
+            ], 422);
+        }
+
+        $serial = trim((string) $request->serial);
+        $user = auth()->user();
+        $unitId = $user->unit_id ?? null;
+
+        $latest = MaterialMrwiSerialMove::where('serial_number', $serial)
+            ->when($unitId, function ($query) use ($unitId) {
+                $query->where('unit_id', $unitId);
+            })
+            ->orderByDesc('id')
+            ->first();
+
+        if (!$latest) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Serial number tidak ditemukan.',
+            ], 404);
+        }
+
+        if (!in_array($latest->jenis, ['masuk', 'kembali'], true) || $latest->status_bucket !== $bucket) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Serial number tidak tersedia pada stok yang dipilih.',
+            ], 422);
+        }
+
+        $material = Material::find($latest->material_id);
+        if (!$material) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Material tidak ditemukan.',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'material' => [
+                'id' => $material->id,
+                'code' => $material->material_code,
+                'description' => $material->material_description,
+                'satuan' => $material->base_unit_of_measure,
+            ],
         ]);
     }
 }

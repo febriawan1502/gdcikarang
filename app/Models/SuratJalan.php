@@ -108,6 +108,7 @@ class SuratJalan extends Model
         'Perbaikan'  => 'PBK',
         'Manual'     => 'MNL',
         'Rusak'      => 'RSK',
+        'Standby'    => 'STB',
     ];
 
     $kode = $jenisKode[$jenisSuratJalan] ?? 'SJ';
@@ -180,7 +181,7 @@ class SuratJalan extends Model
     }
     public static function isStockAffectingJenis($jenis)
     {
-        return in_array($jenis, ['Normal', 'Garansi', 'Perbaikan', 'Rusak'], true);
+        return in_array($jenis, ['Normal', 'Garansi', 'Perbaikan', 'Rusak', 'Standby'], true);
     }
 
 }

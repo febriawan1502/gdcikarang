@@ -136,7 +136,7 @@
                 </div>
             @endif
 
-            @if(in_array($surat->jenis_surat_jalan, ['Garansi', 'Perbaikan', 'Rusak']) && !$detail->is_manual)
+            @if(in_array($surat->jenis_surat_jalan, ['Garansi', 'Perbaikan', 'Rusak', 'Standby']) && !$detail->is_manual)
                 <div class="mb-6">
                     <label class="form-label">Pilih Serial Number yang Dikembalikan</label>
                     <select name="serials[]" class="form-input" multiple size="6" required>

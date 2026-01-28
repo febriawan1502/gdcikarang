@@ -50,6 +50,7 @@
                             <select class="form-input" id="jenis_surat_jalan" name="jenis_surat_jalan" required>
                                 <option value="">Pilih Jenis Surat Jalan</option>
                                 <option value="Normal" selected>Normal</option>
+                                <option value="Standby">Standby</option>
                                 <option value="Garansi">Garansi</option>
                                 <option value="Peminjaman">Peminjaman</option>
                                 <option value="Perbaikan">Perbaikan</option>
@@ -411,17 +412,6 @@
                 });
         }
 
-        // Event listener for jenis surat jalan change
-        document.addEventListener('DOMContentLoaded', function() {
-            const jenisSuratJalanSelect = document.getElementById('jenis_surat_jalan');
-            if (jenisSuratJalanSelect) {
-                jenisSuratJalanSelect.addEventListener('change', function() {
-                    updateNomorSurat();
-                    resetTable();
-                });
-            }
-        });
-
         // Function to add new row
         function addRow() {
             const tbody = document.querySelector('#materialTable tbody');
@@ -474,15 +464,18 @@
             <td class="px-4 py-3 text-center text-gray-600">${index + 1}</td>
             <td class="px-4 py-3" style="position:relative;">
                 <div class="autocomplete-container">
-                    <input type="text" class="form-input text-sm material-autocomplete"
-                           name="materials[${index}][material_search]" autocomplete="off" required placeholder="Cari Material...">
+                    <input type="text" class="form-input text-sm ${isMrwi ? 'mrwi-material-display bg-gray-50' : 'material-autocomplete'}"
+                           name="materials[${index}][material_search]" autocomplete="off" required
+                           placeholder="${isMrwi ? 'Otomatis dari serial' : 'Cari Material...'}" ${isMrwi ? 'readonly' : ''}>
                     <input type="hidden" name="materials[${index}][material_id]" class="material-id">
                     <div class="autocomplete-results"></div>
                 </div>
             </td>
             <td class="col-serial px-4 py-3" style="${isMrwi ? '' : 'display:none;'}">
-                <select name="materials[${index}][serials][]" class="form-input text-sm mrwi-serials" multiple size="3" disabled></select>
-                <p class="text-xs text-gray-400 mt-1 mrwi-serial-hint hidden">Pilih serial satu per satu.</p>
+                <input type="text" class="form-input text-sm mrwi-serial-input"
+                    name="materials[${index}][serial_number]"
+                    placeholder="Serial Number" ${isMrwi ? 'required' : 'disabled'}>
+                <p class="text-xs text-gray-400 mt-1 mrwi-serial-hint hidden">Tekan Enter untuk ambil detail material.</p>
             </td>
             <td class="col-stock px-4 py-3" style="${isNonStock ? 'display:none;' : ''}">
                 <input type="number" class="form-input text-sm bg-gray-50"
@@ -494,9 +487,9 @@
                        name="materials[${index}][quantity]" min="1" required placeholder="Qty" ${isMrwi ? 'readonly' : ''}>
             </td>
             <td class="px-4 py-3">
-                <input type="text" class="form-input text-sm ${jenis === 'Normal' ? 'bg-gray-50' : ''}"
+                <input type="text" class="form-input text-sm ${(jenis === 'Normal' || isMrwi) ? 'bg-gray-50' : ''}"
                        name="materials[${index}][satuan]"
-                       ${jenis === 'Normal' ? 'readonly' : ''} placeholder="Satuan">
+                       ${(jenis === 'Normal' || isMrwi) ? 'readonly' : ''} placeholder="Satuan">
             </td>
 
             <td class="px-4 py-3">
@@ -514,8 +507,15 @@
 
             tbody.appendChild(newRow);
 
-            if (!isManual) {
+            if (!isManual && !isMrwi) {
                 initializeAutocomplete(newRow.querySelector('.material-autocomplete'));
+            }
+
+            if (isMrwi) {
+                const serialInput = newRow.querySelector('.mrwi-serial-input');
+                if (serialInput) {
+                    attachSerialHandler(serialInput);
+                }
             }
 
             addQuantityValidation(newRow.querySelector('input[name*="[quantity]"]'));
@@ -527,6 +527,20 @@
             tbody.innerHTML = ''; // hapus semua row
             addRow(); // buat row baru sesuai jenis
             toggleManualMode(); // rapikan tampilan
+        }
+
+        function ensureRow() {
+            if (!table) {
+                return;
+            }
+            const tbody = table.querySelector('tbody');
+            if (!tbody) {
+                return;
+            }
+            if (tbody.children.length === 0) {
+                addRow();
+                toggleManualMode();
+            }
         }
 
         // Function to remove row
@@ -601,7 +615,6 @@
                                             'input[name*="[satuan]"]');
                                         const stockInput = row.querySelector(
                                             'input[name*="[stock]"]');
-                                        const serialSelect = row.querySelector('.mrwi-serials');
 
                                         input.value =
                                             `[${material.material_code} - ${material.material_description}]`;
@@ -618,10 +631,6 @@
                                         } else {
                                             stockInput.value = '';
                                             stockInput.disabled = true;
-                                        }
-
-                                        if (isMrwiJenis(jenis) && serialSelect) {
-                                            loadSerialOptions(row, material.id, jenis);
                                         }
 
                                         resultsDiv.style.display = 'none';
@@ -655,7 +664,7 @@
             const jenis = document.getElementById('jenis_surat_jalan').value;
 
             // 🔕 SKIP VALIDASI STOK
-            if (['Manual', 'Peminjaman'].includes(jenis)) {
+            if (['Manual', 'Peminjaman'].includes(jenis) || isMrwiJenis(jenis)) {
                 return true;
             }
 
@@ -790,20 +799,22 @@
                 return false;
             }
 
-            // Check for duplicate materials
-            const duplicates = checkDuplicateMaterials();
-            if (duplicates.length > 0) {
-                e.preventDefault();
-                let alertMessage = 'Terdapat material yang sama dalam list:\n\n';
+            // Check for duplicate materials (skip MRWI)
+            if (!isMrwi) {
+                const duplicates = checkDuplicateMaterials();
+                if (duplicates.length > 0) {
+                    e.preventDefault();
+                    let alertMessage = 'Terdapat material yang sama dalam list:\n\n';
 
-                duplicates.forEach(duplicate => {
-                    alertMessage += `• Material: ${duplicate.materialName}\n`;
-                    alertMessage += `  Ditemukan di baris: ${duplicate.rows.join(', ')}\n\n`;
-                });
+                    duplicates.forEach(duplicate => {
+                        alertMessage += `- Material: ${duplicate.materialName}\n`;
+                        alertMessage += `  Ditemukan di baris: ${duplicate.rows.join(', ')}\n\n`;
+                    });
 
-                alertMessage += 'Silakan hapus atau ganti salah satu material yang sama.';
-                alert(alertMessage);
-                return false;
+                    alertMessage += 'Silakan hapus atau ganti salah satu material yang sama.';
+                    alert(alertMessage);
+                    return false;
+                }
             }
 
             // Validate all quantity inputs before submission
@@ -822,18 +833,25 @@
 
             if (isMrwi) {
                 const rows = document.querySelectorAll('#materialTable tbody tr');
+                const seenSerials = new Set();
                 rows.forEach(row => {
-                    const serialSelect = row.querySelector('.mrwi-serials');
+                    const serialInput = row.querySelector('.mrwi-serial-input');
                     const qtyInput = row.querySelector('input[name*="[quantity]"]');
-                    if (!serialSelect || !qtyInput) {
+                    if (!serialInput || !qtyInput) {
                         return;
                     }
-                    const selected = Array.from(serialSelect.selectedOptions).map(opt => opt.value).filter(Boolean);
-                    if (selected.length === 0) {
+                    const serial = (serialInput.value || '').trim();
+                    if (!serial) {
                         hasSerialError = true;
-                    } else {
-                        qtyInput.value = selected.length;
+                        return;
                     }
+                    const key = serial.toLowerCase();
+                    if (seenSerials.has(key)) {
+                        hasSerialError = true;
+                        return;
+                    }
+                    seenSerials.add(key);
+                    qtyInput.value = 1;
                 });
             }
 
@@ -870,69 +888,147 @@
         }
 
         function isMrwiJenis(jenis) {
-            return ['Garansi', 'Perbaikan', 'Rusak'].includes(jenis);
+            return ['Garansi', 'Perbaikan', 'Rusak', 'Standby'].includes(jenis);
         }
 
-        function loadSerialOptions(row, materialId, jenis) {
-            const serialSelect = row.querySelector('.mrwi-serials');
-            const hint = row.querySelector('.mrwi-serial-hint');
-            const qtyInput = row.querySelector('input[name*="[quantity]"]');
-            if (!serialSelect || !qtyInput) {
+        function attachSerialHandler(input) {
+            input.addEventListener('keydown', function(e) {
+                if (e.key !== 'Enter') {
+                    return;
+                }
+                e.preventDefault();
+                handleSerialLookup(input);
+            });
+        }
+
+        function handleSerialLookup(input) {
+            const row = input.closest('tr');
+            const serial = (input.value || '').trim();
+            const jenis = document.getElementById('jenis_surat_jalan').value;
+            if (!serial) {
                 return;
             }
 
-            serialSelect.innerHTML = '';
-            serialSelect.disabled = true;
+            if (isDuplicateSerial(serial, input)) {
+                alert('Serial number sudah ada di list.');
+                clearMrwiRow(row);
+                input.value = '';
+                input.focus();
+                return;
+            }
+
+            const hint = row.querySelector('.mrwi-serial-hint');
             if (hint) {
                 hint.classList.add('hidden');
             }
 
-            fetch(`{{ route('material-mrwi.serials') }}?material_id=${encodeURIComponent(materialId)}&jenis=${encodeURIComponent(jenis)}`)
+            fetch(`{{ route('material-mrwi.serial-lookup') }}?serial=${encodeURIComponent(serial)}&jenis=${encodeURIComponent(jenis)}`)
                 .then(response => response.json())
                 .then(data => {
-                    const serials = data.serials || [];
-                    serialSelect.innerHTML = '';
-                    if (serials.length == 0) {
-                        const option = document.createElement('option');
-                        option.value = '';
-                        option.textContent = 'Serial tidak tersedia';
-                        serialSelect.appendChild(option);
-                        serialSelect.disabled = true;
-                    } else {
-                        serials.forEach(sn => {
-                            const option = document.createElement('option');
-                            option.value = sn;
-                            option.textContent = sn;
-                            serialSelect.appendChild(option);
-                        });
-                        serialSelect.disabled = false;
-                        if (hint) {
-                            hint.classList.remove('hidden');
+                    if (!data.success) {
+                        alert(data.message || 'Serial number tidak valid.');
+                        clearMrwiRow(row);
+                        input.value = '';
+                        return;
+                    }
+
+                    const hiddenInput = row.querySelector('.material-id');
+                    const materialInput = row.querySelector('.mrwi-material-display');
+                    const satuanInput = row.querySelector('input[name*="[satuan]"]');
+                    const qtyInput = row.querySelector('input[name*="[quantity]"]');
+                    const stockInput = row.querySelector('input[name*="[stock]"]');
+
+                    hiddenInput.value = data.material.id;
+                    if (materialInput) {
+                        materialInput.value = `[${data.material.code}] - ${data.material.description}`;
+                    }
+                    if (satuanInput) {
+                        satuanInput.value = data.material.satuan || '';
+                    }
+                    if (qtyInput) {
+                        qtyInput.value = 1;
+                    }
+                    if (stockInput) {
+                        stockInput.value = 1;
+                    }
+
+                    const tbody = row.parentElement;
+                    const isLast = row === tbody.lastElementChild;
+                    if (isLast) {
+                        addRow();
+                    }
+
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow) {
+                        const nextSerial = nextRow.querySelector('.mrwi-serial-input');
+                        if (nextSerial) {
+                            nextSerial.focus();
                         }
                     }
-                    qtyInput.value = '';
                 })
                 .catch(() => {
-                    serialSelect.innerHTML = '';
-                    serialSelect.disabled = true;
+                    alert('Gagal ambil data serial number.');
+                    clearMrwiRow(row);
                 });
-
-            serialSelect.onchange = function() {
-                const selected = Array.from(serialSelect.selectedOptions).map(opt => opt.value).filter(Boolean);
-                qtyInput.value = selected.length ? selected.length : '';
-            };
         }
 
-        // === Toggle mode Manual ===
-        document.addEventListener('DOMContentLoaded', function() {
+        function clearMrwiRow(row) {
+            const hiddenInput = row.querySelector('.material-id');
+            const materialInput = row.querySelector('.mrwi-material-display');
+            const satuanInput = row.querySelector('input[name*="[satuan]"]');
+            const qtyInput = row.querySelector('input[name*="[quantity]"]');
+            const stockInput = row.querySelector('input[name*="[stock]"]');
+
+            if (hiddenInput) hiddenInput.value = '';
+            if (materialInput) materialInput.value = '';
+            if (satuanInput) satuanInput.value = '';
+            if (qtyInput) qtyInput.value = '';
+            if (stockInput) stockInput.value = '';
+        }
+
+        function isDuplicateSerial(serial, currentInput) {
+            const inputs = document.querySelectorAll('.mrwi-serial-input');
+            for (const input of inputs) {
+                if (input === currentInput) {
+                    continue;
+                }
+                if ((input.value || '').trim().toLowerCase() === serial.toLowerCase()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function initSuratJalanForm() {
             jenisSelect = document.getElementById('jenis_surat_jalan');
             table = document.getElementById('materialTable');
             notice = document.getElementById('manualNotice');
 
-            jenisSelect.addEventListener('change', resetTable);
+            if (!jenisSelect || !table) {
+                return;
+            }
 
-            resetTable(); // ⬅️ PENTING: bikin row pertama
-        });
+            if (!jenisSelect.dataset.bound) {
+                jenisSelect.dataset.bound = 'true';
+                jenisSelect.addEventListener('change', function() {
+                    updateNomorSurat();
+                    resetTable();
+                });
+            }
+
+            updateNomorSurat();
+            resetTable(); // PENTING: bikin row pertama
+            ensureRow();
+        }
+
+        // === Toggle mode Manual ===
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSuratJalanForm);
+        } else {
+            initSuratJalanForm();
+        }
+        document.addEventListener('livewire:navigated', initSuratJalanForm);
+        window.addEventListener('load', ensureRow);
 
         // ============================================
         // CAMERA CAPTURE FUNCTIONS
