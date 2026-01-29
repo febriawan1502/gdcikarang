@@ -266,6 +266,9 @@ class MaterialMrwiController extends Controller
                     $errors[] = "Baris #{$rowNum}: Kolom '$field' wajib diisi.";
                 }
             }
+            if (empty($item['nama_pabrikan'] ?? null)) {
+                $errors[] = "Baris #{$rowNum}: Tolong pilih merk material. Kalau tidak ada, hubungi admin UID.";
+            }
 
             $klasifikasi = (int) ($item['klasifikasi'] ?? 0);
             if ($klasifikasi < 1 || $klasifikasi > 6) {
@@ -289,10 +292,14 @@ class MaterialMrwiController extends Controller
         }
 
         if (!empty($errors)) {
+            $trafoBrands = json_decode(Setting::get('mrwi_brands_trafo', '[]'), true) ?? [];
+            $kubikelBrands = json_decode(Setting::get('mrwi_brands_kubikel', '[]'), true) ?? [];
             return view('material.mrwi-create', [
                 'items' => $request->items,
                 'requestData' => $request->except(['items', '_token']),
-                'validationErrors' => $errors
+                'validationErrors' => $errors,
+                'trafoBrands' => $trafoBrands,
+                'kubikelBrands' => $kubikelBrands,
             ]);
         }
 

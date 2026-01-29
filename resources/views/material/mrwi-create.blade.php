@@ -34,6 +34,15 @@
                 </ul>
             </div>
         @endif
+        @if (!empty($validationErrors))
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+                <ul class="list-disc pl-5 space-y-1 text-sm">
+                    @foreach ($validationErrors as $error)
+                        <li>{!! $error !!}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         @if (isset($items))
             {{-- MODE REVIEW & EDIT --}}
@@ -145,7 +154,7 @@
                                             <select name="items[{{ $idx }}][nama_pabrikan]"
                                                 class="form-input-sm w-full border-gray-300 rounded">
                                                 <option value="" disabled
-                                                    {{ empty($item['nama_pabrikan']) ? 'selected' : '' }}>Pilih Merk
+                                                    {{ empty($item['nama_pabrikan'] ?? '') ? 'selected' : '' }}>Pilih Merk
                                                 </option>
                                                 @foreach ($brands as $brand)
                                                     <option value="{{ $brand }}"
@@ -155,7 +164,7 @@
                                             </select>
                                         @else
                                             <input type="text" name="items[{{ $idx }}][nama_pabrikan]"
-                                                value="{{ $item['nama_pabrikan'] }}"
+                                                value="{{ $item['nama_pabrikan'] ?? '' }}"
                                                 class="form-input-sm w-full border-gray-300 rounded">
                                         @endif
                                     </td>
@@ -168,15 +177,15 @@
                                         <select name="items[{{ $idx }}][klasifikasi]"
                                             class="form-input-sm w-full border-gray-300 rounded text-center">
                                             <option value="" disabled
-                                                {{ empty($item['klasifikasi']) ? 'selected' : '' }}>Pilih</option>
-                                            <option value="1" {{ $item['klasifikasi'] == 1 ? 'selected' : '' }}>
+                                                {{ empty($item['klasifikasi'] ?? '') ? 'selected' : '' }}>Pilih</option>
+                                            <option value="1" {{ ($item['klasifikasi'] ?? '') == 1 ? 'selected' : '' }}>
                                                 Standby</option>
-                                            <option value="2" {{ $item['klasifikasi'] == 2 ? 'selected' : '' }}>
+                                            <option value="2" {{ ($item['klasifikasi'] ?? '') == 2 ? 'selected' : '' }}>
                                                 Garansi</option>
-                                            <option value="3" {{ $item['klasifikasi'] == 3 ? 'selected' : '' }}>
+                                            <option value="3" {{ ($item['klasifikasi'] ?? '') == 3 ? 'selected' : '' }}>
                                                 Perbaikan</option>
                                             <option value="4"
-                                                {{ in_array($item['klasifikasi'], [4, 5, 6]) ? 'selected' : '' }}>Rusak
+                                                {{ in_array(($item['klasifikasi'] ?? ''), [4, 5, 6], true) ? 'selected' : '' }}>Rusak
                                             </option>
                                         </select>
                                     </td>

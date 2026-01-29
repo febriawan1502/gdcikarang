@@ -221,6 +221,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/stock/{category?}', [MaterialMrwiStockController::class, 'index'])->name('stock');
         Route::get('/stock/{category}/export', [MaterialMrwiStockController::class, 'export'])->name('stock.export');
         Route::get('/stock/{category}/data', [MaterialMrwiStockController::class, 'getData'])->name('stock.data');
+        Route::get('/items', [App\Http\Controllers\MaterialMrwiItemController::class, 'index'])->name('items');
+        Route::get('/items/data', [App\Http\Controllers\MaterialMrwiItemController::class, 'data'])->name('items.data');
         Route::get('/{id}', [MaterialMrwiController::class, 'show'])->name('show');
     });
 

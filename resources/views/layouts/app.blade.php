@@ -131,6 +131,9 @@
                             <a href="{{ route('material-mrwi.stock', ['category' => 'standby']) }}" wire:navigate class="nav-link nav-sublink {{ request()->routeIs('material-mrwi.stock') ? 'active' : '' }}">
                                 <span>Saldo MRWI</span>
                             </a>
+                            <a href="{{ route('material-mrwi.items') }}" wire:navigate class="nav-link nav-sublink {{ request()->routeIs('material-mrwi.items') ? 'active' : '' }}">
+                                <span>Daftar Material</span>
+                            </a>
                             <a href="{{ route('material-mrwi.index') }}" wire:navigate class="nav-link nav-sublink {{ request()->routeIs('material-mrwi.index') ? 'active' : '' }}">
                                 <span>Input Material MRWI</span>
                             </a>
