@@ -46,19 +46,20 @@ class Up3CikarangRakSeeder extends Seeder
         ];
 
         foreach ($rows as $row) {
-            $query = Material::where('material_code', $row['code']);
+            $code = $this->normalizeMaterialCode($row['code']);
+            $query = Material::where('material_code', $code);
             if (!empty($row['desc_contains'])) {
                 $query->where('material_description', 'like', '%' . $row['desc_contains'] . '%');
             }
 
             $materials = $query->get();
             if ($materials->isEmpty()) {
-                $this->command?->warn("Material tidak ditemukan: {$row['code']} ({$row['rak']})");
+                $this->command?->warn("Material tidak ditemukan: {$code} ({$row['rak']})");
                 continue;
             }
 
             if ($materials->count() > 1) {
-                $this->command?->warn("Material ganda untuk kode {$row['code']} ({$row['rak']}). Perjelas filter deskripsi.");
+                $this->command?->warn("Material ganda untuk kode {$code} ({$row['rak']}). Perjelas filter deskripsi.");
                 continue;
             }
 
@@ -74,5 +75,16 @@ class Up3CikarangRakSeeder extends Seeder
                 ]
             );
         }
+    }
+
+    private function normalizeMaterialCode(string $code): string
+    {
+        $trimmed = trim($code);
+        if ($trimmed === '') {
+            return $trimmed;
+        }
+
+        // SAP material codes are often 8 chars with leading zeros.
+        return str_pad($trimmed, 8, '0', STR_PAD_LEFT);
     }
 }
