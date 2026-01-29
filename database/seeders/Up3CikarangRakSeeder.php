@@ -84,7 +84,7 @@ class Up3CikarangRakSeeder extends Seeder
             return $trimmed;
         }
 
-        // SAP material codes are often 8 chars with leading zeros.
-        return str_pad($trimmed, 8, '0', STR_PAD_LEFT);
+        // DB stores material_code with 8 leading zeros before the normalisasi number.
+        return '00000000' . $trimmed;
     }
 }
