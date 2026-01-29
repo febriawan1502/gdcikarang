@@ -40,7 +40,7 @@
                 </button>
                 <!-- Logo -->
                 <a href="{{ route('dashboard') }}" class="sidebar-logo">
-                    <img src="{{ asset('assets/images/logo-teal.png') }}" alt="Logo" class="sidebar-logo-text" />
+                    <img src="{{ asset('assets/images/logo2-crop.png') }}" alt="Logo" class="sidebar-logo-text" />
                 </a>
 
                 <!-- Navigation -->
