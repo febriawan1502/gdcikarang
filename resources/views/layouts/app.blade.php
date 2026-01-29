@@ -50,7 +50,8 @@
                         $inspectionGroupOpen = request()->routeIs('material.pemeriksaanFisik')
                             || request()->routeIs('berita-acara.*')
                             || request()->routeIs('sap-check.*');
-                        $mrwiGroupOpen = request()->routeIs('material-mrwi.*');
+                        $mrwiGroupOpen = request()->routeIs('material-mrwi.*')
+                            || request()->routeIs('surat.masa');
                         $isSecurityCikarang = auth()->user()->role === 'security'
                             && auth()->user()->unit
                             && auth()->user()->unit->code === 'UP3-CKR';
@@ -91,6 +92,29 @@
                     </div>
                     @endif
 
+                    {{-- Surat Jalan --}}
+                    @if(in_array(auth()->user()->role, ['admin', 'guest', 'petugas', 'security', 'satpam']))
+                    <div class="nav-item">
+                        <a href="{{ route('surat-jalan.index') }}" wire:navigate class="nav-link {{ request()->routeIs('surat-jalan.*') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-truck"></i>
+                            </span>
+                            <span>Surat Jalan</span>
+                        </a>
+                    </div>
+                    @endif
+
+                    {{-- Additional Menu (Admin & Petugas) --}}
+                    @if(in_array(auth()->user()->role, ['admin', 'petugas']))
+                    <div class="nav-item">
+                        <a href="{{ route('material.history') }}" wire:navigate class="nav-link {{ request()->routeIs('material.history') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-history"></i>
+                            </span>
+                            <span>Material Histories</span>
+                        </a>
+                    </div>
+
                     {{-- MRWI --}}
                     @if(in_array(auth()->user()->role, ['admin', 'petugas', 'guest']) && !$isSecurityCikarang)
                     <div class="nav-item nav-group {{ $mrwiGroupOpen ? 'open' : '' }}">
@@ -114,36 +138,13 @@
                                 <span>Histori Material MRWI</span>
                             </a>
                             @if(in_array(auth()->user()->role, ['admin', 'petugas']))
-                            <a href="{{ route('surat.masa', ['jenis' => 'Peminjaman']) }}" wire:navigate class="nav-link nav-sublink {{ request()->is('surat-jalan/peminjaman/masa') ? 'active' : '' }}">
+                            <a href="{{ route('surat.masa', ['jenis' => 'Peminjaman']) }}" wire:navigate class="nav-link nav-sublink {{ request()->routeIs('surat.masa') ? 'active' : '' }}">
                                 <span>Garansi &amp; Perbaikan</span>
                             </a>
                             @endif
                         </div>
                     </div>
                     @endif
-
-                    {{-- Surat Jalan --}}
-                    @if(in_array(auth()->user()->role, ['admin', 'guest', 'petugas', 'security', 'satpam']))
-                    <div class="nav-item">
-                        <a href="{{ route('surat-jalan.index') }}" wire:navigate class="nav-link {{ request()->routeIs('surat-jalan.*') ? 'active' : '' }}">
-                            <span class="nav-icon">
-                                <i class="fas fa-truck"></i>
-                            </span>
-                            <span>Surat Jalan</span>
-                        </a>
-                    </div>
-                    @endif
-
-                    {{-- Additional Menu (Admin & Petugas) --}}
-                    @if(in_array(auth()->user()->role, ['admin', 'petugas']))
-                    <div class="nav-item">
-                        <a href="{{ route('material.history') }}" wire:navigate class="nav-link {{ request()->routeIs('material.history') ? 'active' : '' }}">
-                            <span class="nav-icon">
-                                <i class="fas fa-history"></i>
-                            </span>
-                            <span>Material Histories</span>
-                        </a>
-                    </div>
 
                     @if($showInspectionGroup)
                     <div class="nav-item nav-group {{ $inspectionGroupOpen ? 'open' : '' }}">

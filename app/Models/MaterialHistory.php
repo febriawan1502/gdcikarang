@@ -53,7 +53,7 @@ class MaterialHistory extends Model
                     $sq->where('source_type', 'surat_jalan')
                         ->whereNotIn('source_id', function ($sub) use ($mrwiJenis) {
                             $sub->select('id')
-                                ->from('surat_jalans')
+                                ->from('surat_jalan')
                                 ->whereIn('jenis_surat_jalan', $mrwiJenis);
                         });
                 });
