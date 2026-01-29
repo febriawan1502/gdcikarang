@@ -19,13 +19,13 @@ class AppInfoController extends Controller
         if ($rakLetter !== '') {
             $rakLetter = substr($rakLetter, 0, 1);
         }
-        $allowedRakLetters = ['A', 'B', 'C', 'D', 'E'];
+        $allowedRakLetters = range('A', 'Z');
         $rakLetterExpr = "UPPER(SUBSTRING($rakExpr, LOCATE('.', $rakExpr) + 1, 1))";
 
         if ($rakLetter !== '' && !in_array($rakLetter, $allowedRakLetters, true)) {
             return response()->json([
                 'success' => false,
-                'message' => 'X-Rak harus salah satu dari A, B, C, D, atau E.',
+                'message' => 'X-Rak harus salah satu dari A sampai Z.',
             ], 422);
         }
 
