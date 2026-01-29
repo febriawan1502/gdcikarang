@@ -15,6 +15,19 @@ class AppInfoController extends Controller
     {
         $rakExpr = 'COALESCE(ms.rak, m.rak)';
         $rakHeader = $request->header('X-Rak');
+        $rakLetter = strtoupper(trim((string) $rakHeader));
+        if ($rakLetter !== '') {
+            $rakLetter = substr($rakLetter, 0, 1);
+        }
+        $allowedRakLetters = ['A', 'B', 'C', 'D', 'E'];
+        $rakLetterExpr = "UPPER(SUBSTRING($rakExpr, LOCATE('.', $rakExpr) + 1, 1))";
+
+        if ($rakLetter !== '' && !in_array($rakLetter, $allowedRakLetters, true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'X-Rak harus salah satu dari A, B, C, D, atau E.',
+            ], 422);
+        }
 
         $saldoByRakQuery = DB::table('material_stocks as ms')
             ->join('materials as m', 'ms.material_id', '=', 'm.id')
@@ -22,8 +35,8 @@ class AppInfoController extends Controller
             ->selectRaw('SUM(ms.unrestricted_use_stock) as total_stock')
             ->selectRaw('SUM(ms.unrestricted_use_stock * m.harga_satuan) as total_saldo');
 
-        if ($rakHeader) {
-            $saldoByRakQuery->where(DB::raw($rakExpr), $rakHeader);
+        if ($rakLetter !== '') {
+            $saldoByRakQuery->whereRaw($rakLetterExpr . ' = ?', [$rakLetter]);
         }
 
         $saldoByRak = $saldoByRakQuery
@@ -39,8 +52,8 @@ class AppInfoController extends Controller
             ->groupBy('m.id', 'm.normalisasi', 'm.material_code', 'm.material_description')
             ->orderBy('m.material_description');
 
-        if ($rakHeader) {
-            $materialsQuery->where(DB::raw($rakExpr), $rakHeader);
+        if ($rakLetter !== '') {
+            $materialsQuery->whereRaw($rakLetterExpr . ' = ?', [$rakLetter]);
         }
 
         $materials = $materialsQuery->get();
