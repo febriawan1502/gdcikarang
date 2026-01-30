@@ -36,7 +36,7 @@ class SettingController extends Controller
         $users = User::with('unit')->get();
         $units = Unit::withoutGlobalScopes()->orderBy('name')->get();
         $companySettings = Setting::getByGroup('company');
-        
+
         return view('settings.index', compact('users', 'units', 'companySettings'));
     }
 
@@ -45,27 +45,8 @@ class SettingController extends Controller
      */
     public function updateCompany(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'company_name' => 'required|string|max:255',
-            'up3_name' => 'required|string|max:255',
-            'warehouse_location' => 'nullable|string|max:255',
-        ]);
-
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
-        }
-
-        try {
-            Setting::set('company_name', $request->company_name);
-            Setting::set('up3_name', $request->up3_name);
-            Setting::set('warehouse_location', $request->warehouse_location);
-
-            Setting::clearCache();
-
-            return back()->with('success', 'Pengaturan perusahaan berhasil diperbarui!');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Gagal memperbarui pengaturan: ' . $e->getMessage());
-        }
+        // Fitur dimatikan sementara/dihapus
+        return back()->with('success', 'Tidak ada pengaturan yang disimpan.');
     }
 
     /**
@@ -148,7 +129,7 @@ class SettingController extends Controller
     {
         try {
             $user = User::findOrFail($id);
-            
+
             // Prevent deleting own account
             if ($user->id === auth()->id()) {
                 return back()->with('error', 'Tidak dapat menghapus akun sendiri!');

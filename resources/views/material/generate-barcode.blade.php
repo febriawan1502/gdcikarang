@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,7 +25,7 @@
             background: white;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
@@ -127,13 +128,16 @@
             body {
                 background: white;
             }
+
             .container {
                 box-shadow: none;
                 padding: 0;
             }
+
             .buttons {
                 display: none;
             }
+
             .material-info {
                 page-break-after: avoid;
             }
@@ -232,6 +236,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🏷️ Generate Barcode Material</h1>
@@ -245,7 +250,7 @@
 
         <div class="qr-container">
             <div id="qrcode"></div>
-            
+
             <div class="url-info">
                 <strong>URL Barcode:</strong>
                 <code id="barcodeUrl">{{ $barcodeUrl }}</code>
@@ -269,7 +274,8 @@
             <div class="print-label-50x30">
                 <div class="label-text">
                     <div class="company">{{ \App\Models\Setting::get('company_name', 'PT PLN (Persero)') }}</div>
-                    <div class="up3">{{ \App\Models\Setting::get('up3_name', 'UP3 Cimahi') }}</div>
+                    <div class="up3">
+                        {{ auth()->user()->unit->name ?? \App\Models\Setting::get('up3_name', 'UP3 Cimahi') }}</div>
                     <div class="material-code">{{ $material->material_code }}</div>
                     <div class="material-name">{{ Str::limit($material->material_description, 28) }}</div>
                 </div>
@@ -281,13 +287,13 @@
     <script>
         // Generate QR Code
         const barcodeUrl = "{{ $barcodeUrl }}";
-        
+
         // PHP variables for JavaScript
         const companyName = "{{ \App\Models\Setting::get('company_name', 'PT PLN (Persero)') }}";
-        const up3Name = "{{ \App\Models\Setting::get('up3_name', 'UP3 Cimahi') }}";
+        const up3Name = "{{ auth()->user()->unit->name ?? \App\Models\Setting::get('up3_name', 'UP3 Cimahi') }}";
         const materialCode = "{{ $material->material_code }}";
         const materialName = "{{ Str::limit($material->material_description, 50) }}";
-        
+
         new QRCode(document.getElementById("qrcode"), {
             text: barcodeUrl,
             width: 256,
@@ -301,14 +307,14 @@
         function printBarcode() {
             // Buat window baru untuk print (full size)
             const printWindow = window.open('', '_blank');
-            
+
             // Ambil QR code yang sudah ada sebagai image
             const existingQR = document.querySelector('#qrcode canvas');
             let qrImageSrc = '';
             if (existingQR) {
                 qrImageSrc = existingQR.toDataURL('image/png');
             }
-            
+
             // HTML untuk print
             const printHTML = `
                 <!DOCTYPE html>
@@ -413,7 +419,7 @@
                 </body>
                 </html>
             `;
-            
+
             printWindow.document.write(printHTML);
             printWindow.document.close();
         }
@@ -437,4 +443,5 @@
         });
     </script>
 </body>
+
 </html>
