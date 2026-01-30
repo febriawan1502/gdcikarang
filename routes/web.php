@@ -235,6 +235,15 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/store', [MaterialController::class, 'storeStockOpname'])->name('store');
     });
 
+    // Surat Jalan Masa (gabungan / jenis) - keep before dynamic surat-jalan/{suratJalan}
+    Route::get('/surat-jalan/masa', [SuratJalanController::class, 'masa'])->name('surat.masa');
+    Route::get('/surat-jalan/{jenis}/masa', [SuratJalanController::class, 'masa'])->name('surat.masa.jenis');
+    Route::post('/surat-jalan/warranty-claim', [SuratJalanController::class, 'storeWarrantyClaim'])->name('surat-jalan.warranty-claim.store');
+    Route::put('/surat-jalan/{surat}/kembalikan/{detail}', [SuratJalanController::class, 'kembalikan'])
+        ->name('barang.kembalikan');
+    Route::delete('/surat-jalan/masa/{surat}/{detail}', [SuratJalanController::class, 'hapusDetailMasa'])
+        ->name('masa.detail.hapus');
+
     // Surat Jalan Routes
     Route::get('/surat-jalan/data', [SuratJalanController::class, 'getData'])->name('surat-jalan.getData');
     Route::prefix('surat-jalan')->name('surat-jalan.')->group(function () {
@@ -315,17 +324,6 @@ Route::get('/health', function () {
         'app' => config('app.name')
     ]);
 })->name('health');
-
-// Fallback route
-Route::fallback(function () {
-    return response()->view('errors.404', [], 404);
-});
-
-Route::get('/surat-jalan/{jenis}/masa', [SuratJalanController::class, 'masa'])->name('surat.masa');
-Route::put('/surat-jalan/{surat}/kembalikan/{detail}', [SuratJalanController::class, 'kembalikan'])
-    ->name('barang.kembalikan');
-Route::delete('/surat-jalan/masa/{surat}/{detail}', [SuratJalanController::class, 'hapusDetailMasa'])
-    ->name('masa.detail.hapus');
 
 // Route::get('/surat-jalan/masa', [SuratJalanController::class, 'masa'])->name('surat.masa');
 // Route::get('/materials/{id}/history', [MaterialController::class, 'history'])->name('material.history');
@@ -412,4 +410,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('settings')->name('settings.')
     Route::post('/users', [SettingController::class, 'storeUser'])->name('users.store');
     Route::put('/users/{id}', [SettingController::class, 'updateUser'])->name('users.update');
     Route::delete('/users/{id}', [SettingController::class, 'deleteUser'])->name('users.delete');
+});
+
+// Fallback route (must be last)
+Route::fallback(function () {
+    return response()->view('errors.404', [], 404);
 });

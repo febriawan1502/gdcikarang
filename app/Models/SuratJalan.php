@@ -89,6 +89,11 @@ class SuratJalan extends Model
             ->where('source_type', 'surat_jalan');
     }
 
+    public function warrantyClaims()
+    {
+        return $this->hasMany(WarrantyClaim::class, 'pickup_surat_jalan_id');
+    }
+
     public function getStatusSapAttribute(): string
     {
         if (self::isStockAffectingJenis($this->jenis_surat_jalan) && $this->jenis_surat_jalan !== 'Normal') {

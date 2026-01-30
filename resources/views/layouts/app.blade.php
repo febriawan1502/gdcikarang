@@ -157,9 +157,9 @@
                                         <span>Histori Material MRWI</span>
                                     </a>
                                     @if (in_array(auth()->user()->role, ['admin', 'petugas']))
-                                        <a href="{{ route('surat.masa', ['jenis' => 'Peminjaman']) }}" wire:navigate
+                                        <a href="{{ route('surat.masa') }}" wire:navigate
                                             class="nav-link nav-sublink {{ request()->routeIs('surat.masa') ? 'active' : '' }}">
-                                            <span>Garansi &amp; Perbaikan</span>
+                                            <span>Garansi / Perbaikan / Peminjaman</span>
                                         </a>
                                     @endif
                                 </div>

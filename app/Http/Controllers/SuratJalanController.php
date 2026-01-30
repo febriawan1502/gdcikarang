@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Material;
 use App\Models\SuratJalan;
 use App\Models\SuratJalanDetail;
@@ -18,6 +20,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\MaterialHistory;
 use App\Models\PengembalianHistory;
 use App\Models\MaterialMrwiDetail;
+use App\Models\WarrantyClaim;
 
 
 
@@ -213,11 +216,28 @@ class SuratJalanController extends Controller
     /**
      * Tampilkan form create surat jalan
      */
-    public function create()
+    public function create(Request $request)
     {
         $nomorSurat = SuratJalan::generateNomorSurat('Normal');
         $materials = Material::all();
-        return view('material.surat-jalan-create', compact('nomorSurat', 'materials'));
+
+        $prefilled = null;
+        if ($request->has('claim_id')) {
+            $claim = WarrantyClaim::with('material')->find($request->claim_id);
+            if ($claim) {
+                $nomorSurat = SuratJalan::generateNomorSurat('Garansi');
+                $prefilled = [
+                    'claim_id' => $claim->id,
+                    'jenis_surat_jalan' => 'Garansi',
+                    'material_id' => $claim->material_id,
+                    'serial_number' => $claim->serial_number,
+                    'nama_barang' => $claim->material->material_description,
+                    'keterangan' => 'Klaim Garansi ' . $claim->ticket_number . ' (SN: ' . $claim->serial_number . ')',
+                ];
+            }
+        }
+
+        return view('material.surat-jalan-create', compact('nomorSurat', 'materials', 'prefilled'));
     }
 
     /**
@@ -392,6 +412,19 @@ class SuratJalanController extends Controller
 
 
             DB::commit();
+
+            // ✅ Link Warranty Claim if exists
+            if ($request->filled('claim_id')) {
+                $claim = WarrantyClaim::find($request->claim_id);
+                if ($claim) {
+                    $claim->update([
+                        'status' => 'PROCESSED',
+                        'pickup_surat_jalan_id' => $suratJalan->id,
+                        'pickup_date' => $request->tanggal . ' ' . now()->format('H:i:s'),
+                    ]);
+                }
+            }
+
             return redirect()->route('surat-jalan.index')
                 ->with('success', 'Surat jalan berhasil dibuat dan menunggu persetujuan.');
         } catch (\Exception $e) {
@@ -1078,9 +1111,9 @@ class SuratJalanController extends Controller
 
         return Excel::download(new SuratJalanExport($suratJalan), $filename);
     }
-    public function masa(Request $request)
+    public function masa(Request $request, $jenis = null)
     {
-        $jenis = ucfirst(strtolower($request->get('jenis')));
+        $jenis = $jenis ? ucfirst(strtolower($jenis)) : null;
 
         // Jenis yang diperbolehkan masuk masa pengeluaran
         $allowedJenis = ['Garansi', 'Peminjaman', 'Perbaikan'];
@@ -1096,11 +1129,126 @@ class SuratJalanController extends Controller
             ->when($jenis, function ($query) use ($jenis) {
                 return $query->where('jenis_surat_jalan', $jenis);
             })
-            ->with(['details.material'])
+            ->with(['details.material', 'warrantyClaims'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('material.masa', compact('suratJalans', 'jenis'));
+        // ✅ Fetch Warranty Claims if eligible
+        $warrantyClaims = collect();
+        if (!$jenis || $jenis === 'Garansi') {
+            $warrantyClaims = WarrantyClaim::where('status', 'SUBMITTED')
+                ->with(['material', 'creator'])
+                ->latest()
+                ->get();
+        }
+
+        return view('material.masa', compact('suratJalans', 'jenis', 'warrantyClaims'));
+    }
+
+    public function storeWarrantyClaim(Request $request)
+    {
+        Log::info('WarrantyClaim request received', [
+            'user_id' => Auth::id(),
+            'has_evidence' => $request->hasFile('evidence'),
+            'evidence_path_input' => $request->input('evidence_path'),
+        ]);
+
+        $request->validate([
+            'material_id' => 'required|exists:materials,id',
+            'serial_number' => 'required|string',
+            'id_pelanggan' => 'nullable|string',
+            'evidence' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240', // 10MB
+            'evidence_path' => 'nullable|string',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $existingClaim = WarrantyClaim::where('serial_number', $request->serial_number)
+                ->orderByDesc('id')
+                ->first();
+            if ($existingClaim) {
+                DB::rollBack();
+                return redirect()->back()->with(
+                    'error',
+                    'Serial number sudah pernah diajukan klaim garansi (Tiket: ' . $existingClaim->ticket_number . ').'
+                );
+            }
+
+            $path = null;
+            if ($request->hasFile('evidence')) {
+                $file = $request->file('evidence');
+                Log::info('WarrantyClaim evidence file meta', [
+                    'is_valid' => $file->isValid(),
+                    'error' => $file->getError(),
+                    'client_original_name' => $file->getClientOriginalName(),
+                    'client_original_extension' => $file->getClientOriginalExtension(),
+                    'mime_type' => $file->getClientMimeType(),
+                    'size' => $file->getSize(),
+                    'tmp_path' => $file->getPathname(),
+                ]);
+                if (!$file->isValid()) {
+                    throw new \Exception('File upload failed or invalid.');
+                }
+
+                $tmpPath = (string) $file->getPathname();
+                if (trim($tmpPath) === '') {
+                    throw new \Exception('File upload gagal: path sementara kosong.');
+                }
+                if (!is_file($tmpPath)) {
+                    throw new \Exception('File upload gagal: file sementara tidak ditemukan.');
+                }
+
+                // Generate filename safe
+                $extension = strtolower((string) $file->getClientOriginalExtension());
+                if ($extension === '') {
+                    $extension = strtolower((string) $file->extension());
+                }
+                if ($extension === '') {
+                    $extension = 'bin';
+                }
+                $filename = 'claim_' . time() . '_' . Str::random(10) . '.' . $extension;
+
+                // Use explicit disk and ensure directory exists
+                $disk = Storage::disk('public');
+                $disk->makeDirectory('warranty_claims');
+                $relativePath = 'warranty_claims/' . $filename;
+                $stream = fopen($tmpPath, 'rb');
+                if ($stream === false) {
+                    throw new \Exception('Gagal membuka file sementara untuk disimpan.');
+                }
+                $path = $disk->put($relativePath, $stream);
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
+                $path = $path ? $relativePath : null;
+
+                if (!$path) {
+                    throw new \Exception('Gagal menyimpan file ke storage.');
+                }
+            } elseif ($request->filled('evidence_path')) {
+                $path = $request->evidence_path;
+            } else {
+                // Force file to be present per requirements (though validation should catch this)
+                throw new \Exception('File bukti tidak ditemukan dalam request.');
+            }
+
+            WarrantyClaim::create([
+                'ticket_number' => WarrantyClaim::generateTicketNumber(),
+                'material_id' => $request->material_id,
+                'serial_number' => $request->serial_number,
+                'id_pelanggan' => $request->id_pelanggan,
+                'evidence_path' => $path,
+                'status' => 'SUBMITTED',
+                'created_by' => Auth::id(),
+            ]);
+
+            DB::commit();
+            return redirect()->back()->with('success', 'Klaim garansi berhasil diajukan. Timer dimulai.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal mengajukan klaim: ' . $e->getMessage());
+        }
     }
 
 
@@ -1202,6 +1350,20 @@ class SuratJalanController extends Controller
                     'tanggal' => $validated['tanggal_masuk'],
                     'keterangan' => $validated['keterangan'] ?? null,
                 ]);
+
+                // ✅ Auto-close Warranty Claim if matches
+                $claim = WarrantyClaim::where('pickup_surat_jalan_id', $surat->id)
+                    ->where('material_id', $detail->material_id)
+                    ->where('serial_number', $serial)
+                    ->where('status', 'PROCESSED')
+                    ->first();
+
+                if ($claim) {
+                    $claim->update([
+                        'status' => 'COMPLETED',
+                        'return_date' => $validated['tanggal_masuk'] . ' ' . now()->format('H:i:s'),
+                    ]);
+                }
             }
         }
 
@@ -1250,12 +1412,33 @@ class SuratJalanController extends Controller
 
     public function getHistory(SuratJalanDetail $detail)
     {
-        $detail->loadMissing('pengembalianHistories', 'material', 'suratJalan');
+        $detail->loadMissing('pengembalianHistories', 'material', 'suratJalan.warrantyClaims');
 
         // Total kembali dari DB
         $totalMasuk = $detail->pengembalianHistories()->sum('jumlah_kembali');
 
         $sisa = max($detail->quantity - $totalMasuk, 0);
+
+        // ✅ Find related claims
+        $claims = [];
+        if ($detail->suratJalan && $detail->suratJalan->warrantyClaims->isNotEmpty()) {
+            $serials = $detail->serial_numbers ?? [];
+            foreach ($detail->suratJalan->warrantyClaims as $c) {
+                if ($c->material_id == $detail->material_id) {
+                    // If serial matches or if manual/no-serial and just match material
+                    if (empty($serials) || in_array($c->serial_number, $serials)) {
+                        $claims[] = [
+                            'ticket' => $c->ticket_number,
+                            'serial' => $c->serial_number,
+                            'submitted' => $c->submission_date->format('d/m/Y H:i'),
+                            'pickup' => $c->pickup_date ? $c->pickup_date->format('d/m/Y H:i') : '-',
+                            'returned' => $c->return_date ? $c->return_date->format('d/m/Y H:i') : '-',
+                            'status' => $c->status
+                        ];
+                    }
+                }
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -1269,6 +1452,8 @@ class SuratJalanController extends Controller
                 'kembali'        => $totalMasuk,
                 'sisa'           => $sisa,
             ],
+
+            'claims' => $claims, // ✅ Add claims data
 
             'history' => $detail->pengembalianHistories()
                 ->orderBy('tanggal_masuk')
