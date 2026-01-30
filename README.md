@@ -103,7 +103,45 @@ ASI (Automatic System Inventory) adalah sistem manajemen gudang berbasis web yan
 - pgsql PHP Extension (untuk PostgreSQL)
 - mysql PHP Extension (untuk MySQL)
 
-## Instalasi
+## Setup with Docker (Recommended)
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) installed on your machine (Windows/Mac/Linux).
+
+### Quick Start
+1. **Clone the Repository**
+   ```bash
+   git clone <repository-url>
+   cd asi-apps
+   ```
+
+2. **Start the Application**
+   ```bash
+   docker compose up -d --build
+   ```
+
+3. **Install Dependencies** (First time only)
+   ```bash
+   # Install PHP dependencies
+   docker compose exec app composer install
+   
+   # Setup environment
+   cp .env.example .env
+   docker compose exec app php artisan key:generate
+   
+   # Run migrations and seeders
+   docker compose exec app php artisan migrate:fresh --seed
+   ```
+
+4. **Access the Application**
+   - Open [http://localhost:8000](http://localhost:8000)
+
+### Development Workflow
+- **Code Changes**: The project folder is mapped to the container. **Any changes you make to the code (PHP, Blade, CSS, JS) will be immediately reflected** without restarting Docker.
+- **New Dependency**: If you add a new package via composer, run `docker compose exec app composer require <package>`.
+- **Stop Application**: `docker compose down`
+
+## Instalasi (Manual/Without Docker)
 
 ### 1. Clone Repository
 

@@ -17,49 +17,54 @@ class Up3CikarangRakSeeder extends Seeder
             return;
         }
 
-        $rows = [
-            [
-                'code' => '2190224',
-                'rak' => '1.A11-1.A44',
-                'desc_contains' => '1P;230V;5-60A',
-            ],
-            [
-                'code' => '2190224',
-                'rak' => '1.B11-1.B44',
-                'desc_contains' => 'E-PR',
-            ],
-            [
-                'code' => '2200004',
-                'rak' => '1.C11-1.C44',
-                'desc_contains' => null,
-            ],
-            [
-                'code' => '2190252',
-                'rak' => '1.D11-1.D41',
-                'desc_contains' => '3P;230/400V;5-80A',
-            ],
-            [
-                'code' => '2190438',
-                'rak' => '1.D12-1.D42',
-                'desc_contains' => '5.7/100V-230/400',
-            ],
-        ];
+        $jsonPath = database_path('data/rak_cikarang.json');
+        
+        if (!file_exists($jsonPath)) {
+            $this->command?->error("File data tidak ditemukan: {$jsonPath}");
+            return;
+        }
+
+        $content = file_get_contents($jsonPath);
+        $rows = json_decode($content, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->command?->error("Error decoding JSON: " . json_last_error_msg());
+            return;
+        }
+
+        // Pre-calculate code counts to handle duplicates
+        $codeCounts = [];
+        foreach ($rows as $row) {
+            $c = $this->normalizeMaterialCode($row['code']);
+            if (!isset($codeCounts[$c])) {
+                $codeCounts[$c] = 0;
+            }
+            $codeCounts[$c]++;
+        }
 
         foreach ($rows as $row) {
             $code = $this->normalizeMaterialCode($row['code']);
+            $isDuplicate = ($codeCounts[$code] ?? 0) > 1;
+
             $query = Material::where('material_code', $code);
-            if (!empty($row['desc_contains'])) {
+            
+            // Only enforce description check if we have duplicates in the source file
+            // OR if it's not a duplicate but we want to be safe (optional). 
+            // Here we prioritize the Code if it's unique in the source.
+            if ($isDuplicate && !empty($row['desc_contains'])) {
                 $query->where('material_description', 'like', '%' . $row['desc_contains'] . '%');
             }
 
             $materials = $query->get();
             if ($materials->isEmpty()) {
-                $this->command?->warn("Material tidak ditemukan: {$code} ({$row['rak']})");
+                // If stricter check failed (or just not found), validation
+                $this->command?->warn("Material tidak ditemukan: {$code} ({$row['rak']})" . ($isDuplicate ? " [Ambiguous]" : ""));
                 continue;
             }
 
             if ($materials->count() > 1) {
-                $this->command?->warn("Material ganda untuk kode {$code} ({$row['rak']}). Perjelas filter deskripsi.");
+                // This refers to DB duplicates, which we should avoid globally but handled here just in case
+                $this->command?->warn("Material ganda di DB untuk kode {$code} ({$row['rak']}). Perjelas filter deskripsi.");
                 continue;
             }
 

@@ -15,7 +15,7 @@ class PurgeOldTransactionsSeeder extends Seeder
 {
     public function run(): void
     {
-        $cutoff = Carbon::create(2025, 1, 26)->startOfDay();
+        $cutoff = Carbon::create(2026, 1, 25)->startOfDay();
 
         DB::transaction(function () use ($cutoff) {
             // Material Masuk sebelum cutoff

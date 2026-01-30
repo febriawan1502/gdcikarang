@@ -1,0 +1,55 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            args:
+                user: ${USER:-laravel}
+                uid: ${UID:-1000}
+        image: gdcikarang-app
+        container_name: gdcikarang-app
+        restart: unless-stopped
+        working_dir: /var/www/
+        volumes:
+            - ./:/var/www
+        networks:
+            - gdcikarang
+
+    db:
+        image: mysql:8.0
+        container_name: gdcikarang-db
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE:-laravel}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+            MYSQL_PASSWORD: ${DB_PASSWORD:-root}
+            MYSQL_USER: ${DB_USERNAME:-laravel}
+            SERVICE_TAGS: dev
+            SERVICE_NAME: mysql
+        ports:
+            - "3306:3306"
+        volumes:
+            - ./docker/mysql:/var/lib/mysql
+        networks:
+            - gdcikarang
+
+    webserver:
+        image: nginx:alpine
+        container_name: gdcikarang-webserver
+        restart: unless-stopped
+        tty: true
+        ports:
+            - "8000:80"
+            - "443:443"
+        volumes:
+            - ./:/var/www
+            - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+        networks:
+            - gdcikarang
+        depends_on:
+            - app
+            - db
+
+networks:
+    gdcikarang:
+        driver: bridge
