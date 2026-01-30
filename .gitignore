@@ -17,9 +17,11 @@ yarn.lock
 /.vscode
 /database/database.sqlite
 /storage/logs/*.log
-/storage/framework/cache/data/*
+/storage/framework/cache/*
 /storage/framework/sessions/*
 /storage/framework/views/*
+/storage/app/temp/*
+/storage/app/berita-acara-pdf/*
 /bootstrap/cache/*.php
 /public/build
 *.log
@@ -30,3 +32,10 @@ Thumbs.db
 /dashboard_response.html
 /test_*.txt
 node_modules
+database/data/rak_cikarang.json
+backup_gdcikarang_manual.sql
+bootstrap/cache/pac315D.tmp
+database/seeders/PurgeOldTransactionsSeeder.php
+database/seeders/Up3CikarangRakSeeder.php
+bootstrap/cache/pac315D.tmp
+storage/app/test.txt

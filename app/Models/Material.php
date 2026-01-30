@@ -243,6 +243,38 @@ class Material extends Model
     }
     // === END FIX ===
 
+    public function getRakAttribute($value)
+    {
+        // 1. Try resolving unit from the logged-in user (context-aware)
+        $unitId = $this->resolveUnitId();
+
+        // 2. If user has context, return that unit's rack
+        if ($unitId) {
+            return MaterialStock::withoutGlobalScopes()
+                ->where('material_id', $this->id)
+                ->where('unit_id', $unitId)
+                ->value('rak') ?? $value;
+        }
+
+        // 3. Fallback: If user is Admin/Induk (no context), show the rack for the material's owning Unit
+        // Try finding unit by Storage Location first (more specific)
+        $owningUnit = \App\Models\Unit::where('storage_location', $this->storage_location)->first();
+        
+        // If not found, try finding unit by Plant
+        if (!$owningUnit) {
+            $owningUnit = \App\Models\Unit::where('plant', $this->plant)->first();
+        }
+
+        if ($owningUnit) {
+            return MaterialStock::withoutGlobalScopes()
+                ->where('material_id', $this->id)
+                ->where('unit_id', $owningUnit->id)
+                ->value('rak') ?? $value;
+        }
+
+        return $value;
+    }
+
     public function getUnrestrictedUseStockAttribute($value)
     {
         return $this->getStockValue('unrestricted_use_stock');
