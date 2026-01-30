@@ -39,3 +39,4 @@ database/seeders/PurgeOldTransactionsSeeder.php
 database/seeders/Up3CikarangRakSeeder.php
 bootstrap/cache/pac315D.tmp
 storage/app/test.txt
+/docker/mysql

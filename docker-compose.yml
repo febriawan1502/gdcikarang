@@ -4,7 +4,7 @@ services:
             context: .
             dockerfile: Dockerfile
             args:
-                user: ${USER:-laravel}
+                user: laravel
                 uid: ${UID:-1000}
         image: gdcikarang-app
         container_name: gdcikarang-app
@@ -27,7 +27,7 @@ services:
             SERVICE_TAGS: dev
             SERVICE_NAME: mysql
         ports:
-            - "3306:3306"
+            - "3307:3306"
         volumes:
             - ./docker/mysql:/var/lib/mysql
         networks:
