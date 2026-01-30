@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Models\Material;
 use App\Models\MaterialMasuk;
@@ -22,42 +23,42 @@ class MaterialMasukController extends Controller
     public function getData(Request $request)
     {
         $materialMasuk = MaterialMasuk::with(['details.material', 'creator'])
-    ->select('material_masuk.*')
-    ->orderByRaw("
+            ->select('material_masuk.*')
+            ->orderByRaw("
         CASE 
             WHEN LOWER(status_sap) IN ('belum sap', 'belum selesai sap') THEN 0
             ELSE 1
         END
     ")
-    ->orderBy('created_at', 'desc');
+            ->orderBy('created_at', 'desc');
 
         return DataTables::of($materialMasuk)
-    ->addIndexColumn()
+            ->addIndexColumn()
 
-    // 🔍 SEARCH BERDASARKAN NAMA MATERIAL
-    ->filterColumn('material_info', function ($query, $keyword) {
-        $query->whereHas('details.material', function ($q) use ($keyword) {
-            $q->whereRaw(
-                'LOWER(material_description) LIKE ?',
-                ['%' . strtolower($keyword) . '%']
-            );
-        });
-    })
+            // 🔍 SEARCH BERDASARKAN NAMA MATERIAL
+            ->filterColumn('material_info', function ($query, $keyword) {
+                $query->whereHas('details.material', function ($q) use ($keyword) {
+                    $q->whereRaw(
+                        'LOWER(material_description) LIKE ?',
+                        ['%' . strtolower($keyword) . '%']
+                    );
+                });
+            })
 
-    ->addColumn('material_info', function ($row) {
-        $materials = $row->details->map(function ($detail) {
-            $materialDesc = $detail->material->material_description ?? 'Material tidak diketahui';
-            return $materialDesc . ' (' . $detail->quantity . ' ' . $detail->satuan . ')';
-        })->take(2)->implode('<br>');
+            ->addColumn('material_info', function ($row) {
+                $materials = $row->details->map(function ($detail) {
+                    $materialDesc = $detail->material->material_description ?? 'Material tidak diketahui';
+                    return $materialDesc . ' (' . $detail->quantity . ' ' . $detail->satuan . ')';
+                })->take(2)->implode('<br>');
 
-        if ($row->details->count() > 2) {
-            $materials .= '<br><small class="text-muted">+'
-                . ($row->details->count() - 2)
-                . ' material lainnya</small>';
-        }
+                if ($row->details->count() > 2) {
+                    $materials .= '<br><small class="text-muted">+'
+                        . ($row->details->count() - 2)
+                        . ' material lainnya</small>';
+                }
 
-        return $materials ?: '-';
-    })
+                return $materials ?: '-';
+            })
 
             ->addColumn('total_quantity', fn($row) => $row->details->sum('quantity'))
             ->addColumn('creator_name', fn($row) => $row->creator->nama ?? '-')
@@ -69,10 +70,10 @@ class MaterialMasukController extends Controller
                     : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">Belum SAP</span>';
             })
             ->addColumn('action', function ($row) {
-                $user = auth()->user();
+                $user = Auth::user();
 
                 $btn = '<div class="action-buttons">';
-                
+
                 // View Button
                 $btn .= '<button type="button" class="action-btn view"
                         onclick="showDetail(' . $row->id . ')" title="Detail">
@@ -155,11 +156,11 @@ class MaterialMasukController extends Controller
                 'masuk'   => (int) $qty,
                 'tanggal' => $tanggal ?? now(),
                 'no_slip' => $noSlip ?? '-',
-                'catatan'=> $catatan,
+                'catatan' => $catatan,
             ]);
     }
     /** ========================= STORE ========================= */
-    
+
     public function store(Request $request)
     {
         \Log::info('🟦 MATERIAL DIKIRIM FRONTEND:', $request->materials);
@@ -170,14 +171,14 @@ class MaterialMasukController extends Controller
             'materials.*.quantity' => 'required|integer|min:1',
             'materials.*.satuan' => 'required|string|max:50',
         ]);
-         // 🟥 LOG FULL MATERIALS
-    \Log::info('🟥 FULL MATERIALS REQUEST:', $request->materials);
+        // 🟥 LOG FULL MATERIALS
+        \Log::info('🟥 FULL MATERIALS REQUEST:', $request->materials);
 
         $materials = $request->input('materials');
 
         foreach ($materials as $index => $item) {
             $material = null;
-            
+
             if (!empty($item['material_id'])) {
                 $material = Material::find($item['material_id']);
             }
@@ -185,13 +186,11 @@ class MaterialMasukController extends Controller
                 // $material = Material::whereRaw('LOWER(material_description) = ?', [strtolower(trim($item['material_name']))])->first();
                 // $material = Material::whereRaw('LOWER(material_description) LIKE ?', ['%' . strtolower(trim($item['material_name'])) . '%'])->first();
                 $material = Material::whereRaw('LOWER(material_description) = ?', [strtolower(trim($item['material_name']))])->first();
-
-
             }
             if (!$material) {
                 return back()->withErrors([
                     "materials.{$index}.material_name" =>
-                        "Material tidak dikenali. Silakan pilih material dari daftar atau pastikan nama material yang Anda ketik sudah benar."
+                    "Material tidak dikenali. Silakan pilih material dari daftar atau pastikan nama material yang Anda ketik sudah benar."
                 ])->withInput();
             }
             $materials[$index]['material_id'] = $material->id;
@@ -213,7 +212,7 @@ class MaterialMasukController extends Controller
                 'tugas_4' => $request->tugas_4,
                 'keterangan' => $request->keterangan,
                 'status_sap' => 'Belum SAP',
-                'created_by' => auth()->id(),
+                'created_by' => Auth::id(),
             ]);
 
             foreach ($materials as $item) {
@@ -240,22 +239,19 @@ class MaterialMasukController extends Controller
                 //     'catatan'          => 'Material masuk dari ' . ($request->pabrikan ?? 'Penerimaan Material'),
                 // ]);
                 \Log::info('Calling record()', [
-    'material_id' => $material->id,
-    'qty' => $item['quantity'],
-    'no_slip' => $request->nomor_doc,
-    'tanggal' => $request->tanggal_masuk
-]);
-            $this->recordHistory(
-            $material->id,
-            $item['quantity'],
-            $request->nomor_doc,
-            $request->pabrikan,
-            $request->tanggal_masuk,
-            $materialMasuk->id
-        );
-
-
-
+                    'material_id' => $material->id,
+                    'qty' => $item['quantity'],
+                    'no_slip' => $request->nomor_doc,
+                    'tanggal' => $request->tanggal_masuk
+                ]);
+                $this->recordHistory(
+                    $material->id,
+                    $item['quantity'],
+                    $request->nomor_doc,
+                    $request->pabrikan,
+                    $request->tanggal_masuk,
+                    $materialMasuk->id
+                );
             }
 
             DB::commit();
@@ -267,413 +263,424 @@ class MaterialMasukController extends Controller
     }
 
     public function update(Request $request, $id)
-{
+    {
         $request->validate([
             'sumber_material' => 'required|string|max:100',
-        'tanggal_masuk' => 'required|date',
-        'materials' => 'required|array|min:1',
-        'materials.*.material_id' => 'required|exists:materials,id',
-        'materials.*.quantity' => 'required|integer|min:1',
-        'materials.*.satuan' => 'required|string|max:50',
-    ]);
+            'tanggal_masuk' => 'required|date',
+            'materials' => 'required|array|min:1',
+            'materials.*.material_id' => 'required|exists:materials,id',
+            'materials.*.quantity' => 'required|integer|min:1',
+            'materials.*.satuan' => 'required|string|max:50',
+        ]);
 
-    \Log::info('=== SUBMIT EDIT MATERIAL MASUK ===');
-    \Log::info('Request all:', $request->all());
+        \Log::info('=== SUBMIT EDIT MATERIAL MASUK ===');
+        \Log::info('Request all:', $request->all());
 
-    DB::beginTransaction();
+        DB::beginTransaction();
 
-    try {
-        $materialMasuk = MaterialMasuk::with('details')->findOrFail($id);
-        \Log::info("Ditemukan material_masuk ID: {$id}");
+        try {
+            $materialMasuk = MaterialMasuk::with('details')->findOrFail($id);
+            \Log::info("Ditemukan material_masuk ID: {$id}");
 
-        $materialMasuk->update($request->only([
-            'sumber_material', 'nomor_kr', 'pabrikan', 'tanggal_masuk', 'tanggal_keluar',
-            'jenis', 'nomor_po', 'nomor_doc', 'tugas_4', 'keterangan'
-        ]));
+            $materialMasuk->update($request->only([
+                'sumber_material',
+                'nomor_kr',
+                'pabrikan',
+                'tanggal_masuk',
+                'tanggal_keluar',
+                'jenis',
+                'nomor_po',
+                'nomor_doc',
+                'tugas_4',
+                'keterangan'
+            ]));
 
-        \Log::info("Berhasil update material_masuk utama");
+            \Log::info("Berhasil update material_masuk utama");
 
-        $existingDetailIds = [];
+            $existingDetailIds = [];
 
-        foreach ($request->materials as $item) {
-            \Log::info("Proses material ID: {$item['material_id']} (Detail ID: {$item['detail_id']})");
+            foreach ($request->materials as $item) {
+                \Log::info("Proses material ID: {$item['material_id']} (Detail ID: {$item['detail_id']})");
 
-            $materialBaru = Material::findOrFail($item['material_id']);
+                $materialBaru = Material::findOrFail($item['material_id']);
 
-            if (!empty($item['detail_id'])) {
-                $detail = MaterialMasukDetail::findOrFail($item['detail_id']);
+                if (!empty($item['detail_id'])) {
+                    $detail = MaterialMasukDetail::findOrFail($item['detail_id']);
 
-                \Log::info("Update detail ID: {$detail->id}");
+                    \Log::info("Update detail ID: {$detail->id}");
 
-                $qtyLama = $detail->quantity;
-$qtyBaru = $item['quantity'];
-$diff = $qtyBaru - $qtyLama;
+                    $qtyLama = $detail->quantity;
+                    $qtyBaru = $item['quantity'];
+                    $diff = $qtyBaru - $qtyLama;
 
-$detail->update([
-    'material_id' => $item['material_id'],
-    'quantity' => $qtyBaru,
-    'satuan' => $item['satuan'],
-    'normalisasi' => $item['normalisasi'] ?? null,
-]);
+                    $detail->update([
+                        'material_id' => $item['material_id'],
+                        'quantity' => $qtyBaru,
+                        'satuan' => $item['satuan'],
+                        'normalisasi' => $item['normalisasi'] ?? null,
+                    ]);
 
-// 🔥 UPDATE MASTER STOCK
-if ($diff > 0) {
-    $materialBaru->safeIncrement('unrestricted_use_stock', $diff);
-} elseif ($diff < 0) {
-    $materialBaru->safeDecrement('unrestricted_use_stock', abs($diff));
-}
-
-                
-                $this->updateHistoryMasuk(
-                $materialMasuk->id,          // source_id
-                $item['material_id'],        // material_id
-                $item['quantity'],           // qty baru
-                $request->tanggal_masuk,     // tanggal
-                $request->nomor_doc,         // no slip
-                $request->pabrikan,        // catatan
-            );
-
-            //     $this->recordHistory(
-            //     $item['material_id'],
-            //     $item['quantity'],
-            //     $request->nomor_doc,
-            //     $request->pabrikan,
-            //     // 'Perubahan jumlah material masuk',
-            //     $request->tanggal_masuk,
-            //     $materialMasuk->id
-            // );
-
-//                 MaterialHistory::create([
-//     'material_id'      => $item['material_id'],
-//     'tanggal'          => $request->tanggal_masuk ?? now(),
-//     'tipe'             => 'MASUK',
-//     'no_slip'          => $request->nomor_doc ?? '-',
-//     'masuk'            => (int)$item['quantity'],
-//     'keluar'           => 0,
-//     'sisa_persediaan'  => Material::find($item['material_id'])->qty,
-//     'catatan'          => 'TEST pencatatan MASUK'
-// ]);
+                    // 🔥 UPDATE MASTER STOCK
+                    if ($diff > 0) {
+                        $materialBaru->safeIncrement('unrestricted_use_stock', $diff);
+                    } elseif ($diff < 0) {
+                        $materialBaru->safeDecrement('unrestricted_use_stock', abs($diff));
+                    }
 
 
-                $existingDetailIds[] = $detail->id;
+                    $this->updateHistoryMasuk(
+                        $materialMasuk->id,          // source_id
+                        $item['material_id'],        // material_id
+                        $item['quantity'],           // qty baru
+                        $request->tanggal_masuk,     // tanggal
+                        $request->nomor_doc,         // no slip
+                        $request->pabrikan,        // catatan
+                    );
 
-            } else {
-    $detail = MaterialMasukDetail::create([
-        'material_masuk_id' => $materialMasuk->id,
-        'material_id' => $item['material_id'],
-        'quantity' => $item['quantity'],
-        'satuan' => $item['satuan'],
-        'normalisasi' => $item['normalisasi'] ?? null,
-    ]);
+                    //     $this->recordHistory(
+                    //     $item['material_id'],
+                    //     $item['quantity'],
+                    //     $request->nomor_doc,
+                    //     $request->pabrikan,
+                    //     // 'Perubahan jumlah material masuk',
+                    //     $request->tanggal_masuk,
+                    //     $materialMasuk->id
+                    // );
 
-    // 🔥 TAMBAH STOK MASTER
-    $materialBaru->safeIncrement(
-        'unrestricted_use_stock',
-        $item['quantity']
-    );
+                    //                 MaterialHistory::create([
+                    //     'material_id'      => $item['material_id'],
+                    //     'tanggal'          => $request->tanggal_masuk ?? now(),
+                    //     'tipe'             => 'MASUK',
+                    //     'no_slip'          => $request->nomor_doc ?? '-',
+                    //     'masuk'            => (int)$item['quantity'],
+                    //     'keluar'           => 0,
+                    //     'sisa_persediaan'  => Material::find($item['material_id'])->qty,
+                    //     'catatan'          => 'TEST pencatatan MASUK'
+                    // ]);
 
-    // 🔥 CREATE HISTORY BARU (KARENA BELUM ADA)
-    $this->recordHistory(
-        $materialBaru->id,
-        $item['quantity'],
-        $request->nomor_doc,
-        $request->pabrikan,
-        $request->tanggal_masuk,
-        $materialMasuk->id
-    );
 
-    $existingDetailIds[] = $detail->id;
-}
+                    $existingDetailIds[] = $detail->id;
+                } else {
+                    $detail = MaterialMasukDetail::create([
+                        'material_masuk_id' => $materialMasuk->id,
+                        'material_id' => $item['material_id'],
+                        'quantity' => $item['quantity'],
+                        'satuan' => $item['satuan'],
+                        'normalisasi' => $item['normalisasi'] ?? null,
+                    ]);
 
+                    // 🔥 TAMBAH STOK MASTER
+                    $materialBaru->safeIncrement(
+                        'unrestricted_use_stock',
+                        $item['quantity']
+                    );
+
+                    // 🔥 CREATE HISTORY BARU (KARENA BELUM ADA)
+                    $this->recordHistory(
+                        $materialBaru->id,
+                        $item['quantity'],
+                        $request->nomor_doc,
+                        $request->pabrikan,
+                        $request->tanggal_masuk,
+                        $materialMasuk->id
+                    );
+
+                    $existingDetailIds[] = $detail->id;
+                }
+            }
+
+            \Log::info("Cek dan hapus detail yang dihapus user");
+
+            $deletedDetails = $materialMasuk->details()->whereNotIn('id', $existingDetailIds)->get();
+            foreach ($deletedDetails as $detail) {
+                \Log::info("Hapus detail ID: {$detail->id}");
+                $detail->delete();
+            }
+
+            DB::commit();
+            \Log::info("✅ MaterialMasuk berhasil diupdate ID: " . $materialMasuk->id);
+
+            return redirect()->route('material-masuk.index')->with('success', 'Material masuk berhasil diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('❌ Gagal update material masuk: ' . $e->getMessage());
+            return back()->with('error', 'Gagal update: ' . $e->getMessage())->withInput();
         }
-
-        \Log::info("Cek dan hapus detail yang dihapus user");
-
-        $deletedDetails = $materialMasuk->details()->whereNotIn('id', $existingDetailIds)->get();
-        foreach ($deletedDetails as $detail) {
-            \Log::info("Hapus detail ID: {$detail->id}");
-            $detail->delete();
-        }
-
-        DB::commit();
-        \Log::info("✅ MaterialMasuk berhasil diupdate ID: " . $materialMasuk->id);
-
-        return redirect()->route('material-masuk.index')->with('success', 'Material masuk berhasil diperbarui.');
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        \Log::error('❌ Gagal update material masuk: ' . $e->getMessage());
-        return back()->with('error', 'Gagal update: ' . $e->getMessage())->withInput();
     }
-}
 
 
 
     /** ========================= UPDATE & SELESAI SAP ========================= */
-public function updateDanSelesaiSAP(Request $request, $id)
-{
-    $request->validate([
-        'sumber_material' => 'required|string|max:100',
-        'tanggal_masuk' => 'required|date',
-        'materials' => 'required|array|min:1',
-        'materials.*.quantity' => 'required|integer|min:1',
-        'materials.*.satuan' => 'required|string|max:50',
-    ]);
+    public function updateDanSelesaiSAP(Request $request, $id)
+    {
+        $request->validate([
+            'sumber_material' => 'required|string|max:100',
+            'tanggal_masuk' => 'required|date',
+            'materials' => 'required|array|min:1',
+            'materials.*.quantity' => 'required|integer|min:1',
+            'materials.*.satuan' => 'required|string|max:50',
+        ]);
 
-    DB::beginTransaction();
-    try {
-        $materialMasuk = MaterialMasuk::with('details')->findOrFail($id);
+        DB::beginTransaction();
+        try {
+            $materialMasuk = MaterialMasuk::with('details')->findOrFail($id);
 
-        // UPDATE DATA UTAMA
-        $materialMasuk->update(array_merge(
-            $request->only([
-                'sumber_material', 'nomor_kr', 'pabrikan', 'tanggal_masuk', 'tanggal_keluar',
-                'jenis', 'nomor_po', 'nomor_doc', 'tugas_4', 'keterangan'
-            ]),
-            [
-                'status_sap' => 'Selesai SAP',
-                'tanggal_sap' => now(),
-            ]
-        ));
+            // UPDATE DATA UTAMA
+            $materialMasuk->update(array_merge(
+                $request->only([
+                    'sumber_material',
+                    'nomor_kr',
+                    'pabrikan',
+                    'tanggal_masuk',
+                    'tanggal_keluar',
+                    'jenis',
+                    'nomor_po',
+                    'nomor_doc',
+                    'tugas_4',
+                    'keterangan'
+                ]),
+                [
+                    'status_sap' => 'Selesai SAP',
+                    'tanggal_sap' => now(),
+                ]
+            ));
 
-        $existingDetailIds = [];
+            $existingDetailIds = [];
 
-        foreach ($request->materials as $item) {
-            $material = Material::findOrFail($item['material_id']);
+            foreach ($request->materials as $item) {
+                $material = Material::findOrFail($item['material_id']);
 
-            // CASE 1 — DETAIL LAMA
-            if (!empty($item['detail_id'])) {
+                // CASE 1 — DETAIL LAMA
+                if (!empty($item['detail_id'])) {
 
-                $detail = MaterialMasukDetail::find($item['detail_id']);
+                    $detail = MaterialMasukDetail::find($item['detail_id']);
 
-                $diff = $item['quantity'] - $detail->quantity;
+                    $diff = $item['quantity'] - $detail->quantity;
 
-                // update detail
-                $detail->update([
-                    'material_id' => $item['material_id'],
-                    'quantity' => $item['quantity'],
-                    'satuan' => $item['satuan'],
-                    'normalisasi' => $item['normalisasi'] ?? null,
-                ]);
+                    // update detail
+                    $detail->update([
+                        'material_id' => $item['material_id'],
+                        'quantity' => $item['quantity'],
+                        'satuan' => $item['satuan'],
+                        'normalisasi' => $item['normalisasi'] ?? null,
+                    ]);
 
-                // update stok
-                if ($diff > 0) {
-                    $material->safeIncrement('unrestricted_use_stock', $diff);
-                } elseif ($diff < 0) {
-                    $material->safeDecrement('unrestricted_use_stock', abs($diff));
+                    // update stok
+                    if ($diff > 0) {
+                        $material->safeIncrement('unrestricted_use_stock', $diff);
+                    } elseif ($diff < 0) {
+                        $material->safeDecrement('unrestricted_use_stock', abs($diff));
+                    }
+
+                    // PENCATATAN HISTORY FIX
+                    $this->updateHistoryMasuk(
+                        $materialMasuk->id,
+                        $material->id,
+                        $item['quantity'],
+                        $request->tanggal_masuk,
+                        $request->nomor_doc,
+                        $request->pabrikan ?? '-'
+                    );
+
+                    $existingDetailIds[] = $detail->id;
                 }
 
-                // PENCATATAN HISTORY FIX
-               $this->updateHistoryMasuk(
-    $materialMasuk->id,
-    $material->id,
-    $item['quantity'],
-    $request->tanggal_masuk,
-    $request->nomor_doc,
-    $request->pabrikan ?? '-'
-);
+                // CASE 2 — DETAIL BARU
+                else {
+                    $detail = MaterialMasukDetail::create([
+                        'material_masuk_id' => $materialMasuk->id,
+                        'material_id' => $material->id,
+                        'quantity' => $item['quantity'],
+                        'satuan' => $item['satuan'],
+                        'normalisasi' => $item['normalisasi'] ?? null,
+                    ]);
 
-                $existingDetailIds[] = $detail->id;
+                    $material->safeIncrement('unrestricted_use_stock', $item['quantity']);
+
+                    // HISTORY BARU
+                    $this->recordHistory(
+                        $material->id,
+                        $item['quantity'],
+                        $request->nomor_doc,
+                        'SAP Material Masuk',
+                        $request->tanggal_masuk,
+                        $materialMasuk->id
+                    );
+                    $existingDetailIds[] = $detail->id;
+                }
             }
 
-            // CASE 2 — DETAIL BARU
-            else {
-                $detail = MaterialMasukDetail::create([
-                    'material_masuk_id' => $materialMasuk->id,
-                    'material_id' => $material->id,
-                    'quantity' => $item['quantity'],
-                    'satuan' => $item['satuan'],
-                    'normalisasi' => $item['normalisasi'] ?? null,
-                ]);
+            // CASE 3 — DETAIL DIHAPUS USER
+            $removed = $materialMasuk->details()->whereNotIn('id', $existingDetailIds)->get();
+            foreach ($removed as $detail) {
+                $material = Material::find($detail->material_id);
 
-                $material->safeIncrement('unrestricted_use_stock', $item['quantity']);
+                if ($material) {
+                    // $material->safeDecrement('qty', $detail->quantity);
+                    $material->safeDecrement('unrestricted_use_stock', $detail->quantity);
+                }
 
-                // HISTORY BARU
-            $this->recordHistory(
-                $material->id,
-                $item['quantity'],
-                $request->nomor_doc,
-                'SAP Material Masuk',
-                $request->tanggal_masuk,
-                $materialMasuk->id
-            );
-                $existingDetailIds[] = $detail->id;
+                $detail->delete();
             }
+
+            DB::commit();
+            return redirect()->route('material-masuk.index')
+                ->with('success', 'Material masuk berhasil disimpan & Selesai SAP.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal SAP: ' . $e->getMessage())->withInput();
         }
-
-        // CASE 3 — DETAIL DIHAPUS USER
-        $removed = $materialMasuk->details()->whereNotIn('id', $existingDetailIds)->get();
-        foreach ($removed as $detail) {
-            $material = Material::find($detail->material_id);
-
-            if ($material) {
-                // $material->safeDecrement('qty', $detail->quantity);
-                $material->safeDecrement('unrestricted_use_stock', $detail->quantity);
-            }
-
-            $detail->delete();
-        }
-
-        DB::commit();
-        return redirect()->route('material-masuk.index')
-            ->with('success', 'Material masuk berhasil disimpan & Selesai SAP.');
     }
 
-    catch (\Exception $e) {
-        DB::rollBack();
-        return back()->with('error', 'Gagal SAP: ' . $e->getMessage())->withInput();
-    }
-}
-
-/** ========================= SHOW / VIEW DETAIL ========================= */
-        public function show($id)
-        {
-            $materialMasuk = MaterialMasuk::with(['details.material', 'creator'])->findOrFail($id);
-
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'id' => $materialMasuk->id,
-                    'nomor_kr' => $materialMasuk->nomor_kr ?? '-',
-                    'pabrikan' => $materialMasuk->pabrikan ?? '-',
-                    'tanggal_masuk' => $materialMasuk->tanggal_masuk
-                        ? Carbon::parse($materialMasuk->tanggal_masuk)->format('d/m/Y')
-                        : '-',
-                    'tanggal_keluar' => $materialMasuk->tanggal_keluar
-                        ? Carbon::parse($materialMasuk->tanggal_keluar)->format('d/m/Y')
-                        : '-',
-                    'nomor_po' => $materialMasuk->nomor_po ?? '-',
-                    'nomor_doc' => $materialMasuk->nomor_doc ?? '-',
-                    'jenis' => $materialMasuk->jenis ?? '-',
-                    'status_sap' => $materialMasuk->status_sap ?? '-',
-                    'tanggal_sap' => $materialMasuk->tanggal_sap
-                        ? Carbon::parse($materialMasuk->tanggal_sap)->format('d/m/Y H:i')
-                        : '-',
-                    'tugas_4' => $materialMasuk->tugas_4 ?? '-',
-                    'keterangan' => $materialMasuk->keterangan ?? '-',
-                    'created_by' => $materialMasuk->creator->nama ?? '-',
-                    'created_at' => $materialMasuk->created_at
-                        ? $materialMasuk->created_at->format('d/m/Y H:i')
-                        : '-',
-                    'details' => $materialMasuk->details->map(function ($detail) {
-                        return [
-                            'material_code' => $detail->material->material_code ?? '-',
-                            'material_description' => $detail->material->material_description ?? '-',
-                            'quantity' => $detail->quantity,
-                            'satuan' => $detail->satuan,
-                            'normalisasi' => $detail->normalisasi ?? '-',
-                        ];
-                    }),
-                ]
-            ]);
-        }
-
-        /** ========================= DELETE / DESTROY ========================= */
-public function destroy($id)
-{
-    Log::info('🧨 MASUK DESTROY MATERIAL MASUK', [
-        'id' => $id,
-        'user' => auth()->id()
-    ]);
-
-    DB::beginTransaction();
-    try {
-        $materialMasuk = MaterialMasuk::with('details')->findOrFail($id);
-
-        // 🔥 HAPUS HISTORY MASUK
-        MaterialHistory::where('source_type', 'material_masuk')
-            ->where('source_id', $materialMasuk->id)
-            ->delete();
-
-        // 🔻 BALIKIN STOK (PAKAI unrestricted_use_stock SAJA)
-        foreach ($materialMasuk->details as $detail) {
-            $material = Material::find($detail->material_id);
-            if ($material) {
-                $material->safeDecrement(
-                    'unrestricted_use_stock',
-                    $detail->quantity
-                );
-            }
-        }
-
-        // 🔥 HAPUS DETAIL & HEADER
-        $materialMasuk->details()->delete();
-        $materialMasuk->delete();
-
-        DB::commit();
+    /** ========================= SHOW / VIEW DETAIL ========================= */
+    public function show($id)
+    {
+        $materialMasuk = MaterialMasuk::with(['details.material', 'creator'])->findOrFail($id);
 
         return response()->json([
             'success' => true,
-            'message' => 'Material masuk & history berhasil dihapus.'
+            'data' => [
+                'id' => $materialMasuk->id,
+                'nomor_kr' => $materialMasuk->nomor_kr ?? '-',
+                'pabrikan' => $materialMasuk->pabrikan ?? '-',
+                'tanggal_masuk' => $materialMasuk->tanggal_masuk
+                    ? Carbon::parse($materialMasuk->tanggal_masuk)->format('d/m/Y')
+                    : '-',
+                'tanggal_keluar' => $materialMasuk->tanggal_keluar
+                    ? Carbon::parse($materialMasuk->tanggal_keluar)->format('d/m/Y')
+                    : '-',
+                'nomor_po' => $materialMasuk->nomor_po ?? '-',
+                'nomor_doc' => $materialMasuk->nomor_doc ?? '-',
+                'jenis' => $materialMasuk->jenis ?? '-',
+                'status_sap' => $materialMasuk->status_sap ?? '-',
+                'tanggal_sap' => $materialMasuk->tanggal_sap
+                    ? Carbon::parse($materialMasuk->tanggal_sap)->format('d/m/Y H:i')
+                    : '-',
+                'tugas_4' => $materialMasuk->tugas_4 ?? '-',
+                'keterangan' => $materialMasuk->keterangan ?? '-',
+                'created_by' => $materialMasuk->creator->nama ?? '-',
+                'created_at' => $materialMasuk->created_at
+                    ? $materialMasuk->created_at->format('d/m/Y H:i')
+                    : '-',
+                'details' => $materialMasuk->details->map(function ($detail) {
+                    return [
+                        'material_code' => $detail->material->material_code ?? '-',
+                        'material_description' => $detail->material->material_description ?? '-',
+                        'quantity' => $detail->quantity,
+                        'satuan' => $detail->satuan,
+                        'normalisasi' => $detail->normalisasi ?? '-',
+                    ];
+                }),
+            ]
         ]);
-    } catch (\Throwable $e) {
-        DB::rollBack();
-
-        Log::error('❌ DELETE MATERIAL MASUK GAGAL', [
-            'id' => $id,
-            'error' => $e->getMessage()
-        ]);
-
-        return response()->json([
-            'success' => false,
-            'message' => $e->getMessage()
-        ], 500);
     }
-}
+
+    /** ========================= DELETE / DESTROY ========================= */
+    public function destroy($id)
+    {
+        Log::info('🧨 MASUK DESTROY MATERIAL MASUK', [
+            'id' => $id,
+            'user' => Auth::id()
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $materialMasuk = MaterialMasuk::with('details')->findOrFail($id);
+
+            // 🔥 HAPUS HISTORY MASUK
+            MaterialHistory::where('source_type', 'material_masuk')
+                ->where('source_id', $materialMasuk->id)
+                ->delete();
+
+            // 🔻 BALIKIN STOK (PAKAI unrestricted_use_stock SAJA)
+            foreach ($materialMasuk->details as $detail) {
+                $material = Material::find($detail->material_id);
+                if ($material) {
+                    $material->safeDecrement(
+                        'unrestricted_use_stock',
+                        $detail->quantity
+                    );
+                }
+            }
+
+            // 🔥 HAPUS DETAIL & HEADER
+            $materialMasuk->details()->delete();
+            $materialMasuk->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Material masuk & history berhasil dihapus.'
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error('❌ DELETE MATERIAL MASUK GAGAL', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 
     /** ========================= AUTOCOMPLETE MATERIAL ========================= */
     public function autocompleteMaterial(Request $request)
-{
-    $query = $request->get('q');
+    {
+        $query = $request->get('q');
 
-    $materials = Material::where(function ($qBuilder) use ($query) {
-        $qBuilder->whereRaw('LOWER(material_description) LIKE ?', ['%' . strtolower($query) . '%'])
-                 ->orWhereRaw('LOWER(material_code) LIKE ?', ['%' . strtolower($query) . '%']);
-    })
-    ->select('id', 'material_description', 'material_code', 'normalisasi', 'base_unit_of_measure')
-    ->limit(10)
-    ->get();
+        $materials = Material::where(function ($qBuilder) use ($query) {
+            $qBuilder->whereRaw('LOWER(material_description) LIKE ?', ['%' . strtolower($query) . '%'])
+                ->orWhereRaw('LOWER(material_code) LIKE ?', ['%' . strtolower($query) . '%']);
+        })
+            ->select('id', 'material_description', 'material_code', 'normalisasi', 'base_unit_of_measure')
+            ->limit(10)
+            ->get();
 
-    return response()->json($materials->map(function ($m) {
-        return [
-            'id' => $m->id,
-            'text' => $m->material_description,
-            'normalisasi' => $m->normalisasi ?? $m->material_code ?? '-',
-            'satuan' => $m->base_unit_of_measure ?? '-',
-        ];
-    }));
-}
+        return response()->json($materials->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'text' => $m->material_description,
+                'normalisasi' => $m->normalisasi ?? $m->material_code ?? '-',
+                'satuan' => $m->base_unit_of_measure ?? '-',
+            ];
+        }));
+    }
 
-public function autocomplete(Request $request)
-{
-    $query = $request->get('term') ?? $request->get('q');
+    public function autocomplete(Request $request)
+    {
+        $query = $request->get('term') ?? $request->get('q');
 
-    $materials = Material::where(function ($q) use ($query) {
-        $q->whereRaw('LOWER(material_description) LIKE ?', ['%' . strtolower($query) . '%'])
-          ->orWhereRaw('LOWER(material_code) LIKE ?', ['%' . strtolower($query) . '%']);
-    })
-    ->select('id', 'material_description', 'material_code', 'base_unit_of_measure')
-    ->limit(15)
-    ->get();
+        $materials = Material::where(function ($q) use ($query) {
+            $q->whereRaw('LOWER(material_description) LIKE ?', ['%' . strtolower($query) . '%'])
+                ->orWhereRaw('LOWER(material_code) LIKE ?', ['%' . strtolower($query) . '%']);
+        })
+            ->select('id', 'material_description', 'material_code', 'base_unit_of_measure')
+            ->limit(15)
+            ->get();
 
-    return response()->json($materials->map(function ($m) {
-        return [
-            'id' => $m->id,
-            'label' => $m->material_code . " - " . $m->material_description,
-            'value' => $m->material_description, // ini yang tampil di textbox
-            'kode' => $m->material_code,
-            'satuan' => $m->base_unit_of_measure ?? '-'
-        ];
-    }));
-}
-public function print()
-{
-    $materials = MaterialMasuk::with(['details', 'creator'])
-        ->orderBy('created_at', 'desc')
-        ->get();
+        return response()->json($materials->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'label' => $m->material_code . " - " . $m->material_description,
+                'value' => $m->material_description, // ini yang tampil di textbox
+                'kode' => $m->material_code,
+                'satuan' => $m->base_unit_of_measure ?? '-'
+            ];
+        }));
+    }
+    public function print()
+    {
+        $materials = MaterialMasuk::with(['details', 'creator'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-    return view('exports.material-masuk', compact('materials'));
-}
+        return view('exports.material-masuk', compact('materials'));
+    }
 
 
 

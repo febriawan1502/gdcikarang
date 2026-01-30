@@ -42,6 +42,7 @@ class MaterialMrwiController extends Controller
                     $searchValue = strtolower($request->search['value']);
                     $query->where(function ($q) use ($searchValue) {
                         $q->whereRaw('LOWER(nomor_mrwi) LIKE ?', ["%{$searchValue}%"])
+                            ->orWhereRaw('LOWER(ulp_pengirim) LIKE ?', ["%{$searchValue}%"])
                             ->orWhereRaw('LOWER(sumber) LIKE ?', ["%{$searchValue}%"])
                             ->orWhereRaw('LOWER(berdasarkan) LIKE ?', ["%{$searchValue}%"]);
                     });
@@ -64,6 +65,9 @@ class MaterialMrwiController extends Controller
             })
             ->addColumn('total_qty', function ($row) {
                 return $row->details->sum('qty');
+            })
+            ->addColumn('ulp_pengirim', function ($row) {
+                return $row->ulp_pengirim ?? $row->sumber ?? '-';
             })
             ->addColumn('creator_name', function ($row) {
                 return $row->creator->nama ?? '-';
@@ -98,7 +102,12 @@ class MaterialMrwiController extends Controller
     {
         $request->validate([
             'tanggal_masuk' => 'required|date',
-            'sumber' => 'required|string|max:255',
+            'ulp_pengirim' => 'required|string|max:255',
+            'ex_gardu' => 'required|string|max:255',
+            'vendor_pengirim' => 'nullable|string|max:255',
+            'nama_pengirim' => 'required|string|max:255',
+            'kategori_material' => 'required|in:Trafo,Kubikel',
+            'kategori_kerusakan' => 'required|string|max:255',
             'mrwi_file' => 'required|file|mimes:xlsx,xls,csv',
         ]);
 
@@ -173,6 +182,13 @@ class MaterialMrwiController extends Controller
                 continue;
             }
 
+            $namaMaterialRaw = trim((string) ($rowData['nama_material'] ?? ''));
+            $namaMaterialLower = strtolower($namaMaterialRaw);
+            $hasPrefix = str_starts_with($namaMaterialLower, 'cub;') || str_starts_with($namaMaterialLower, 'trf;');
+            if (!$hasPrefix) {
+                continue;
+            }
+
             // Parsing without strict validation
             $rowNumber = $index + 2;
             $klasifikasi = (int) $rowData['klasifikasi'];
@@ -182,7 +198,7 @@ class MaterialMrwiController extends Controller
 
             $material = null;
             $noMaterial = trim((string) $rowData['no_material']);
-            $namaMaterial = trim((string) $rowData['nama_material']);
+            $namaMaterial = $namaMaterialRaw;
 
             if ($noMaterial !== '') {
                 $candidates = [$noMaterial];
@@ -211,10 +227,14 @@ class MaterialMrwiController extends Controller
             $currentName = $namaMaterial ?: ($material->material_description ?? '');
             $normalizedName = strtolower($currentName);
             $materialType = 'other';
-            if (str_contains($normalizedName, 'trafo')) {
+            if (str_starts_with($normalizedName, 'trf;') || str_contains($normalizedName, 'trafo')) {
                 $materialType = 'trafo';
-            } elseif (str_contains($normalizedName, 'cub') || str_contains($normalizedName, 'kubikel') || str_contains($normalizedName, 'tm k')) {
+            } elseif (str_starts_with($normalizedName, 'cub;') || str_contains($normalizedName, 'cub') || str_contains($normalizedName, 'kubikel') || str_contains($normalizedName, 'tm k')) {
                 $materialType = 'kubikel';
+            }
+
+            if (!in_array($materialType, ['trafo', 'kubikel'], true)) {
+                continue;
             }
 
             $items[] = [
@@ -245,7 +265,12 @@ class MaterialMrwiController extends Controller
     {
         $request->validate([
             'tanggal_masuk' => 'required|date',
-            'sumber' => 'required|string|max:255',
+            'ulp_pengirim' => 'required|string|max:255',
+            'ex_gardu' => 'required|string|max:255',
+            'vendor_pengirim' => 'nullable|string|max:255',
+            'nama_pengirim' => 'required|string|max:255',
+            'kategori_material' => 'required|in:Trafo,Kubikel',
+            'kategori_kerusakan' => 'required|string|max:255',
             'items' => 'required|array|min:1',
         ]);
 
@@ -312,7 +337,13 @@ class MaterialMrwiController extends Controller
                 'unit_id' => $unitId,
                 'nomor_mrwi' => MaterialMrwi::generateNomorMrwi(),
                 'tanggal_masuk' => $request->tanggal_masuk,
-                'sumber' => $request->sumber,
+                'sumber' => $request->ulp_pengirim,
+                'ulp_pengirim' => $request->ulp_pengirim,
+                'ex_gardu' => $request->ex_gardu,
+                'vendor_pengirim' => $request->vendor_pengirim,
+                'nama_pengirim' => $request->nama_pengirim,
+                'kategori_material' => $request->kategori_material,
+                'kategori_kerusakan' => $request->kategori_kerusakan,
                 'berdasarkan' => $request->berdasarkan,
                 'lokasi' => $request->lokasi,
                 'status' => 'SELESAI',

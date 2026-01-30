@@ -103,7 +103,7 @@
                             class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Pencarian</label>
                         <div class="relative">
                             <input type="text" id="customSearch" class="form-input has-icon-left w-full"
-                                placeholder="Cari nomor MRWI, sumber...">
+                                placeholder="Cari nomor MRWI, ULP...">
                             <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
                                 <i class="fas fa-search"></i>
                             </div>
@@ -119,7 +119,7 @@
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">No</th>
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal</th>
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Nomor MRWI</th>
-                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Sumber</th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">ULP Pengirim</th>
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Total Qty</th>
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Dibuat Oleh</th>
@@ -164,8 +164,8 @@
                         name: 'nomor_mrwi'
                     },
                     {
-                        data: 'sumber',
-                        name: 'sumber'
+                        data: 'ulp_pengirim',
+                        name: 'ulp_pengirim'
                     },
                     {
                         data: 'total_qty',

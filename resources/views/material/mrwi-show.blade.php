@@ -18,24 +18,36 @@
         <div class="card p-6 border border-gray-100 shadow-xl shadow-gray-200/50">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                    <div class="text-xs uppercase font-bold text-gray-500 mb-1">Tanggal Masuk</div>
+                    <div class="text-xs uppercase font-bold text-gray-500 mb-1">Tanggal Retur</div>
                     <div class="text-gray-800 font-semibold">{{ $mrwi->tanggal_masuk?->format('d/m/Y') }}</div>
                 </div>
                 <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                    <div class="text-xs uppercase font-bold text-gray-500 mb-1">Sumber</div>
-                    <div class="text-gray-800 font-semibold">{{ $mrwi->sumber ?? '-' }}</div>
+                    <div class="text-xs uppercase font-bold text-gray-500 mb-1">ULP Pengirim</div>
+                    <div class="text-gray-800 font-semibold">{{ $mrwi->ulp_pengirim ?? ($mrwi->sumber ?? '-') }}</div>
                 </div>
                 <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
                     <div class="text-xs uppercase font-bold text-gray-500 mb-1">Status</div>
                     <div class="text-gray-800 font-semibold">{{ $mrwi->status }}</div>
                 </div>
                 <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                    <div class="text-xs uppercase font-bold text-gray-500 mb-1">Berdasarkan</div>
-                    <div class="text-gray-800 font-semibold">{{ $mrwi->berdasarkan ?? '-' }}</div>
+                    <div class="text-xs uppercase font-bold text-gray-500 mb-1">Ex Gardu</div>
+                    <div class="text-gray-800 font-semibold">{{ $mrwi->ex_gardu ?? '-' }}</div>
                 </div>
                 <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                    <div class="text-xs uppercase font-bold text-gray-500 mb-1">Lokasi</div>
-                    <div class="text-gray-800 font-semibold">{{ $mrwi->lokasi ?? '-' }}</div>
+                    <div class="text-xs uppercase font-bold text-gray-500 mb-1">Vendor Pengirim</div>
+                    <div class="text-gray-800 font-semibold">{{ $mrwi->vendor_pengirim ?? '-' }}</div>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <div class="text-xs uppercase font-bold text-gray-500 mb-1">Nama Pengirim</div>
+                    <div class="text-gray-800 font-semibold">{{ $mrwi->nama_pengirim ?? '-' }}</div>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <div class="text-xs uppercase font-bold text-gray-500 mb-1">Kategori Material</div>
+                    <div class="text-gray-800 font-semibold">{{ $mrwi->kategori_material ?? '-' }}</div>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <div class="text-xs uppercase font-bold text-gray-500 mb-1">Kategori Kerusakan</div>
+                    <div class="text-gray-800 font-semibold">{{ $mrwi->kategori_kerusakan ?? '-' }}</div>
                 </div>
                 <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
                     <div class="text-xs uppercase font-bold text-gray-500 mb-1">Dibuat Oleh</div>

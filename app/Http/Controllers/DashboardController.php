@@ -14,6 +14,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Monitoring;
 use App\Models\MaterialSavingConfig;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -22,7 +23,7 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $unitId = null;
         if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
             $unitId = $user->unit_id;
@@ -43,7 +44,7 @@ class DashboardController extends Controller
 
         $stats = [
             'total_materials' => Material::count(),
-            'total_stock' => $totalStock, 
+            'total_stock' => $totalStock,
             'pemakaian_kumulatif' => \DB::table('surat_jalan_detail')
                 ->join('materials', 'surat_jalan_detail.material_id', '=', 'materials.id')
                 ->join('surat_jalan', 'surat_jalan_detail.surat_jalan_id', '=', 'surat_jalan.id')
@@ -58,10 +59,10 @@ class DashboardController extends Controller
 
         // 10 Surat Jalan Terakhir
         $latest_surat_jalan = SuratJalan::latest()->take(10)->get();
-        
+
         // 10 Material Masuk Terakhir
         $latest_material_masuk = MaterialMasuk::latest()->take(10)->get();
-        
+
         $stockSub = DB::table('material_stocks as ms')
             ->select('ms.material_id', DB::raw('SUM(ms.unrestricted_use_stock) as total_stock'))
             ->when($unitId, function ($query) use ($unitId) {
@@ -71,17 +72,17 @@ class DashboardController extends Controller
 
         // 10 Nilai Material Terbesar (Highest Value)
         $top_value_materials = Material::joinSub($stockSub, 'ms', function ($join) {
-                $join->on('materials.id', '=', 'ms.material_id');
-            })
+            $join->on('materials.id', '=', 'ms.material_id');
+        })
             ->select('materials.*', DB::raw('(ms.total_stock * materials.harga_satuan) as calculated_total_value'))
             ->orderBy('calculated_total_value', 'desc')
             ->take(10)
             ->get();
-        
+
         // 10 Material dengan volume stock terbesar
         $top_stock_materials = Material::joinSub($stockSub, 'ms', function ($join) {
-                $join->on('materials.id', '=', 'ms.material_id');
-            })
+            $join->on('materials.id', '=', 'ms.material_id');
+        })
             ->select('materials.*', DB::raw('ms.total_stock as unrestricted_use_stock'))
             ->orderBy('ms.total_stock', 'desc')
             ->take(10)
@@ -100,12 +101,12 @@ class DashboardController extends Controller
             '000000003250046' => ['name' => 'MCB;230/400V;1P;2A;50Hz;', 'stok_min' => 500],
             '000000003250050' => ['name' => 'MCB;230/400V;1P;6A;50Hz;', 'stok_min' => 500],
         ];
-        
-        $fast_moving_materials = collect($fast_moving_codes)->map(function($data, $code) {
+
+        $fast_moving_materials = collect($fast_moving_codes)->map(function ($data, $code) {
             // Find material in database by code
             $material = Material::where('material_code', $code)->whereNull('deleted_at')->first();
-            
-            
+
+
             // If material not found in database, use hardcoded data with stock 0
             if (!$material) {
                 return (object)[
@@ -118,11 +119,11 @@ class DashboardController extends Controller
                     'stock_badge' => 'danger',
                 ];
             }
-            
+
             $stok_minimum = $material->min_stock > 0 ? $material->min_stock : $data['stok_min'];
-            
+
             $current_stock = $material->unrestricted_use_stock;
-            
+
             // Determine stock status
             if ($current_stock == 0) {
                 $stock_status = 'habis';
@@ -134,7 +135,7 @@ class DashboardController extends Controller
                 $stock_status = 'aman';
                 $stock_badge = 'success';
             }
-            
+
             return (object)[
                 'id' => $material->id,
                 'material_code' => $material->material_code,
@@ -147,7 +148,7 @@ class DashboardController extends Controller
         });
 
         $monitorings = Monitoring::all();
-        
+
         // Get or create material saving config
         $material_saving_config = MaterialSavingConfig::first();
         if (!$material_saving_config) {
@@ -165,14 +166,14 @@ class DashboardController extends Controller
         $saldo_awal = $material_saving_config->saldo_awal_tahun ?? 0;
         $saldo_akhir = $stats['total_saldo'] ?? 0;
         $rata_rata_persediaan = ($saldo_awal + $saldo_akhir) / 2;
-        
+
         $ito = 0;
         if ($rata_rata_persediaan > 0) {
             $ito = $stats['pemakaian_kumulatif'] / $rata_rata_persediaan;
         }
 
         $stats['ito'] = $ito;
-        
+
         return view('dashboard.index', compact(
             'stats',
             'monitorings',
@@ -192,16 +193,16 @@ class DashboardController extends Controller
     {
         if ($request->ajax()) {
             $materials = Material::with(['creator', 'updater'])
-            ->whereNull('deleted_at')
-            ->select('materials.*');
+                ->whereNull('deleted_at')
+                ->select('materials.*');
 
             return DataTables::of($materials)
                 ->filter(function ($query) use ($request) {
                     if ($request->has('search') && $request->search['value'] && strlen($request->search['value']) >= 2) {
                         $searchValue = $request->search['value'];
-                        $query->where(function($q) use ($searchValue) {
+                        $query->where(function ($q) use ($searchValue) {
                             $q->whereRaw('LOWER(material_code) LIKE ?', ['%' . strtolower($searchValue) . '%'])
-                              ->orWhereRaw('LOWER(material_description) LIKE ?', ['%' . strtolower($searchValue) . '%']);
+                                ->orWhereRaw('LOWER(material_description) LIKE ?', ['%' . strtolower($searchValue) . '%']);
                         });
                     }
                 })
@@ -211,27 +212,27 @@ class DashboardController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     $actions = '<div class="btn-group" role="group">';
-                    
+
                     // View Detail - semua role bisa lihat
                     $actions .= '<button type="button" class="btn btn-info btn-sm" onclick="viewDetail(' . $row->id . ')" title="Lihat Detail">';
                     $actions .= '<i class="fa fa-eye"></i>';
                     $actions .= '</button>';
-                    
+
                     // Edit dan Delete - hanya admin yang bisa
-                    if (auth()->user()->isAdmin()) {
+                    if (Auth::user()->isAdmin()) {
                         // Edit
                         $actions .= '<button type="button" class="btn btn-warning btn-sm" onclick="editMaterial(' . $row->id . ')" title="Edit">';
                         $actions .= '<i class="fa fa-edit"></i>';
                         $actions .= '</button>';
-                        
+
                         // Delete
                         $actions .= '<button type="button" class="btn btn-danger btn-sm" onclick="deleteMaterial(' . $row->id . ')" title="Hapus">';
                         $actions .= '<i class="fas fa-trash"></i>';
                         $actions .= '</button>';
                     }
-                    
+
                     $actions .= '</div>';
-                    
+
                     return $actions;
                 })
                 ->editColumn('tanggal_terima', function ($row) {
@@ -259,7 +260,7 @@ class DashboardController extends Controller
     public function show($id)
     {
         $material = Material::with(['creator', 'updater'])->findOrFail($id);
-        
+
         return response()->json([
             'success' => true,
             'data' => $material
@@ -274,7 +275,7 @@ class DashboardController extends Controller
         try {
             $material = Material::findOrFail($id);
             $material->delete();
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Material berhasil dihapus'
@@ -301,7 +302,7 @@ class DashboardController extends Controller
     public function getStats(Request $request)
     {
         try {
-            $user = auth()->user();
+            $user = Auth::user();
             $unitId = null;
             if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
                 $unitId = $user->unit_id;
@@ -336,8 +337,8 @@ class DashboardController extends Controller
                     })
                     ->sum(DB::raw('ms.unrestricted_use_stock * m.harga_satuan')),
                 'recent_materials' => Material::leftJoinSub($stockSub, 'ms', function ($join) {
-                        $join->on('materials.id', '=', 'ms.material_id');
-                    })
+                    $join->on('materials.id', '=', 'ms.material_id');
+                })
                     ->latest('materials.created_at')
                     ->take(5)
                     ->get([
@@ -426,7 +427,7 @@ class DashboardController extends Controller
         }
     }
 
-    
+
 
     /**
      * Export data material ke Excel
@@ -435,7 +436,7 @@ class DashboardController extends Controller
     {
         try {
             $fileName = 'material_export_' . date('Y-m-d_H-i-s') . '.xlsx';
-            
+
             return Excel::download(new MaterialExport, $fileName);
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal mengexport data: ' . $e->getMessage());
@@ -452,11 +453,11 @@ class DashboardController extends Controller
 
         try {
             DB::beginTransaction();
-            
+
             foreach ($request->configs as $config) {
                 Material::where('id', $config['id'])->update(['min_stock' => $config['min_stock']]);
             }
-            
+
             DB::commit();
             return response()->json(['success' => true]);
         } catch (\Exception $e) {

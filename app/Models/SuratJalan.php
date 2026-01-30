@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\MaterialHistory;
@@ -116,7 +117,7 @@ class SuratJalan extends Model
 
         $kode = $jenisKode[$jenisSuratJalan] ?? 'SJ';
         $kodeLog = 'LOG.00.02';
-        $kodeFungsi = auth()->user()->unit->kode_surat ?? 'F02050000';
+        $kodeFungsi = Auth::user()->unit->kode_surat ?? 'F02050000';
 
         // 🔹 Ambil surat terakhir dari semua jenis (global numbering)
         $lastSurat = self::whereYear('created_at', $year)

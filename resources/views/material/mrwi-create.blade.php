@@ -54,23 +54,41 @@
                     <h3 class="text-lg font-bold text-gray-700 mb-4">Review Header Data</h3>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div>
-                            <label class="text-xs font-bold text-gray-500 uppercase">Tanggal Masuk</label>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Tanggal Retur</label>
                             <input type="date" name="tanggal_masuk" value="{{ $requestData['tanggal_masuk'] ?? '' }}"
                                 class="form-input w-full bg-gray-100" readonly>
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-gray-500 uppercase">Sumber</label>
-                            <input type="text" name="sumber" value="{{ $requestData['sumber'] ?? '' }}"
+                            <label class="text-xs font-bold text-gray-500 uppercase">ULP Pengirim</label>
+                            <input type="text" name="ulp_pengirim" value="{{ $requestData['ulp_pengirim'] ?? '' }}"
                                 class="form-input w-full bg-gray-100" readonly>
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-gray-500 uppercase">Berdasarkan</label>
-                            <input type="text" name="berdasarkan" value="{{ $requestData['berdasarkan'] ?? '' }}"
+                            <label class="text-xs font-bold text-gray-500 uppercase">Ex Gardu</label>
+                            <input type="text" name="ex_gardu" value="{{ $requestData['ex_gardu'] ?? '' }}"
                                 class="form-input w-full bg-gray-100" readonly>
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-gray-500 uppercase">Lokasi</label>
-                            <input type="text" name="lokasi" value="{{ $requestData['lokasi'] ?? '' }}"
+                            <label class="text-xs font-bold text-gray-500 uppercase">Vendor Pengirim</label>
+                            <input type="text" name="vendor_pengirim" value="{{ $requestData['vendor_pengirim'] ?? '' }}"
+                                class="form-input w-full bg-gray-100" readonly>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Nama Pengirim</label>
+                            <input type="text" name="nama_pengirim"
+                                value="{{ $requestData['nama_pengirim'] ?? '' }}" class="form-input w-full bg-gray-100"
+                                readonly>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Kategori Material</label>
+                            <input type="text" name="kategori_material"
+                                value="{{ $requestData['kategori_material'] ?? '' }}"
+                                class="form-input w-full bg-gray-100" readonly>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Kategori Kerusakan</label>
+                            <input type="text" name="kategori_kerusakan"
+                                value="{{ $requestData['kategori_kerusakan'] ?? '' }}"
                                 class="form-input w-full bg-gray-100" readonly>
                         </div>
                         <div class="col-span-full">
@@ -225,24 +243,51 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                     <div>
                         <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Tanggal
-                            Masuk</label>
+                            Retur</label>
                         <input type="date" name="tanggal_masuk" class="form-input w-full"
                             value="{{ old('tanggal_masuk', date('Y-m-d')) }}" required>
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Sumber</label>
-                        <input type="text" name="sumber" class="form-input w-full" value="{{ old('sumber') }}"
-                            required>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">ULP
+                            Pengirim</label>
+                        <input type="text" name="ulp_pengirim" class="form-input w-full"
+                            value="{{ old('ulp_pengirim') }}" placeholder="Nama ULP" required>
                     </div>
                     <div>
-                        <label
-                            class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Berdasarkan</label>
-                        <input type="text" name="berdasarkan" class="form-input w-full"
-                            value="{{ old('berdasarkan') }}">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Ex
+                            Gardu</label>
+                        <input type="text" name="ex_gardu" class="form-input w-full" value="{{ old('ex_gardu') }}"
+                            placeholder="Nama Gardu/Lokasi/Pelanggan" required>
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Lokasi</label>
-                        <input type="text" name="lokasi" class="form-input w-full" value="{{ old('lokasi') }}">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Vendor
+                            Pengirim</label>
+                        <input type="text" name="vendor_pengirim" class="form-input w-full"
+                            value="{{ old('vendor_pengirim') }}" placeholder="Nama Vendor">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Nama
+                            Pengirim</label>
+                        <input type="text" name="nama_pengirim" class="form-input w-full"
+                            value="{{ old('nama_pengirim') }}" placeholder="Nama Orang" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Kategori
+                            Material</label>
+                        <select name="kategori_material" id="kategoriMaterial" class="form-input w-full" required>
+                            <option value="" disabled {{ old('kategori_material') ? '' : 'selected' }}>Pilih</option>
+                            <option value="Trafo" {{ old('kategori_material') == 'Trafo' ? 'selected' : '' }}>Trafo
+                            </option>
+                            <option value="Kubikel" {{ old('kategori_material') == 'Kubikel' ? 'selected' : '' }}>Kubikel
+                            </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Kategori
+                            Kerusakan</label>
+                        <select name="kategori_kerusakan" id="kategoriKerusakan" class="form-input w-full" required>
+                            <option value="" disabled selected>Pilih</option>
+                        </select>
                     </div>
                     <div class="md:col-span-2 lg:col-span-3">
                         <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Catatan</label>
@@ -282,3 +327,60 @@
         @endif
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const kategoriMaterial = document.getElementById('kategoriMaterial');
+            const kategoriKerusakan = document.getElementById('kategoriKerusakan');
+            if (!kategoriMaterial || !kategoriKerusakan) return;
+
+            const optionsMap = {
+                Trafo: [
+                    'Tidak Rusak',
+                    'Kumparan Short',
+                    'Bushing Rusak',
+                    'Fisik Rusak (bekas jatuh)',
+                    'Oli Bocor (kosong)',
+                    'Bekas Sambaran Petir',
+                ],
+                Kubikel: [
+                    'Tidak Rusak',
+                    'CB/LBS Bocor atau Rusak',
+                    'CT/VT Rusak',
+                    'Mekanik Rusak',
+                    'Bekas Ledakan/Flash Over',
+                ],
+            };
+
+            const oldValue = "{{ old('kategori_kerusakan') }}";
+
+            function renderKerusakanOptions() {
+                const selected = kategoriMaterial.value;
+                const options = optionsMap[selected] || [];
+                kategoriKerusakan.innerHTML = '';
+
+                const placeholder = document.createElement('option');
+                placeholder.value = '';
+                placeholder.disabled = true;
+                placeholder.selected = true;
+                placeholder.textContent = 'Pilih';
+                kategoriKerusakan.appendChild(placeholder);
+
+                options.forEach((label) => {
+                    const opt = document.createElement('option');
+                    opt.value = label;
+                    opt.textContent = label;
+                    if (oldValue && oldValue === label) {
+                        opt.selected = true;
+                        placeholder.selected = false;
+                    }
+                    kategoriKerusakan.appendChild(opt);
+                });
+            }
+
+            kategoriMaterial.addEventListener('change', renderKerusakanOptions);
+            renderKerusakanOptions();
+        });
+    </script>
+@endpush

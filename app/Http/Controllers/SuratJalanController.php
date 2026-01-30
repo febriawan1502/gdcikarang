@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\Material;
@@ -26,7 +27,7 @@ class SuratJalanController extends Controller
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            $user = auth()->user();
+            $user = Auth::user();
 
             // 👀 Guest: hanya boleh GET (view-only)
             if ($user && $user->role === 'guest' && !$request->isMethod('GET')) {
@@ -158,7 +159,7 @@ class SuratJalanController extends Controller
             })
 
             ->addColumn('action', function ($row) {
-                $user = auth()->user();
+                $user = Auth::user();
                 $actions = '<div class="action-buttons">';
 
                 // Semua role bisa View detail (pakai modal AJAX)
@@ -240,7 +241,7 @@ class SuratJalanController extends Controller
     {
         Log::info('=== SURAT JALAN FORM SUBMISSION ===');
         Log::info('Request data:', $request->all());
-        Log::info('User ID: ' . auth()->id());
+        Log::info('User ID: ' . Auth::id());
 
 
         $validator = Validator::make($request->all(), [
@@ -332,7 +333,7 @@ class SuratJalanController extends Controller
                 'pengemudi' => $request->pengemudi,
                 'foto_penerima' => $fotoPath,
                 'status' => 'BUTUH_PERSETUJUAN',
-                'created_by' => auth()->id(),
+                'created_by' => Auth::id(),
             ]);
 
             $isManualLike = SuratJalan::isManualLikeJenis($request->jenis_surat_jalan);
@@ -436,7 +437,7 @@ class SuratJalanController extends Controller
      */
     public function submitChecked(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         // 🔐 Hanya security
         if ($user->role !== 'security') {
@@ -489,7 +490,7 @@ class SuratJalanController extends Controller
      */
     public function updateKendaraan(Request $request, SuratJalan $suratJalan)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         // 🔐 Hanya security yang boleh update kendaraan via modal
         if ($user->role !== 'security') {
@@ -698,7 +699,7 @@ class SuratJalanController extends Controller
      */
     public function destroy(SuratJalan $suratJalan)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         if ($suratJalan->status === 'APPROVED') {
             return response()->json([
@@ -784,7 +785,7 @@ class SuratJalanController extends Controller
      */
     public function approve(Request $request, SuratJalan $suratJalan)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         if (!in_array($user->role, ['admin', 'petugas'])) {
             if ($request->ajax()) {
