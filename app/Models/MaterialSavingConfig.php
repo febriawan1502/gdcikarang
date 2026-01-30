@@ -15,6 +15,7 @@ class MaterialSavingConfig extends Model
     protected $table = 'material_saving_config';
 
     protected $fillable = [
+        'unit_id',
         'standby',
         'garansi',
         'perbaikan',

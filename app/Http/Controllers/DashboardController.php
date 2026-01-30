@@ -149,17 +149,16 @@ class DashboardController extends Controller
 
         $monitorings = Monitoring::all();
 
-        // Get or create material saving config
-        $material_saving_config = MaterialSavingConfig::first();
-        if (!$material_saving_config) {
-            $material_saving_config = MaterialSavingConfig::create([
-                'standby' => 0,
-                'garansi' => 0,
-                'perbaikan' => 0,
-                'usul_hapus' => 0,
-                'saldo_awal_tahun' => 0,
-            ]);
-        }
+        // Get or create material saving config per unit
+        $material_saving_config = MaterialSavingConfig::firstOrCreate([
+            'unit_id' => $unitId,
+        ], [
+            'standby' => 0,
+            'garansi' => 0,
+            'perbaikan' => 0,
+            'usul_hapus' => 0,
+            'saldo_awal_tahun' => 0,
+        ]);
 
         // Calculate ITO
         // Rumus: Pemakaian Komulatif / ((Saldo Awal + Saldo Akhir) / 2)
@@ -373,12 +372,26 @@ class DashboardController extends Controller
                 'saldo_awal_tahun' => 'required|numeric|min:0',
             ]);
 
-            $config = MaterialSavingConfig::first();
-            if (!$config) {
-                $config = MaterialSavingConfig::create($validated);
-            } else {
-                $config->update($validated);
+            $user = Auth::user();
+            $unitId = null;
+            if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
+                $unitId = $user->unit_id;
             }
+            if (!$unitId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unit user belum diset.'
+                ], 422);
+            }
+
+            $config = MaterialSavingConfig::firstOrCreate(['unit_id' => $unitId], [
+                'standby' => 0,
+                'garansi' => 0,
+                'perbaikan' => 0,
+                'usul_hapus' => 0,
+                'saldo_awal_tahun' => 0,
+            ]);
+            $config->update($validated);
 
             return response()->json([
                 'success' => true,
@@ -407,12 +420,26 @@ class DashboardController extends Controller
                 // 'saldo_awal_tahun' removed from here as it's handled separately now
             ]);
 
-            $config = MaterialSavingConfig::first();
-            if (!$config) {
-                $config = MaterialSavingConfig::create($validated);
-            } else {
-                $config->update($validated);
+            $user = Auth::user();
+            $unitId = null;
+            if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
+                $unitId = $user->unit_id;
             }
+            if (!$unitId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unit user belum diset.'
+                ], 422);
+            }
+
+            $config = MaterialSavingConfig::firstOrCreate(['unit_id' => $unitId], [
+                'standby' => 0,
+                'garansi' => 0,
+                'perbaikan' => 0,
+                'usul_hapus' => 0,
+                'saldo_awal_tahun' => 0,
+            ]);
+            $config->update($validated);
 
             return response()->json([
                 'success' => true,
@@ -454,8 +481,26 @@ class DashboardController extends Controller
         try {
             DB::beginTransaction();
 
+            $user = Auth::user();
+            $unitId = null;
+            if ($user && $user->unit_id && (!$user->unit || !$user->unit->is_induk)) {
+                $unitId = $user->unit_id;
+            }
+            if (!$unitId) {
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => 'Unit user belum diset.'], 422);
+            }
+
             foreach ($request->configs as $config) {
-                Material::where('id', $config['id'])->update(['min_stock' => $config['min_stock']]);
+                MaterialStock::withoutGlobalScopes()->updateOrCreate(
+                    [
+                        'material_id' => $config['id'],
+                        'unit_id' => $unitId,
+                    ],
+                    [
+                        'min_stock' => $config['min_stock'],
+                    ]
+                );
             }
 
             DB::commit();
