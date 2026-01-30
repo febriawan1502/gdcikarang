@@ -459,7 +459,7 @@ class MaterialMrwiController extends Controller
         ]);
 
         $buckets = match ($request->jenis) {
-            'Garansi' => ['garansi'],
+            'Garansi' => ['standby', 'garansi', 'rusak'],
             'Perbaikan' => ['perbaikan', 'rusak'],
             'Rusak' => ['rusak'],
             'Standby' => ['standby'],

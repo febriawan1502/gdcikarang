@@ -53,7 +53,11 @@
                                     <td class="px-4 py-3 font-mono text-gray-600">{{ $claim->serial_number }}</td>
                                     <td class="px-4 py-3">{{ $claim->submission_date->format('d/m/Y H:i') }}</td>
                                     <td class="px-4 py-3 font-bold text-yellow-700">
-                                        {{ $claim->submission_date->diffForHumans(null, true) }}
+                                        @php
+                                            $hours = $claim->submission_date->diffInHours(now());
+                                            $hari = max(1, (int) ceil($hours / 24));
+                                        @endphp
+                                        {{ $hari }} hari
                                     </td>
                                     <td class="px-4 py-3 text-right">
                                         <a href="{{ route('surat-jalan.create', ['claim_id' => $claim->id]) }}"

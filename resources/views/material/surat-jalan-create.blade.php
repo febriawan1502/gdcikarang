@@ -23,6 +23,9 @@
         <div class="card border border-gray-100 shadow-xl shadow-gray-200/50">
             <form action="{{ route('surat-jalan.store') }}" method="POST" id="suratJalanForm">
                 @csrf
+                @if(!empty($prefilled['claim_id']))
+                    <input type="hidden" name="claim_id" value="{{ $prefilled['claim_id'] }}">
+                @endif
 
                 <!-- Section: Informasi Surat Jalan -->
                 <div class="p-6 border-b border-gray-100">
@@ -49,13 +52,13 @@
                             </label>
                             <select class="form-input" id="jenis_surat_jalan" name="jenis_surat_jalan" required>
                                 <option value="">Pilih Jenis Surat Jalan</option>
-                                <option value="Normal" selected>Normal</option>
-                                <option value="Standby">Standby</option>
-                                <option value="Garansi">Garansi</option>
-                                <option value="Peminjaman">Peminjaman</option>
-                                <option value="Perbaikan">Perbaikan</option>
-                                <option value="Rusak">Rusak</option>
-                                <option value="Manual">Manual</option>
+                                <option value="Normal" {{ ($prefilled['jenis_surat_jalan'] ?? 'Normal') === 'Normal' ? 'selected' : '' }}>Normal</option>
+                                <option value="Standby" {{ ($prefilled['jenis_surat_jalan'] ?? '') === 'Standby' ? 'selected' : '' }}>Standby</option>
+                                <option value="Garansi" {{ ($prefilled['jenis_surat_jalan'] ?? '') === 'Garansi' ? 'selected' : '' }}>Garansi</option>
+                                <option value="Peminjaman" {{ ($prefilled['jenis_surat_jalan'] ?? '') === 'Peminjaman' ? 'selected' : '' }}>Peminjaman</option>
+                                <option value="Perbaikan" {{ ($prefilled['jenis_surat_jalan'] ?? '') === 'Perbaikan' ? 'selected' : '' }}>Perbaikan</option>
+                                <option value="Rusak" {{ ($prefilled['jenis_surat_jalan'] ?? '') === 'Rusak' ? 'selected' : '' }}>Rusak</option>
+                                <option value="Manual" {{ ($prefilled['jenis_surat_jalan'] ?? '') === 'Manual' ? 'selected' : '' }}>Manual</option>
                             </select>
                         </div>
 
@@ -109,7 +112,7 @@
                                 Nama Penerima
                             </label>
                             <input type="text" class="form-input" id="nama_penerima" name="nama_penerima"
-                                placeholder="Nama Penerima">
+                                placeholder="Nama Orang">
                         </div>
 
                         <div>
@@ -377,6 +380,8 @@
 
 @push('scripts')
     <script>
+        const prefilledSuratJalan = @json($prefilled ?? null);
+
         let jenisSelect;
         let table;
         let notice;
@@ -895,20 +900,22 @@
             });
         }
 
-        function handleSerialLookup(input) {
+        function handleSerialLookup(input, options = {}) {
             const row = input.closest('tr');
             const serial = (input.value || '').trim();
             const jenis = document.getElementById('jenis_surat_jalan').value;
             if (!serial) {
-                return;
+                return Promise.resolve();
             }
 
             if (isDuplicateSerial(serial, input)) {
-                alert('Serial number sudah ada di list.');
+                if (!options.silent) {
+                    alert('Serial number sudah ada di list.');
+                }
                 clearMrwiRow(row);
                 input.value = '';
                 input.focus();
-                return;
+                return Promise.resolve();
             }
 
             const hint = row.querySelector('.mrwi-serial-hint');
@@ -916,11 +923,13 @@
                 hint.classList.add('hidden');
             }
 
-            fetch(`{{ route('material-mrwi.serial-lookup') }}?serial=${encodeURIComponent(serial)}&jenis=${encodeURIComponent(jenis)}`)
+            return fetch(`{{ route('material-mrwi.serial-lookup') }}?serial=${encodeURIComponent(serial)}&jenis=${encodeURIComponent(jenis)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (!data.success) {
-                        alert(data.message || 'Serial number tidak valid.');
+                        if (!options.silent) {
+                            alert(data.message || 'Serial number tidak valid.');
+                        }
                         clearMrwiRow(row);
                         input.value = '';
                         return;
@@ -946,22 +955,27 @@
                         stockInput.value = 1;
                     }
 
-                    const tbody = row.parentElement;
-                    const isLast = row === tbody.lastElementChild;
-                    if (isLast) {
-                        addRow();
-                    }
+                    if (!options.skipAutoAdd) {
+                        const tbody = row.parentElement;
+                        const isLast = row === tbody.lastElementChild;
+                        if (isLast) {
+                            addRow();
+                        }
 
-                    const nextRow = row.nextElementSibling;
-                    if (nextRow) {
-                        const nextSerial = nextRow.querySelector('.mrwi-serial-input');
-                        if (nextSerial) {
-                            nextSerial.focus();
+                        const nextRow = row.nextElementSibling;
+                        if (nextRow) {
+                            const nextSerial = nextRow.querySelector('.mrwi-serial-input');
+                            if (nextSerial) {
+                                nextSerial.focus();
+                            }
                         }
                     }
                 })
                 .catch(() => {
-                    alert('Gagal ambil data serial number.');
+                    const hasMaterial = !!row.querySelector('.material-id')?.value;
+                    if (!options.silent && !hasMaterial) {
+                        alert('Gagal ambil data serial number.');
+                    }
                     clearMrwiRow(row);
                 });
         }
@@ -1013,6 +1027,74 @@
             updateNomorSurat();
             resetTable(); // PENTING: bikin row pertama
             ensureRow();
+
+            applyPrefill();
+        }
+
+        async function applyPrefill() {
+            if (!prefilledSuratJalan || !jenisSelect || !table) {
+                return;
+            }
+
+            if (prefilledSuratJalan.jenis_surat_jalan) {
+                jenisSelect.value = prefilledSuratJalan.jenis_surat_jalan;
+                updateNomorSurat();
+                resetTable();
+            }
+
+            const serials = Array.isArray(prefilledSuratJalan.serials)
+                ? prefilledSuratJalan.serials
+                : (prefilledSuratJalan.serial_number ? [prefilledSuratJalan.serial_number] : []);
+
+            if (serials.length === 0) {
+                return;
+            }
+
+            for (let i = 0; i < serials.length; i++) {
+                const sn = serials[i];
+                const tbody = table.querySelector('tbody');
+                if (!tbody) {
+                    break;
+                }
+                if (i > 0) {
+                    addRow();
+                }
+                let row = tbody.lastElementChild;
+                if (!row) {
+                    addRow();
+                    row = tbody.lastElementChild;
+                }
+                const serialInput = row.querySelector('.mrwi-serial-input');
+                if (!serialInput) {
+                    break;
+                }
+                serialInput.value = sn;
+
+                if (prefilledSuratJalan.material_id) {
+                    const hiddenInput = row.querySelector('.material-id');
+                    const materialInput = row.querySelector('.mrwi-material-display');
+                    const satuanInput = row.querySelector('input[name*="[satuan]"]');
+                    const qtyInput = row.querySelector('input[name*="[quantity]"]');
+                    const stockInput = row.querySelector('input[name*="[stock]"]');
+
+                    if (hiddenInput) hiddenInput.value = prefilledSuratJalan.material_id;
+                    if (materialInput) {
+                        const code = prefilledSuratJalan.material_code || '';
+                        const name = prefilledSuratJalan.nama_barang || '';
+                        materialInput.value = code ? `[${code}] - ${name}` : name;
+                    }
+                    if (satuanInput) satuanInput.value = prefilledSuratJalan.material_satuan || '';
+                    if (qtyInput) qtyInput.value = 1;
+                    if (stockInput) stockInput.value = 1;
+                } else {
+                    await handleSerialLookup(serialInput, { silent: true, skipAutoAdd: true });
+                }
+
+                const keteranganInput = row.querySelector('input[name*="[keterangan]"]');
+                if (keteranganInput && !keteranganInput.value) {
+                    keteranganInput.value = 'Klaim Garansi';
+                }
+            }
         }
 
         // === Toggle mode Manual ===

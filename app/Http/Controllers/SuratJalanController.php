@@ -230,7 +230,10 @@ class SuratJalanController extends Controller
                     'claim_id' => $claim->id,
                     'jenis_surat_jalan' => 'Garansi',
                     'material_id' => $claim->material_id,
+                    'material_code' => $claim->material->material_code ?? null,
+                    'material_satuan' => $claim->material->base_unit_of_measure ?? null,
                     'serial_number' => $claim->serial_number,
+                    'serials' => [$claim->serial_number],
                     'nama_barang' => $claim->material->material_description,
                     'keterangan' => 'Klaim Garansi ' . $claim->ticket_number . ' (SN: ' . $claim->serial_number . ')',
                 ];
@@ -954,7 +957,11 @@ class SuratJalanController extends Controller
                                     'surat_jalan_detail_id' => $detail->id,
                                     'reference_type' => 'surat_jalan',
                                     'reference_number' => $suratJalan->nomor_surat,
-                                    'tanggal' => $suratJalan->tanggal,
+                                    'tanggal' => \Carbon\Carbon::parse($suratJalan->tanggal)
+                                        ->setTimeFrom(now()->timezone('Asia/Jakarta')),
+                                    'keterangan' => $suratJalan->jenis_surat_jalan === 'Garansi'
+                                        ? 'Kirim material klaim garansi'
+                                        : null,
                                 ]);
                             }
                         }
@@ -1137,8 +1144,9 @@ class SuratJalanController extends Controller
         $warrantyClaims = collect();
         if (!$jenis || $jenis === 'Garansi') {
             $warrantyClaims = WarrantyClaim::where('status', 'SUBMITTED')
+                ->whereNull('pickup_surat_jalan_id')
                 ->with(['material', 'creator'])
-                ->latest()
+                ->orderByDesc('created_at')
                 ->get();
         }
 
@@ -1489,7 +1497,7 @@ class SuratJalanController extends Controller
     private function resolveAllowedBuckets(string $jenis): array
     {
         return match ($jenis) {
-            'Garansi' => ['garansi'],
+            'Garansi' => ['standby', 'garansi', 'rusak'],
             'Perbaikan' => ['perbaikan', 'rusak'],
             'Rusak' => ['rusak'],
             'Standby' => ['standby'],

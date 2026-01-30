@@ -133,7 +133,7 @@ class MaterialMrwiController extends Controller
         $timeline = $timeline
             ->merge($claimEvents)
             ->filter(fn ($row) => !empty($row['tanggal']))
-            ->sortBy('tanggal')
+            ->sortByDesc('tanggal')
             ->values();
 
         if ($history->isEmpty() && $warrantyClaims->isEmpty() && !$mrwiDetail) {
