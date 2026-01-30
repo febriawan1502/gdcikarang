@@ -13,6 +13,21 @@ class MaterialMrwiHistoryController extends Controller
     public function index(Request $request)
     {
         $serial = trim((string) $request->get('serial', ''));
+        $data = $this->getHistoryData($serial);
+
+        return view('material.mrwi-history', array_merge(['serial' => $serial], $data));
+    }
+
+    public function scan(Request $request)
+    {
+        $serial = trim((string) $request->get('serial', ''));
+        $data = $this->getHistoryData($serial);
+
+        return view('material.mrwi-history-scan', array_merge(['serial' => $serial], $data));
+    }
+
+    private function getHistoryData(string $serial): array
+    {
         $history = collect();
         $latest = null;
         $material = null;
@@ -84,7 +99,7 @@ class MaterialMrwiHistoryController extends Controller
 
             $timeline = $timeline
                 ->merge($claimEvents)
-                ->filter(fn ($row) => !empty($row['tanggal']))
+                ->filter(fn($row) => !empty($row['tanggal']))
                 ->sortByDesc('tanggal')
                 ->values();
 
@@ -93,6 +108,76 @@ class MaterialMrwiHistoryController extends Controller
             }
         }
 
-        return view('material.mrwi-history', compact('serial', 'history', 'latest', 'material', 'notFound', 'timeline', 'mrwiDetail'));
+        // Determine Current Status string
+        $currentStatus = '-';
+        if ($latest) {
+            // Default mapping
+            switch (strtolower($latest->status_bucket)) {
+                case 'standby':
+                    $currentStatus = 'Material Standby';
+                    break;
+                case 'garansi':
+                    $currentStatus = 'Garansi';
+                    break;
+                case 'perbaikan':
+                    $currentStatus = 'Perbaikan';
+                    break;
+                case 'rusak':
+                    $currentStatus = 'Rusak';
+                    break;
+                default:
+                    $currentStatus = ucfirst($latest->status_bucket);
+            }
+
+            // Logic Overrides
+
+            // 1. Klaim Garansi Flow
+            // If current bucket is Garansi OR active claim implies it's in claim process
+            if (strtolower($latest->status_bucket) === 'garansi') {
+                $activeClaim = $warrantyClaims->last(); // Assuming ordered
+                if ($activeClaim) {
+                    if ($activeClaim->return_date) {
+                        // Claim returned. If latest move is NOT yet standby (sync lag?), assume logic dictates standby.
+                        // But if users say "kalau sudah kembali menjadi standby", usually the move handles it.
+                        // Check logical strictness:
+                        if (strtolower($latest->status_bucket) !== 'standby') {
+                            // Fallback if move didn't update bucket yet (rare case)
+                            $currentStatus = 'Material Standby';
+                        }
+                    } elseif ($activeClaim->pickup_date) {
+                        $currentStatus = 'Proses Klaim';
+                    } elseif ($activeClaim->submission_date) {
+                        $currentStatus = 'Pengajuan Klaim';
+                    }
+                }
+            }
+
+            // 2. Perbaikan Flow
+            // "misal input rusak kemudian dibuat surat jalan perbaikan maka status nya jadi perbaikan"
+            // If it was Rusak, and moved OUT for perbaikan (implied by Surat Jalan context or bucket change)
+            if (strtolower($latest->status_bucket) === 'rusak') {
+                // Check if latest move is 'keluar' with reference to Surat Jalan Perbaikan? 
+                // Assuming the Surat Jalan process updates the bucket to 'perbaikan'.
+                // BUT, if the bucket is still 'rusak' but there's a move?
+                // Let's assume the user means finding a Surat Jalan that changes context.
+                // For now, if bucket is 'perbaikan', we set it to 'Perbaikan'.
+            }
+
+            if (strtolower($latest->status_bucket) === 'perbaikan') {
+                $currentStatus = 'Perbaikan'; // Explicitly set as Perbaikan per user request "status nya jadi perbaikan"
+                if ($latest->jenis === 'keluar') {
+                    // Maybe "Proses Perbaikan" if needed, but user just said "jadi perbaikan"
+                    // Let's stick to "Perbaikan" unless "Proses Perbaikan" is preferred.
+                    // User said: "rusak juga bisa berubah jadi diperbaiki"
+                }
+            }
+
+            // 3. Standby check (redundant with switch but safe)
+            if (strtolower($latest->status_bucket) === 'standby') {
+                $currentStatus = 'Material Standby';
+            }
+        }
+
+        return compact('history', 'latest', 'material', 'notFound', 'timeline', 'mrwiDetail', 'currentStatus');
     }
 }

@@ -65,7 +65,28 @@ class MaterialMrwiItemController extends Controller
             ->editColumn('id_pelanggan', function ($row) {
                 return $row->id_pelanggan ?? '-';
             })
+            ->addColumn('action', function ($row) {
+                return '<a href="' . route('material-mrwi.items.generate-barcode', $row->id) . '"
+                        class="text-blue-500 hover:text-blue-700 transition-colors"
+                        title="Print QR Code" target="_blank">
+                        <i class="fas fa-qrcode"></i>
+                    </a>';
+            })
+            ->rawColumns(['action'])
             ->make(true);
+    }
+
+    public function generateBarcode($id)
+    {
+        $item = MaterialMrwiDetail::find($id); // Using find instead of findOrFail to handle gracefully if needed, or stick to standard practice.
+        if (!$item) {
+            abort(404);
+        }
+
+        // URL points to the history page with the serial query param
+        $barcodeUrl = route('material-mrwi.scan-serial', ['serial' => $item->serial_number]);
+
+        return view('material.mrwi-item-barcode', compact('item', 'barcodeUrl'));
     }
 
     private function resolveStatusLabel(int $klasifikasi): string

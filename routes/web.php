@@ -216,6 +216,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/preview', [MaterialMrwiController::class, 'preview'])->name('preview');
         Route::post('/', [MaterialMrwiController::class, 'store'])->name('store');
         Route::get('/history', [MaterialMrwiHistoryController::class, 'index'])->name('history');
+        Route::get('/scan-serial', [MaterialMrwiHistoryController::class, 'scan'])->name('scan-serial');
         Route::get('/serials', [MaterialMrwiController::class, 'getAvailableSerials'])->name('serials');
         Route::get('/serial-lookup', [MaterialMrwiController::class, 'lookupSerial'])->name('serial-lookup');
         Route::get('/stock/{category?}', [MaterialMrwiStockController::class, 'index'])->name('stock');
@@ -223,6 +224,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/stock/{category}/data', [MaterialMrwiStockController::class, 'getData'])->name('stock.data');
         Route::get('/items', [App\Http\Controllers\MaterialMrwiItemController::class, 'index'])->name('items');
         Route::get('/items/data', [App\Http\Controllers\MaterialMrwiItemController::class, 'data'])->name('items.data');
+        Route::get('/items/{id}/barcode', [App\Http\Controllers\MaterialMrwiItemController::class, 'generateBarcode'])->name('items.generate-barcode');
         Route::get('/{id}', [MaterialMrwiController::class, 'show'])->name('show');
     });
 

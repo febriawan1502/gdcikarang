@@ -28,7 +28,7 @@
 
     /* Sidebar */
     --sidebar-width: 280px;
-    --sidebar-collapsed-width: 60px;
+    --sidebar-collapsed-width: 88px;
     --header-height: 70px;
 
     /* Shadows */
@@ -301,11 +301,11 @@ body {
 
 .app-wrapper.sidebar-collapsed .nav-link {
     justify-content: center;
-    padding: 10px;
-    width: 48px;
-    height: 48px;
+    padding: 12px;
+    width: 56px;
+    height: 56px;
     margin: 0 auto;
-    border-radius: 14px;
+    border-radius: 16px;
     box-shadow: none;
     background: transparent;
 }
@@ -343,9 +343,9 @@ body {
 }
 
 .app-wrapper.sidebar-collapsed .nav-icon {
-    width: 28px;
-    height: 28px;
-    font-size: 13px;
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
     background: transparent;
 }
 

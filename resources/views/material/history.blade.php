@@ -101,7 +101,8 @@
                         <tr class="bg-gray-50">
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal</th>
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Tipe</th>
-                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">No Slip</th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Nomor Material
+                            </th>
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Material</th>
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Masuk</th>
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Keluar</th>
@@ -137,7 +138,9 @@
                                     @endif
                                 </td>
 
-                                <td class="px-4 py-3 text-gray-600">{{ $h->no_slip ?? '-' }}</td>
+                                <td class="px-4 py-3 text-gray-600">
+                                    {{ isset($h->material->material_code) ? ltrim($h->material->material_code, '0') : '-' }}
+                                </td>
                                 <td class="px-4 py-3 text-gray-800">
                                     {{ optional($h->material)->material_description ?? '-' }}</td>
                                 <td class="px-4 py-3 font-semibold text-green-600">{{ number_format($h->masuk ?? 0) }}</td>

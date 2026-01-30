@@ -49,11 +49,14 @@
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">No</th>
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">No Seri PLN</th>
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">No Material</th>
-                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Material</th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Material
+                            </th>
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Merk</th>
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Tahun</th>
                             <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">ID Pel</th>
-                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status Inspeksi</th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status Inspeksi
+                            </th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-10">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 bg-white">
@@ -74,17 +77,54 @@
                 ajax: {
                     url: '{{ route('material-mrwi.items.data') }}',
                 },
-                columns: [
-                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-                    { data: 'serial_number', name: 'serial_number' },
-                    { data: 'no_material', name: 'no_material' },
-                    { data: 'nama_material', name: 'nama_material' },
-                    { data: 'nama_pabrikan', name: 'nama_pabrikan' },
-                    { data: 'tahun_buat', name: 'tahun_buat' },
-                    { data: 'id_pelanggan', name: 'id_pelanggan' },
-                    { data: 'status_inspeksi', name: 'status_inspeksi', orderable: false, searchable: false },
+                columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'serial_number',
+                        name: 'serial_number'
+                    },
+                    {
+                        data: 'no_material',
+                        name: 'no_material'
+                    },
+                    {
+                        data: 'nama_material',
+                        name: 'nama_material'
+                    },
+                    {
+                        data: 'nama_pabrikan',
+                        name: 'nama_pabrikan'
+                    },
+                    {
+                        data: 'tahun_buat',
+                        name: 'tahun_buat'
+                    },
+                    {
+                        data: 'id_pelanggan',
+                        name: 'id_pelanggan'
+                    },
+
+                    {
+                        data: 'status_inspeksi',
+                        name: 'status_inspeksi',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    },
                 ],
-                order: [[1, 'asc']],
+                order: [
+                    [1, 'asc']
+                ],
                 responsive: true,
                 dom: '<"hidden"f>rt<"flex flex-col md:flex-row justify-between items-center mt-4 gap-4"<"text-sm text-gray-500"l><"flex items-center gap-1"p>>',
                 language: {
